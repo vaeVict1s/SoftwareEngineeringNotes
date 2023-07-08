@@ -1,0 +1,155 @@
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Brief Introduction to Latex}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Downloading Tex Studio}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Source Code and Resume Templates}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}LaTeX Files}{3}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}LaTeX Commands}{4}{subsubsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.4}General Items}{4}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Terminology to Know}{4}{subsection.1.5}%
+\contentsline {subsection}{\numberline {1.6}Tex Studio Commands}{4}{subsection.1.6}%
+\contentsline {subsection}{\numberline {1.7}Creating Templates}{4}{subsection.1.7}%
+\contentsline {section}{\numberline {2}Solid Principles}{6}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Single-Responsibility}{6}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Open-Close}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Liskov Substitution}{6}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Interface Segregation}{7}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Dependency Inversion}{7}{subsection.2.5}%
+\contentsline {section}{\numberline {3}Design Patterns}{8}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Creational Patterns}{8}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Factory Method}{8}{subsubsection.3.1.1}%
+\contentsline {paragraph}{Intent}{8}{paragraph*.2}%
+\contentsline {paragraph}{When to use this pattern}{8}{paragraph*.3}%
+\contentsline {paragraph}{Structure}{9}{paragraph*.4}%
+\contentsline {paragraph}{Pros and Cons}{10}{paragraph*.6}%
+\contentsline {paragraph}{Relation with other Design Patterns}{10}{paragraph*.7}%
+\contentsline {subsubsection}{\numberline {3.1.2}Abstract Factory}{10}{subsubsection.3.1.2}%
+\contentsline {paragraph}{Intent}{10}{paragraph*.8}%
+\contentsline {paragraph}{When to use this pattern}{10}{paragraph*.9}%
+\contentsline {paragraph}{Structure}{10}{paragraph*.10}%
+\contentsline {paragraph}{Pros and Cons}{10}{paragraph*.11}%
+\contentsline {paragraph}{Relation with other Design Patterns}{10}{paragraph*.12}%
+\contentsline {subsubsection}{\numberline {3.1.3}Builder}{10}{subsubsection.3.1.3}%
+\contentsline {paragraph}{Intent}{10}{paragraph*.13}%
+\contentsline {paragraph}{When to use this pattern}{11}{paragraph*.14}%
+\contentsline {paragraph}{Structure}{11}{paragraph*.15}%
+\contentsline {paragraph}{Pros and Cons}{11}{paragraph*.16}%
+\contentsline {paragraph}{Relation with other Design Patterns}{11}{paragraph*.17}%
+\contentsline {subsubsection}{\numberline {3.1.4}Prototype}{11}{subsubsection.3.1.4}%
+\contentsline {paragraph}{Intent}{11}{paragraph*.18}%
+\contentsline {paragraph}{When to use this pattern}{11}{paragraph*.19}%
+\contentsline {paragraph}{Structure}{11}{paragraph*.20}%
+\contentsline {paragraph}{Pros and Cons}{11}{paragraph*.21}%
+\contentsline {paragraph}{Relation with other Design Patterns}{11}{paragraph*.22}%
+\contentsline {subsubsection}{\numberline {3.1.5}Singleton}{12}{subsubsection.3.1.5}%
+\contentsline {paragraph}{Intent}{12}{paragraph*.23}%
+\contentsline {paragraph}{When to use this pattern}{12}{paragraph*.24}%
+\contentsline {paragraph}{Structure}{12}{paragraph*.25}%
+\contentsline {paragraph}{Pros and Cons}{12}{paragraph*.26}%
+\contentsline {paragraph}{Relation with other Design Patterns}{12}{paragraph*.27}%
+\contentsline {subsection}{\numberline {3.2}Behavioral Patterns}{12}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Chain of Responsibility}{12}{subsubsection.3.2.1}%
+\contentsline {paragraph}{Intent}{12}{paragraph*.28}%
+\contentsline {paragraph}{When to use this pattern}{12}{paragraph*.29}%
+\contentsline {paragraph}{Structure}{12}{paragraph*.30}%
+\contentsline {paragraph}{Pros and Cons}{13}{paragraph*.31}%
+\contentsline {paragraph}{Relation with other Design Patterns}{13}{paragraph*.32}%
+\contentsline {subsubsection}{\numberline {3.2.2}Command}{13}{subsubsection.3.2.2}%
+\contentsline {paragraph}{Intent}{13}{paragraph*.33}%
+\contentsline {paragraph}{When to use this pattern}{13}{paragraph*.34}%
+\contentsline {paragraph}{Structure}{13}{paragraph*.35}%
+\contentsline {paragraph}{Pros and Cons}{13}{paragraph*.36}%
+\contentsline {paragraph}{Relation with other Design Patterns}{13}{paragraph*.37}%
+\contentsline {subsubsection}{\numberline {3.2.3}Iterator}{13}{subsubsection.3.2.3}%
+\contentsline {paragraph}{Intent}{13}{paragraph*.38}%
+\contentsline {paragraph}{When to use this pattern}{13}{paragraph*.39}%
+\contentsline {paragraph}{Structure}{13}{paragraph*.40}%
+\contentsline {paragraph}{Pros and Cons}{13}{paragraph*.41}%
+\contentsline {paragraph}{Relation with other Design Patterns}{13}{paragraph*.42}%
+\contentsline {subsubsection}{\numberline {3.2.4}Mediator}{14}{subsubsection.3.2.4}%
+\contentsline {paragraph}{Intent}{14}{paragraph*.43}%
+\contentsline {paragraph}{When to use this pattern}{14}{paragraph*.44}%
+\contentsline {paragraph}{Structure}{14}{paragraph*.45}%
+\contentsline {paragraph}{Pros and Cons}{14}{paragraph*.46}%
+\contentsline {paragraph}{Relation with other Design Patterns}{14}{paragraph*.47}%
+\contentsline {subsubsection}{\numberline {3.2.5}Memento}{14}{subsubsection.3.2.5}%
+\contentsline {paragraph}{Intent}{14}{paragraph*.48}%
+\contentsline {paragraph}{When to use this pattern}{14}{paragraph*.49}%
+\contentsline {paragraph}{Structure}{14}{paragraph*.50}%
+\contentsline {paragraph}{Pros and Cons}{14}{paragraph*.51}%
+\contentsline {paragraph}{Relation with other Design Patterns}{14}{paragraph*.52}%
+\contentsline {subsubsection}{\numberline {3.2.6}Observer}{14}{subsubsection.3.2.6}%
+\contentsline {paragraph}{Intent}{14}{paragraph*.53}%
+\contentsline {paragraph}{When to use this pattern}{15}{paragraph*.54}%
+\contentsline {paragraph}{Structure}{15}{paragraph*.55}%
+\contentsline {paragraph}{Pros and Cons}{15}{paragraph*.56}%
+\contentsline {paragraph}{Relation with other Design Patterns}{15}{paragraph*.57}%
+\contentsline {subsubsection}{\numberline {3.2.7}State}{15}{subsubsection.3.2.7}%
+\contentsline {paragraph}{Intent}{15}{paragraph*.58}%
+\contentsline {paragraph}{When to use this pattern}{15}{paragraph*.59}%
+\contentsline {paragraph}{Structure}{15}{paragraph*.60}%
+\contentsline {paragraph}{Pros and Cons}{15}{paragraph*.61}%
+\contentsline {paragraph}{Relation with other Design Patterns}{15}{paragraph*.62}%
+\contentsline {subsubsection}{\numberline {3.2.8}Strategy}{15}{subsubsection.3.2.8}%
+\contentsline {paragraph}{Intent}{15}{paragraph*.63}%
+\contentsline {paragraph}{When to use this pattern}{15}{paragraph*.64}%
+\contentsline {paragraph}{Structure}{15}{paragraph*.65}%
+\contentsline {paragraph}{Pros and Cons}{16}{paragraph*.66}%
+\contentsline {paragraph}{Relation with other Design Patterns}{16}{paragraph*.67}%
+\contentsline {subsubsection}{\numberline {3.2.9}Template Method}{16}{subsubsection.3.2.9}%
+\contentsline {paragraph}{Intent}{16}{paragraph*.68}%
+\contentsline {paragraph}{When to use this pattern}{16}{paragraph*.69}%
+\contentsline {paragraph}{Structure}{16}{paragraph*.70}%
+\contentsline {paragraph}{Pros and Cons}{16}{paragraph*.71}%
+\contentsline {paragraph}{Relation with other Design Patterns}{16}{paragraph*.72}%
+\contentsline {subsubsection}{\numberline {3.2.10}Visitor}{16}{subsubsection.3.2.10}%
+\contentsline {paragraph}{Intent}{16}{paragraph*.73}%
+\contentsline {paragraph}{When to use this pattern}{16}{paragraph*.74}%
+\contentsline {paragraph}{Structure}{16}{paragraph*.75}%
+\contentsline {paragraph}{Pros and Cons}{16}{paragraph*.76}%
+\contentsline {paragraph}{Relation with other Design Patterns}{16}{paragraph*.77}%
+\contentsline {subsection}{\numberline {3.3}Structural Patterns}{17}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Adapter}{17}{subsubsection.3.3.1}%
+\contentsline {paragraph}{Intent}{17}{paragraph*.78}%
+\contentsline {paragraph}{When to use this pattern}{17}{paragraph*.79}%
+\contentsline {paragraph}{Structure}{17}{paragraph*.80}%
+\contentsline {paragraph}{Pros and Cons}{17}{paragraph*.81}%
+\contentsline {paragraph}{Relation with other Design Patterns}{17}{paragraph*.82}%
+\contentsline {subsubsection}{\numberline {3.3.2}Bridge}{17}{subsubsection.3.3.2}%
+\contentsline {paragraph}{Intent}{17}{paragraph*.83}%
+\contentsline {paragraph}{When to use this pattern}{17}{paragraph*.84}%
+\contentsline {paragraph}{Structure}{17}{paragraph*.85}%
+\contentsline {paragraph}{Pros and Cons}{18}{paragraph*.86}%
+\contentsline {paragraph}{Relation with other Design Patterns}{18}{paragraph*.87}%
+\contentsline {subsubsection}{\numberline {3.3.3}Composite}{18}{subsubsection.3.3.3}%
+\contentsline {paragraph}{Intent}{18}{paragraph*.88}%
+\contentsline {paragraph}{When to use this pattern}{18}{paragraph*.89}%
+\contentsline {paragraph}{Structure}{18}{paragraph*.90}%
+\contentsline {paragraph}{Pros and Cons}{18}{paragraph*.91}%
+\contentsline {paragraph}{Relation with other Design Patterns}{18}{paragraph*.92}%
+\contentsline {subsubsection}{\numberline {3.3.4}Decorator}{18}{subsubsection.3.3.4}%
+\contentsline {paragraph}{Intent}{18}{paragraph*.93}%
+\contentsline {paragraph}{When to use this pattern}{18}{paragraph*.94}%
+\contentsline {paragraph}{Structure}{18}{paragraph*.95}%
+\contentsline {paragraph}{Pros and Cons}{18}{paragraph*.96}%
+\contentsline {paragraph}{Relation with other Design Patterns}{18}{paragraph*.97}%
+\contentsline {subsubsection}{\numberline {3.3.5}Facade}{19}{subsubsection.3.3.5}%
+\contentsline {paragraph}{Intent}{19}{paragraph*.98}%
+\contentsline {paragraph}{When to use this pattern}{19}{paragraph*.99}%
+\contentsline {paragraph}{Structure}{19}{paragraph*.100}%
+\contentsline {paragraph}{Pros and Cons}{19}{paragraph*.101}%
+\contentsline {paragraph}{Relation with other Design Patterns}{19}{paragraph*.102}%
+\contentsline {subsubsection}{\numberline {3.3.6}Flyweight}{19}{subsubsection.3.3.6}%
+\contentsline {paragraph}{Intent}{19}{paragraph*.103}%
+\contentsline {paragraph}{When to use this pattern}{19}{paragraph*.104}%
+\contentsline {paragraph}{Structure}{19}{paragraph*.105}%
+\contentsline {paragraph}{Pros and Cons}{19}{paragraph*.106}%
+\contentsline {paragraph}{Relation with other Design Patterns}{19}{paragraph*.107}%
+\contentsline {subsubsection}{\numberline {3.3.7}Proxy}{19}{subsubsection.3.3.7}%
+\contentsline {paragraph}{Intent}{19}{paragraph*.108}%
+\contentsline {paragraph}{When to use this pattern}{20}{paragraph*.109}%
+\contentsline {paragraph}{Structure}{20}{paragraph*.110}%
+\contentsline {paragraph}{Pros and Cons}{20}{paragraph*.111}%
+\contentsline {paragraph}{Relation with other Design Patterns}{20}{paragraph*.112}%
+\contentsline {section}{\numberline {4}~~~ References}{22}{paragraph*.112}%
+\contentsfinish 

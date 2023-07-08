@@ -1,0 +1,39 @@
+\section{Brief Introduction to Latex}
+\vspace{10.5cm}
+	LaTeX, which is pronounced «Lah-tech» or «Lay-tech», is a document preparation system for high-quality typesetting. It is most often used for medium-to-large technical or scientific documents but it can be used for almost any form of publishing.\\
+	When using Latex, \textbf{\emph{make sure to keep your source code organized by indenting and using sections/chapters/subsections}}. Not keeping your source code organized makes it harder to fix possible errors in your code.
+	\subsection{Downloading Tex Studio}
+			Latex is free to download and is available on all types of operating systems. To download \LaTeX, click the url to the right:\, \url{https://www.texstudio.org/}
+	\subsection{Source Code and Resume Templates}
+			If interested in obtaining the source code for this guide, see:\\
+			\url{https://sourceforge.net/p/latex-source-code/wiki/Download/}\\
+			If interested in obtaining some of the resume templates I have created, see:\\ \url{https://sourceforge.net/p/latex-resume-template/wiki/download/}
+	\subsection{LaTeX Files}
+			LaTeX files have names that end with the extension .tex: for example, an acceptable file name might be myfile.tex. (Never use spaces in file names.) The input file contains both the text of your document and the LATEX commands needed to format it. The first command in the file, \cs{documentclass}, defines the style of the document.
+	\subsubsection{LaTeX Commands}
+			To distinguish them from text, all LATEX commands (also called control sequences) start with a backslash \cs. A command name consists of letters only and is ended by a space or a non letter.
+	\subsection{General Items}
+		\begin{docCommand}{usepackage}{}
+			Packages in latex allow for the user to include cool and unique features into ones document. Most packages for latex will be found on \url{www.ctan.org}
+			\begin{verbatim}
+				\usepackage{package}
+			\end{verbatim}
+		\end{docCommand}
+	\subsection{Terminology to Know}
+			\begin{itemize}
+				\item Preamble:\, All the code that precedes your \cs{begin}\brackets{document}. The preamble section of your document is where all the formatting takes place. 
+				\item Commands:\, Commands are special words that determine \LaTeX behavior.
+				\item Environments:\, Environments are used to format blocks of text in a \LaTeX documents
+			\end{itemize}
+	\subsection{Tex Studio Commands}
+		\begin{itemize}
+			\item The button with the magnifying glass, labeled view, in the top part of Tex Studio allows you to view your document sidebyside with your code.
+			\item The green arrows next to the magnifying class, labeled compile, allows you to update your document with any new code you include. Compiling also allows you to check if there are any errors in your code.  
+		\end{itemize}
+	\subsection{Creating Templates}
+		One of the many great things about \LaTeX\ is that offers many ways to avoid some of the repetitive things that come with creating several documents. One of the features \LaTeX\ offers is to create personal user templates for files that a user often uses but does not want to continuously type out every time.\\
+		For example, lets say you wanted to save a general layout of a lesson document that included \textbf{both} the preamble and some of the actual text and commands in the document. 
+		To create the template, one would first proceed to the folder originally containing this pdf (The Contents You Downloaded from the Zip File)) and then go to the folder labeled \textbf{Files to make Templates out of}. Once there, click the file named: \textbf{Lesson Template}. Once you have opened that file in texstudio, go to \textbf{File}, then \textbf{Make Template}. Once that is done, give the template a name and then press ok.\\
+		After creating a template, all a user needs to do to use that template is to go back to \textbf{File}, and then \textbf{New From Template} and then click the template you created.
+	\vspace{-1.5mm}
+\newpage

@@ -1,0 +1,418 @@
+\section{Design Patterns}
+\vspace{10.5cm}
+\textbf{Design Patterns} describe how to solve recurring design problems 
+to design flexible and reusable object-oriented software, that is, 
+objects that are easier to implement, change, test, and reuse.
+\subsection{Creational Patterns}
+    %%% %%% %%%
+    \subsubsection{Factory Method}
+    \textbf{Factory Method} uses factory methods to deal with the problem of 
+    creating objects without having to specify the exact class of 
+    the object that will be created.\\
+    This is done by creating objects by calling a factory method --- either specified 
+    in an interface and implemented by child classes, or implemented 
+    in a base class and optionally overridden by derived classes --- 
+    rather than by calling a constructor.
+    \paragraph{Intent}
+    The object's creation may lead to a significant duplication of code, 
+    may require information not accessible to the composing object, 
+    may not provide a sufficient level of abstraction, 
+    or may otherwise not be part of the composing object's concerns.\\
+    The factory method design pattern handles these problems by defining 
+    a separate method for creating the objects, which subclasses 
+    can then override to specify the derived type of product 
+    that will be created.
+    \paragraph{When to use this pattern} 
+    \begin{itemize}
+        \item the exact types and dependencies of the objects your code should work with are not known
+        \item there is the need to provide users of a library or framework with a way to extend its internal components
+        \item there is the concern to save system resources by reusing existing objects instead of rebuilding them each time.
+    \end{itemize}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ \includegraphics[scale=0.5]{Factory_Method_Class_Diagram}
+        \missingfigure[figwidth=0.5\textwidth]{Missing}
+        \label{fig:cd_factory-method}
+        \caption{Factory Method Class Diagram}
+    \end{figure}
+    The structure of the Factory Method is quite easy
+    \begin{itemize}
+        \item \textbf{Product} defines the interface common to all the objects.
+        \item{} \textbf{Concrete Products} are the different implementations of the previous interface.
+        \item{} \textbf{Creator} is the base class which declares the factory method.
+        \begin{itemize}
+            \item \textbf{factory method} should either be abstract or return a default product.            
+            \item \textbf{returned type} must match the interface
+        \end{itemize}
+    \end{itemize}
+    \newpage
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+    
+    %%% %%% %%%
+    \subsubsection{Abstract Factory}
+    \textbf{Abstract Factory} makes easier to produce families of related items
+    without specifying their concrete classes. This is achieved declaring 
+    explicit interfaces for each distinct product of the product family and making 
+    all variants of products need to follow those interfaces.\\
+    An Abstract Factory is finally declared with a list of creation methods 
+    for all the items that are part of the product family. For each variant of a product family, 
+    a separate factory class based on the AbstractFactory interface will be needed 
+    and clients access with both factories and products via their abstract interfaces.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+    
+    %%% %%% %%%
+    \subsubsection{Builder}
+    \textbf{Builder} facilitates the construction of complex objects step by step,
+    producing different types and representations of an object using the same construyction code.
+    This is achieved extracting the construction code out of its own class
+    and moving it to a separate Builder class. Construction is managed 
+    with a set of steps executed in series and only in case they are necessary 
+    for producing a specific configuration of the object. A specific Builder class 
+    could be implemented to manage the same building steps in a different manner. 
+    A Director class, not mandatory, can be implemented to collect 
+    the steps in a specific order, while the Builder provides 
+    the implementation of what to do.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+        \includegraphics{no-image}
+
+    %%% %%% %%%
+    \subsubsection{Prototype}
+    \textbf{Prototype} enables the copy of existing objects without implementing 
+    code which depends on their classes. This is achieved delegating the cloning process 
+    to the actual objects that are being cloned. A common interface is implemented 
+    for all the objects that support cloning. The clone method is similar for all classes: 
+    it creates an object of the current class and carries over all the fields values of the old cloned one.
+    Copying private fields is possible for any programming language which allows to access private fields of other objects of the same class.
+    An object which could be cloned is called Prototype. 
+    Cloning is an alternative to subclassing for objects with many fields and configurations.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+    
+    %%% %%% %%%
+    \subsubsection{Singleton}
+    \textbf{Singleton} ensures that a class could have one instance only, 
+    while providing a global access point to this instance. This functionality 
+    could be interpreted as a violation of the Single Responsibility Principle.\\ 
+    The implementation of the Singleton has 2 steps in common:
+    \begin{itemize}
+        \item default constructor is made private, to prevent other objects from calling it
+        \item a static creation method acts as a constructor, calling the private constructor
+           to create an object and save it in a static field.
+           Following calls to this method will return the cached object.         
+    \end{itemize}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+\subsection{Behavioral Patterns}
+    %%% %%% %%%
+    \subsubsection{Chain of Responsibility}
+    \textbf{Chain of Responsibility} makes possible to pass a request 
+    along a chain of handlers, each of which decides upon receiving 
+    a request either to process the request or to pass it to the next handler in the chain.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Command}
+    \textbf{Command}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Iterator}
+    \textbf{Iterator} enables the client to traverse elements of a collection 
+    without exposing its underlying representation. This is achieved 
+    extracting the traversal behavior of a collection into a separate object, called iterator.
+    Details of the trasversals are encapsulated into the iterator class; 
+    in this way several iterators can go through the same collection 
+    at the same time and independently of each other.
+    Iterators should implement the same interface in order to make the client code 
+    compatible with any collection type or any trasversal algorithm, 
+    as long as there's a proper iterator. 
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Mediator}
+    \textbf{Mediator} reduces chaotic and confusing dependencies between objects, 
+    restricting direct communications between the objects and forcing them 
+    to collaborate only through a mediator object. This is achieved cutting 
+    all direct communication between the components which are required 
+    to be independent of each other abd ...
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Memento}
+    \textbf{Memento}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Observer}
+    \textbf{Observer}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{State}
+    \textbf{State}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Strategy}
+    \textbf{Strategy}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Template Method}
+    \textbf{Template Method}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+
+    %%% %%% %%%
+    \subsubsection{Visitor}
+    \textbf{Visitor}
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+    
+\subsection{Structural Patterns}
+    %%% %%% %%%
+    \subsubsection{Adapter}
+    \textbf{Adapter} allows the collaboration among objects with incompatible interfaces.
+    This is achieved through the implementation of an Adapter which make 
+    one interface understandable by an object of a different class.
+    The adatper gets an interface compatible with one existing object.
+    Through this interface, the objects can call the adapter's methods.
+    Upon receiving a call, the adapter passes the request to the second object,
+    in a format and order it could understand.
+    An Adapter could work in both directions.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}    
+    
+    %%% %%% %%%
+    \subsubsection{Bridge}
+    \textbf{Bridge} splits a large class or a set of closely related classes 
+    into two separate hierarchies which can be developed independently of each other.
+    This is achieved by switching from inheritance to object composition.
+    One of the dimensions is extracted into a separate class hierarchy, 
+    therefore the original classes will reference an object of the new hierarchy
+    instead of having all its states and behaviors coded within the class.
+    The original class implement a reference field for each "extracted-dimension" classes 
+    This extraction makes a class able to delegate any 'dimension-related' work
+    to the linked 'dimension-related' object.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}    
+    
+    %%% %%% %%%
+    \subsubsection{Composite}
+    \textbf{Composite} after enabling composition of objects into tree structures, 
+    this pattern let clients work with these structures as they were individual objects.
+    This is achieved extending the class
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}    
+    
+    %%% %%% %%%
+    \subsubsection{Decorator}
+    \textbf{Decorator} attaches new behaviors to objects by placing these objects inside
+    special wrapper objects containing the desired behavior.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}    
+    
+    %%% %%% %%%
+    \subsubsection{Facade}
+    \textbf{Facade} consists of a simplified interface to a complex subsystem 
+    which contains lots of moving parts. Functionalities provided by the Facade 
+    could be reduced to the subset the client is interested in.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}    
+    
+    %%% %%% %%%
+    \subsubsection{Flyweight}
+    \textbf{Flyweight} reduces RAM consumption by sharing common parts of state 
+    between multiple objects, instead of creating copies of same data in each object.
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+    
+    %%% %%% %%%
+    \subsubsection{Proxy}
+    \textbf{Proxy} 
+    \paragraph{Intent}
+    \paragraph{When to use this pattern}
+    \begin{itemize}
+        \item
+        \item
+        \item
+    \end{itemize}
+    \paragraph{Structure}
+    \paragraph{Pros and Cons}
+    \paragraph{Relation with other Design Patterns}
+    
+    
+    
