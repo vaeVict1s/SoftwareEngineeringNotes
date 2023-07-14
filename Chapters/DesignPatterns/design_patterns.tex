@@ -7,22 +7,23 @@ objects that are easier to implement, change, test, and reuse.
     %%% %%% %%%
     \subsubsection{Factory Method}
     \textbf{Factory Method} uses factory methods to deal with the problem of 
-    creating objects without having to specify the exact class of 
+    \textbf{creating objects without having to specify the exact class} of 
     the object that will be created.\\
     This is done by creating objects by calling a factory method --- either specified 
     in an interface and implemented by child classes, or implemented 
     in a base class and optionally overridden by derived classes --- 
     rather than by calling a constructor.
-    \paragraph{Intent}
+    
+    \nparagraph{When to use this pattern} 
     The object's creation may lead to a significant duplication of code, 
     may require information not accessible to the composing object, 
     may not provide a sufficient level of abstraction, 
     or may otherwise not be part of the composing object's concerns.\\
     The factory method design pattern handles these problems by defining 
-    a separate method for creating the objects, which subclasses 
+    a \textbf{separate method for creating the objects}, which subclasses 
     can then override to specify the derived type of product 
-    that will be created.
-    \paragraph{When to use this pattern} 
+    that will be created.\\
+    Following a list of use cases
     \begin{itemize}
         \item the exact types and dependencies of the objects your code should work with are not known
         \item there is the need to provide users of a library or framework with a way to extend its internal components
@@ -32,7 +33,7 @@ objects that are easier to implement, change, test, and reuse.
     \nparagraph{Structure}
     \begin{figure}[H]
         %~ \includegraphics[scale=0.5]{Factory_Method_Class_Diagram}
-        \missingfigure[figwidth=0.5\textwidth]{Missing}
+        \missingfigure[figwidth=0.5\textwidth]{Missing Class Diagram}
         \label{fig:cd_factory-method}
         \caption{Factory Method Class Diagram}
     \end{figure}
@@ -44,36 +45,67 @@ objects that are easier to implement, change, test, and reuse.
         \begin{itemize}
             \item \textbf{factory method} should either be abstract or return a default product.            
             \item \textbf{returned type} must match the interface
+            \item 
         \end{itemize}
+        \item \textbf{Concrete Creators} override the base factory method 
+        in order to return different types of \textbf{Concrete Products}, 
+        which could not be a new instance every time Factory methods could also return 
+        existing objects from a cache, an object in a pool or similar ones.
     \end{itemize}
+    
+    Factory Method helps decouple the creation of the different concrete objects 
+    from the core business logic the Creator might and usually does have.
     \newpage
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
     %%% %%% %%%
     \subsubsection{Abstract Factory}
     \textbf{Abstract Factory} makes easier to produce families of related items
-    without specifying their concrete classes. This is achieved declaring 
-    explicit interfaces for each distinct product of the product family and making 
-    all variants of products need to follow those interfaces.\\
-    An Abstract Factory is finally declared with a list of creation methods 
+    without specifying their concrete classes.\\
+    This is achieved declaring \textbf{explicit interfaces for each distinct product} of the product family and making 
+    \textbf{all variants of products need to follow those interfaces}.\\
+    An Abstract Factory is finally declared with a \textbf{list of creation methods} 
     for all the items that are part of the product family. For each variant of a product family, 
-    a separate factory class based on the AbstractFactory interface will be needed 
-    and clients access with both factories and products via their abstract interfaces.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+    \textbf{a separate factory class} based on the AbstractFactory interface will be needed 
+    and \textbf{clients access with both factories and products via their abstract interfaces}.
+    
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{Abstract_Factory_Class_Diagram}
+        \missingfigure[figwidth=0.5\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_abstract_factory}
+        \caption{Abstract Factory Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Abstract Products} declare the interfaces for a set or family 
+              of related but distinct products.
+        \item \textbf{Concrete Products} are the implementations of the concrete variants 
+              of abstract products. Each single abstract product must be implemented in all given variants.
+        \item \textbf{Abstract Factory} is the interface to collect 
+              the declarations of sets of methods to create each of the abstract products.
+        \item \textbf{Concrete Factorys} implement the creation methods of the 
+              abstract factory, each creating only the product variant it correspons to. 
+        \item \textbf{Client} can work with any concrete factory as long as it communicates with 
+              the objects through their abstract interfaces. In order to have this behavior, 
+              the signatures of the concrete factories' creation methods must match the 
+              corresponding abstract interfaces'. 
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
     %%% %%% %%%
     \subsubsection{Builder}
-    \textbf{Builder} facilitates the construction of complex objects step by step,
+    \textbf{Builder} facilitates the \textbf{construction of complex objects step by step},
     producing different types and representations of an object using the same construyction code.
     This is achieved extracting the construction code out of its own class
     and moving it to a separate Builder class. Construction is managed 
@@ -83,17 +115,34 @@ objects that are easier to implement, change, test, and reuse.
     A Director class, not mandatory, can be implemented to collect 
     the steps in a specific order, while the Builder provides 
     the implementation of what to do.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+    
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{Factory_Method_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram} 
+        \label{fig:cd_builder}
+        \caption{Builder Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Builder} interface declares the production steps 
+        common to all the builders.
+        \item \textbf{Concrete Builders} implement the construction steps 
+        needed for products which do not follow the common interface.
+        \item \textbf{Products} are the resulting objects constructed by different builders.
+        \item \textbf{Director} might be useful to call the steps needed
+        \item \textbf{Client} associates a builder with a director in order to 
+        let latter be used for any further construction.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
-        \includegraphics{no-image}
 
     %%% %%% %%%
     \subsubsection{Prototype}
@@ -105,14 +154,28 @@ objects that are easier to implement, change, test, and reuse.
     Copying private fields is possible for any programming language which allows to access private fields of other objects of the same class.
     An object which could be cloned is called Prototype. 
     Cloning is an alternative to subclassing for objects with many fields and configurations.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{Prototype_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_prototype}
+        \caption{Prototype Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Prototype} interface delares the cloning method
+        \item \textbf{Concrete Prototype} implements the cloning method 
+        and may also handle some logic needed for edge cases of the cloning process.
+        \item \textbf{Client} can produce a copy of any object which follows the prototype interface.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
@@ -121,52 +184,108 @@ objects that are easier to implement, change, test, and reuse.
     \textbf{Singleton} ensures that a class could have one instance only, 
     while providing a global access point to this instance. This functionality 
     could be interpreted as a violation of the Single Responsibility Principle.\\ 
-    The implementation of the Singleton has 2 steps in common:
+    %~ The implementation of the Singleton has 2 steps in common:
+    %~ \begin{itemize}
+        %~ \item default constructor is made private, to prevent other objects from calling it
+        %~ \item a static creation method acts as a constructor, calling the private constructor
+           %~ to create an object and save it in a static field.
+           %~ Following calls to this method will return the cached object.         
+    %~ \end{itemize}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
-        \item default constructor is made private, to prevent other objects from calling it
-        \item a static creation method acts as a constructor, calling the private constructor
-           to create an object and save it in a static field.
-           Following calls to this method will return the cached object.         
+        \item
+        \item
+        \item
     \end{itemize}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_singleton}
+        \caption{Singleton Class Diagram}
+    \end{figure}
     \begin{itemize}
-        \item
-        \item
-        \item
+        \item \textbf{Singleton} class should have a private constructor, 
+        in order to prevent the client from calling it.
+        A static method \texttt{getInstance} is responsible to create and store 
+        the first and only instance in a static field. Successive calls return the same instance.
     \end{itemize}
-    \paragraph{Structure}
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
+\newpage
 \subsection{Behavioral Patterns}
     %%% %%% %%%
     \subsubsection{Chain of Responsibility}
     \textbf{Chain of Responsibility} makes possible to pass a request 
     along a chain of handlers, each of which decides upon receiving 
     a request either to process the request or to pass it to the next handler in the chain.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+    
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_chain_of_responsibility}
+        \caption{Chain of Responsibility Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Handler} declares an common interface for all the concrete handlers, 
+        usually in terms of a first method for handling the requests and second one 
+        to set the next handler in the chain.  
+        \item \textbf{Base Handler} could be optionally implemented 
+        \item \textbf{Concrete Handlers} contain the actual code to process the request, 
+        which will be executed after an optional preliminary check 
+        to understand whether it could be processed or passed on.
+        \item \textbf{Client} may create chains both statically and dinamically, and 
+        depending on its own logic as well. The request can be sent to any handler in the chain.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
     %%% %%% %%%
     \subsubsection{Command}
     \textbf{Command}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+    
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_command}
+        \caption{Command Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Sender or Invoker} is responsible for creating and sending requests. 
+        For this purpose, the class needs a field to store a reference to a command object. 
+        Instead of sending the request directly to the receiver, the sender directly triggers 
+        a command objects, which are usually provided and not created by the sender itself. 
+        \item \textbf{Command} interface declares the method to execute the command.
+        \item \textbf{Concrete Command} is meant to implement various kind of requets, 
+        passing the call to one of the business logic objects. It is possible 
+        to store the parameters needed to execute the command in a field of the class.
+        \item \textbf{Receiver} implements some business logic 
+        and most of the time does the actual work, while commands only handle the details 
+        of how a request is passed to the receiver.
+        \item \textbf{Client} creates and configures commands, passing 
+        all the parameters needed and a reference to the Receiver.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
@@ -181,14 +300,37 @@ objects that are easier to implement, change, test, and reuse.
     Iterators should implement the same interface in order to make the client code 
     compatible with any collection type or any trasversal algorithm, 
     as long as there's a proper iterator. 
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_iterator}
+        \caption{Iterator Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Iterator} interface declares the operations needed 
+        to traverse a collection, like fetching the next element, keeping track of the current position 
+        and so on.
+        \item \textbf{Concrete Iterator} implements specific algorithms 
+        each undependently on others in order to be able to use many of them 
+        at the same time. 
+        \item \textbf{Collection} interface declares one or multiple methods 
+        for getting iterator compatible with the collection. The return type 
+        of these methods must match the Iterator interface.
+        \item \textbf{Concrete Collection} returns instances of 
+        a particular concrete iterator class on client's request.
+        \item \textbf{Client} can work with both the collection and the iterator 
+        using their interfaces.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
@@ -199,101 +341,241 @@ objects that are easier to implement, change, test, and reuse.
     to collaborate only through a mediator object. This is achieved cutting 
     all direct communication between the components which are required 
     to be independent of each other abd ...
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_mediator}
+        \caption{Mediator Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Components} are classes containing some business logic. 
+        Each one has a reference to a mendiator, whose referenced type is 
+        the Mediator interface's. Components are unaware of the actual Meditor class, 
+        so that it could be reused in other contexts with different mediators.
+        \item \textbf{Mediator} interface declares the communication structure 
+        between components. Components may pass any context as argument of their methods, 
+        although they must avoid coupling the receiving component with the sender.
+        \item \textbf{Concrete Mediator} implement relation between various components. 
+        It could be useful to keep references to all the components managed 
+        and their lifecycle as well. 
+    \end{itemize}
+    Components are not aware of each other. In case some communication needs 
+    to go from a Component to a different one, it must pass through the Mediator. 
+    Likewise, the sender doesn't know who will handle the request as well as the 
+    receiver doesn't know who sent the request.
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
     %%% %%% %%%
     \subsubsection{Memento}
     \textbf{Memento}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_}
+        \caption{Factory Method Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Originator} is a generic class which could produce 
+        snapshots of its own state, as well as restore its state from a 
+        snapshot already available. 
+        \item \textbf{Memento} is a class which acts like a shapshot. It could be made immutable 
+        and pass the data only via the constructor and once.
+        \item \textbf{Caretaker} knows the "why" and "when" to capture a snapshot or 
+        restore a previous one. This class could manage an history of Originator's' states 
+        in a stack data structure.
+    \end{itemize}
+    In the previous design, the Memento class is embedded in the Originator, 
+    in order to make it easier to the latter to access the former's methods and data members.
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
     %%% %%% %%%
     \subsubsection{Observer}
     \textbf{Observer}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_observer}
+        \caption{Observer Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Publisher} is a class which issues events of interests 
+        to other objects. This class contains a subscription infrastructure that 
+        lets subscribers both join and leave the subscriber list. 
+        \item \textbf{Subscriber} interface declares the notification interface, which 
+        in most cases is a single update method with some contextual parameters.
+        \item \textbf{Concrete Subscribers} implement the different logics in response 
+        to notifications issued by the publisher. As a contextual parameter, 
+        a Concrete Publisher
+        \item \textbf{Client} creates both publisher and subscriber objects and 
+        manage the registrations for updates.
+    \end{itemize}
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
     %%% %%% %%%
     \subsubsection{State}
     \textbf{State}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_state}
+        \caption{State Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Context} stores a reference to one of the concrete state objects, 
+        to which it delegates all the state-related work. The Context interacts with the 
+        state interface, in order to be able to interact with any Concrete State.
+        \item \textbf{State} interface declares the state generic methods, 
+        which should make sense for all concrete states for a matter of consistency.
+        \item \textbf{Concrete States} implement their own specific methods. 
+        Intermediate abstract classes might help encapsulating some common behavior 
+        in order not to duplicate code.
+    \end{itemize}
+    A different Concrete State can be set by both the concrete states themselves.
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
     %%% %%% %%%
     \subsubsection{Strategy}
     \textbf{Strategy}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_strategy}
+        \caption{Strategy Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Context} has a reference to the Strategy Interface, 
+        used to reference the Concrete Strategy in use, and methods to 
+        replace the strategy at run-time.
+        \item \textbf{Strategy} interface define the part which is common 
+        to all concrete strategies and declares a method used by the Context 
+        to execute it.
+        \item \textbf{Concrete Strategies} implement a variety of algorithms 
+        needed by the context.
+        \item \textbf{Client} manages the creation of the strategies and pass them 
+        to the context.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
     %%% %%% %%%
     \subsubsection{Template Method}
     \textbf{Template Method}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_template_method}
+        \caption{Template Method Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Abstract Class} declares the steps of an algorithm and 
+        the \textbf{templateMethod}  used to call them in a specific order. The steps may both be 
+        declared as absrtact or implement some actual routines.
+        \item \textbf{Concrete Classes} override all of the steps, but not 
+        the \textbf{templateMethod} itself.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
     %%% %%% %%%
     \subsubsection{Visitor}
     \textbf{Visitor}
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_visitor}
+        \caption{Visitor Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Visitor} interface declares a set of visiting methods, 
+        each with a different Concrete Element taken as argument.
+        \item \textbf{Concrete Visitor} implements the different behaviors for 
+        each Concrete Element. 
+        \item \textbf{Element} interface declares a method to accept the 
+        Visitor interface as argument. 
+        \item \textbf{Concrete Element} implements the acceptance method, 
+        whose purpose is the redirection the call to the proper visitor's method 
+        for the current element class. This method must be overridden in any 
+        subclass even though it was already developed in the base one.
+        \item \textbf{Client} usually needs to work on a collection or a similar complex 
+        object whose type is ignored by the Client, since it works with 
+        the abstract interface.
+    \end{itemize}
+    
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
-    
+
+\newpage
 \subsection{Structural Patterns}
     %%% %%% %%%
     \subsubsection{Adapter}
@@ -305,14 +587,35 @@ objects that are easier to implement, change, test, and reuse.
     Upon receiving a call, the adapter passes the request to the second object,
     in a format and order it could understand.
     An Adapter could work in both directions.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_adapter}
+        \caption{Adapter Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Client} is the business logic of the program.
+        \item \textbf{Client Interface} defines the protocol for a class to 
+        be able to collaborate with it.
+        \item \textbf{Service} is usually a 3rd party or legacy software 
+        with an interface incopatible with the Client.
+        \item \textbf{Adapter} is a class able to work with both the client and 
+        the service. It receives calls from the client and translates 
+        into calls to a wrapped service object.
+    \end{itemize}
+    Since the Client interacts with the adapter through the client interface, 
+    it doesn't get coupled. Therefore, different adapters can be added to the program 
+    without breaking any existing code.
+
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
@@ -327,14 +630,35 @@ objects that are easier to implement, change, test, and reuse.
     The original class implement a reference field for each "extracted-dimension" classes 
     This extraction makes a class able to delegate any 'dimension-related' work
     to the linked 'dimension-related' object.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_bridge}
+        \caption{Bridge Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Abstraction} provides high-level interface, and relies 
+        on the Implementation objects to perform the actual work.
+        \item \textbf{Implementation} is the interface shared by all the 
+        concrete implementations. Usually the abstraction declares some 
+        complex behavior that relies on primitive operations declared 
+        by the implementation.
+        \item \textbf{Concrete Implementations1} implement specific code.
+        \item \textbf{Refined Abstraction} are optional and might help 
+        providing variants of control logic.
+        \item \textbf{Client} interacts with the abstraction, after linking 
+        it with one of the implementation objects.
+    \end{itemize}
+
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
@@ -343,14 +667,34 @@ objects that are easier to implement, change, test, and reuse.
     \textbf{Composite} after enabling composition of objects into tree structures, 
     this pattern let clients work with these structures as they were individual objects.
     This is achieved extending the class
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_composite}
+        \caption{Composite Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Component} interface contains the common operations 
+        for both simple and complex elements of the tree.
+        \item \textbf{Leaf} is a basic element of a tree and doesn't contain 
+        any other sub-element. Usually is the part of the system which ends up 
+        doing the work.
+        \item \textbf{Container} or Composite is an element that has sub-elements, 
+        which means leafs and containers as well. It interacts with sub-elements 
+        through their interfaces.
+        \item \textbf{Client} can work with both simple and complex elements 
+        through the component interface.
+    \end{itemize}
+
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
@@ -358,14 +702,37 @@ objects that are easier to implement, change, test, and reuse.
     \subsubsection{Decorator}
     \textbf{Decorator} attaches new behaviors to objects by placing these objects inside
     special wrapper objects containing the desired behavior.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_decorator}
+        \caption{Decorator Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Component} is the interface common for both wrapper and 
+        wrapped objects.
+        \item \textbf{Concrete Component} is a class being wrapped and whose 
+        basic behavior can be altered by decorators.
+        \item \textbf{Base Decorator} has a reference of the wrapped object, 
+        whose referenced type matches the Component interface. The Base Decorator 
+        delegates all operations to the wrapped object.
+        \item \textbf{Concrete Decorators} define behaviors which can be added 
+        to Components dynamically. The concrete decorator overrides the 
+        base behavior and execute the variant either before of after calling the 
+        parent method.
+    \end{itemize}
+    Multiple layers of decorations are possible as long as the Client 
+    interacts with the object through the component.
+
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
@@ -374,14 +741,34 @@ objects that are easier to implement, change, test, and reuse.
     \textbf{Facade} consists of a simplified interface to a complex subsystem 
     which contains lots of moving parts. Functionalities provided by the Facade 
     could be reduced to the subset the client is interested in.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_facade}
+        \caption{Facade Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Facade} implements a convenient access to a particular 
+        part of the subsystem's functionality and knows where to direct 
+        the client's request and how to operate all the system's parts.
+        \item \textbf{Additional Facade} might help reducing the tasks 
+        managed by a single Facade. It can be used by the Client and 
+        by the other facades as well.
+        \item \textbf{Complex Subsystem} Subsytem class are various object 
+        which need to be studied deeply in order to manage them properly. 
+        These classes work together and are unaware of the Facade's existence.
+        \item \textbf{Client} calls the subsystem classes through the Facade only. 
+    \end{itemize}
+
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
@@ -389,28 +776,73 @@ objects that are easier to implement, change, test, and reuse.
     \subsubsection{Flyweight}
     \textbf{Flyweight} reduces RAM consumption by sharing common parts of state 
     between multiple objects, instead of creating copies of same data in each object.
-    \paragraph{Intent}
-    \paragraph{When to use this pattern}
+
+    \nparagraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+    
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_flyweight}
+        \caption{Flyweight Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Flyweight} contains the portion of the original object's state 
+        that can be shared between multiple objects. The state stored 
+        inside a flyweight is called \textbf{\textit{intrinsic}}; the state 
+        passed to the flyweight's methods is called \textbf{\textit{extrinsic}}. 
+        The same flyweight object can be used in many contexts.
+        \item \textbf{Context} contains the extrinsic state, unique across all original 
+        objects. It represents the full state when paired with one of the 
+        flyweight objects.
+        \item \textbf{Flyweight Factory} manages a pool of existing flyweights 
+        freeing the Client from the task of creating. The Flyweight Factory 
+        receives a call to retrieve a specific flyweight, looks over previously 
+        created flyweight and either returns one of these or creates 
+        a ne wone in case nothing matches the search criteria.
+        \item \textbf{Client} sees the flyweight as a template object 
+        which can be configured at runtime by passing some contextual 
+        data into parameters of its methods.
+    \end{itemize}
+
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
     %%% %%% %%%
     \subsubsection{Proxy}
     \textbf{Proxy} 
-    \paragraph{Intent}
+
     \paragraph{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
-    \paragraph{Structure}
+
+    \nparagraph{Structure}
+    \begin{figure}[H]
+        %~ includegraphics[scale=0.5]{_Class_Diagram}
+        \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
+        \label{fig:cd_proxy}
+        \caption{Proxy Class Diagram}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Service Interface} declares the interface to the Service, 
+        which must be followed by the Proxy in order to be able to disguise 
+        itself as a service object.
+        \item \textbf{Service} is a class whose business logic is proxied.
+        \item \textbf{Proxy} references a service object and manages to 
+        process requests and pass them on to the service object, whose lifecycle 
+        sometimes could be managed by the Proxy as well.
+        \item \textbf{Client} can work with a Proxy until the latter's interface 
+        is the same as the Service's.
+    \end{itemize}
+
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
