@@ -3,11 +3,17 @@
 Generally speaking, a \textbf{smart pointer} is a data type which can be 
 used like a pointer, but which provides the additional feature of memory management 
 which frees the memory when the smart pointer is no longer used.
+
 \subsection{Smart Pointers in C++}
 \subsubsection{\texttt{std::unique\char`_ptr}}
-This specific pointer can be used when you want your object 
-to live just as long as a single owning reference to it lives. 
-For example, use it for a pointer to memory which gets allocated 
-on entering some scope and de-allocated on exiting the scope
+    This specific pointer can be used when you want your object 
+    to live just as long as a single owning reference to it lives. 
+    For example, use it for a pointer to memory which gets allocated 
+    on entering some scope and de-allocated on exiting the scope
+
 \subsubsection{\texttt{std::shared\char`_ptr}}
+
 \subsubsection{\texttt{std::weak\char`_ptr}}
+
+\subsubsection{\texttt{std::auto\char`_ptr}}
+It was deprecated in C++11 and removed in C++17.
