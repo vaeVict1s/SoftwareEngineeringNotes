@@ -1,19 +1,351 @@
-\section{Smart Pointers}
+\section{Memory Management and Smart Pointers}
+\label{sec:smartpointers}
 \vspace{10.5cm}
-Generally speaking, a \textbf{smart pointer} is a data type which can be 
-used like a pointer, but which provides the additional feature of memory management 
-which frees the memory when the smart pointer is no longer used.
+
+\subsection{Memory Management}
+Allocation means to assign, allot, distribute or "set apart for 
+a particular purpose". Programs manage their memory paritioning or 
+dividing it into different units performing specific tasks.
+\newline
+In C++, there are two ways to create objects and this aspect reflects on 
+the existence of two different units used to allocate the memory,
+the \textbf{stack} and \textbf{heap}, which manage the program's 
+used/unused memory in two different ways. 
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.5]{OOPandUML/functional_memory_organization}
+        \label{fig:functional_memory_organization}
+        \caption{Functional memory organization of a running program}
+    \end{center}
+\end{figure}
+
+\textbf{Text} area contains machine instructions (i.e. the executable 
+code). \textbf{Global} and \textbf{static} variables are typically 
+allocated at program startup. \textbf{Stack} contains all the automatic 
+variables. \textbf{Heap} is meant to allocate the memory for the dynamic 
+variables through the \textbf{\texttt{new}} and \textbf{\texttt{delete}} 
+operators. The space in between is allocated by the operating system but 
+not used, and is meant to let both the heap and stack grow.
+
+\nparagraph{Stack}
+This is a simple LIFO (last in, first out) data structure which must 
+support at least the \textbf{push} and \textbf{pop} operations. Even 
+though a stack only allows accesses at the top, it is easy to implement 
+and fast to execute push and pop operations.
+
+\nparagraph{Heap}
+This is a more flexible data structure, which allows programs to 
+allocate or deallocate memory anywhere and in any convenient order. This 
+might cause hole in the heap, i.e. unallocated memory surrounded by 
+allocated memory.
+\newline
+The only restriction for the heap is that memory can be allocated in 
+a contiguous block of memory large enough to satisfy the request with a 
+single chunk of memory. This restriction has two effects: it requires 
+the operating system to scan the heap until a contiguous block is found, 
+and to coalesce adjacent blocks of memory returned by the program.
+\newline
+Side effect is that the operation on the heap are slower than the 
+operations on the stack.
 
 \subsection{Smart Pointers in C++}
+\href{https://en.cppreference.com/w/cpp/memory}{Smart pointers} enable 
+automatic, exception-safe, object lifetime management.
+\newline
+Generally speaking, a \textbf{smart pointer} is a data type whose value 
+can be used like a pointer, but which provides the additional feature of 
+memory management which frees the memory when the smart pointer is 
+no longer used. A smart pointer should therefore be used any time 
+the ownership of memory needs to be tracked.
+%% Unique Pointer
 \subsubsection{\texttt{std::unique\char`_ptr}}
-    This specific pointer can be used when you want your object 
-    to live just as long as a single owning reference to it lives. 
-    For example, use it for a pointer to memory which gets allocated 
-    on entering some scope and de-allocated on exiting the scope
+    \href{https://en.cppreference.com/w/cpp/memory/unique_ptr}{cppreference documentation} 
+    about \textbf{\texttt{std::unique\char`_ptr}}.
+    \newline
+    \texttt{std::unique\char`_ptr} is a smart pointer that \textbf{owns and manages} 
+    another object through a pointer and \textbf{disposes of} that object 
+    when the \texttt{std::unique\char`_ptr} goes out of scope.
+    \newline
+    The object is disposed of, using the associated deleter when either 
+    of the following happens:
+    \begin{itemize}
+        \item the managing \texttt{std::unique\char`_ptr} object is destroyed
+        \item the managing \texttt{std::unique\char`_ptr} object is assigned 
+        another pointer
+        \newline 
+        via \texttt{operator=} or \texttt{reset()}. 
+    \end{itemize}
 
+\nparagraph{Notes}
+Only \textbf{non-const} \texttt{std::unique\char`_ptr} can 
+\textbf{transfer the ownership} of the managed object to another 
+\texttt{std::unique\char`_ptr}.
+\newline
+If an object's lifetime is managed by a const \texttt{std::unique\char`_ptr}, 
+it is limited to the scope in which the pointer was created.
+
+\texttt{std::unique\char`_ptr} is commonly used to manage the lifetime 
+of objects, including:
+    \begin{itemize}
+        \item providing \textbf{exception safety} to classes and functions 
+        that handle objects with dynamic lifetime, 
+        by \textbf{guaranteeing deletion} on both normal exit and 
+        exit through exception 
+
+        \item \textbf{passing ownership} of uniquely-owned objects with 
+        dynamic lifetime into functions 
+
+        \item \textbf{acquiring ownership} of uniquely-owned objects 
+        with dynamic lifetime from functions 
+
+        \item as the element type in move-aware containers, 
+        such as \texttt{std::vector}, which hold pointers to 
+        dynamically-allocated objects
+        (e.g. if \textbf{polymorphic behavior} is desired).             
+    \end{itemize}
+
+\texttt{std::unique\char`_ptr} may be constructed for an
+\textbf{incomplete type} T, such as to facilitate the use as a handle 
+in the pImpl idiom.
+
+\nparagraph{Member types}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        pointer & Must satisfy \href{https://en.cppreference.com/w/cpp/named_req/NullablePointer}{NullablePtr}\\
+        \cline{1-2}
+        element\char`_type 
+        & T, the type of the object managed by this \texttt{std::unique\char`_ptr}\\
+        \cline{1-2}
+        \multirow{2}{*}{deleter\char`_type}
+        & Deleter, the function object or lvalue reference \\ 
+        & to function or to function object, to be called from the destructor \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Member functions}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/unique_ptr}{constructor}
+        & constructs a new \texttt{unique\char`_ptr}\\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/\%7Eunique_ptr}{destructor}
+        & destructs the managed object if such is present\\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator\%3D}{operator=}
+        & assigns the \texttt{unique\char`_ptr} \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Modifiers}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/release}{release}
+        & returns a pointer to the managed object \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/reset}{reset}
+        & returns the deleter that is used for destruction of the managed object \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/swap}{swap}
+        & checks if there is an associated managed object \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+\newpage
+
+\nparagraph{Observers}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/get}{get}
+        & returns a pointer to the managed object\\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/get_deleter}{get\char`_deleter}
+        & returns the deleter that is used for destruction of the managed object\\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator_bool}{operator bool}
+        & checks if there is an associated managed object\\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Single-object versioin, \texttt{unique\char`_ptr}}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator*}{operator*} \\
+                                     \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator*}{operator->}}} 
+                        & dereferences pointer to the managed object \\
+                        &  \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+%%
+\newpage
+%% Shared Ptr
 \subsubsection{\texttt{std::shared\char`_ptr}}
+    \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{cppreference documentation} 
+    about \textbf{\texttt{std::shared\char`_ptr}}.
+    \newline
+    This is a smart pointer that retains shared ownership of an object 
+    through a pointer.
+    \newline
+    Several \texttt{shared\char`_ptr} objects may own the same object.
+    \newline
+    The object is destroyed and its memory deallocated when either of 
+    the following happens:
+    \begin{itemize}
+        \item the last remaining \texttt{shared\char`_ptr} owning 
+        the object is destroyed;
+        \item the last remaining \texttt{shared\char`_ptr} owning 
+        the object is assigned another pointer via \texttt{operator=} or 
+        \texttt{reset()}.             
+    \end{itemize}
+    
+    A \texttt{std::shared\char`_ptr} can share ownership of an object 
+    while storing a pointer to another object.
+    \newline
+    A \texttt{std::shared\char`_ptr} may also own no objects, 
+    in which case it is called empty (an empty 
+    \texttt{std::shared\char`_ptr} may have a non-null stored pointer 
+    if the aliasing constructor was used to create it). 
 
+\nparagraph{Member functions}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/shared_ptr}{constructor}
+        & constructs a new \texttt{unique\char`_ptr}\\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/\%7Eshared_ptr}{destructor}
+        & destructs the managed object if such is present\\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator\%3D}{operator=}
+        & assigns the \texttt{unique\char`_ptr} \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}    
+
+\nparagraph{Modifiers}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/reset}{reset}
+        & replaces the managed object \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/swap}{swap}
+        & swaps the managed objects \\
+        \cline{1-2}
+    \end{tabular}
+\end{table} 
+
+\nparagraph{Observers}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/get}{get}
+        & returns the stored pointer \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator*}{operator*} \\
+                                     \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator*}{operator->}}}
+        & dereferences the stored pointer \\ 
+        & \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator_at}{operator[]} 
+        & provides indexed access to the stored array \\
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/memory/shared_ptr/use_count}{use\char`_count}} 
+        & returns the number of \texttt{shared\char`_ptr} objects \\ & referring to the same managed object \\
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/memory/shared_ptr/unique}{unique}}
+        & checks if the managed object is managed only by \\ & the current \texttt{shared\char`_ptr} instance \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator_bool}{operator bool}
+        & checks if the stored pointer is not null \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/owner_before}{owner\char`_before}
+        & provides owner-based ordering of shared pointers \\
+        \cline{1-2}
+    \end{tabular}
+\end{table} 
+%%
+\newpage
+%% Weak Ptr
 \subsubsection{\texttt{std::weak\char`_ptr}}
+    \href{https://en.cppreference.com/w/cpp/memory/weak_ptr}{cppreference documentation} 
+    about \textbf{\texttt{std::weak\char`_ptr}}.
+    \newline
+    \texttt{std::weak\char`_ptr} is a smart pointer that holds a non-owning ("weak") reference 
+    to an object that is managed by \texttt{std::shared\char`_ptr}. 
+    It must be converted to \texttt{std::shared\char`_ptr} in order to access the referenced object. 
+    \newline
+    \texttt{std::weak\char`_ptr} models temporary ownership
+    
+\nparagraph{Member functions}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr}{constructor}
+        & creates a new \texttt{weak\char`_ptr} \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/\%7Eweak_ptr}{destructor}
+        & destroys a \texttt{weak\char`_ptr} \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/operator\%3D}{operator=}
+        & assigns a \texttt{weak\char`_ptr} \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+    
+\nparagraph{Modifiers}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/reset}{reset} & releases the ownership of the managed object \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/swap}{swap} &  swaps the managed objects \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+    
+\nparagraph{Observers}
+\vspace{-8truemm}
+\begin{table}[ht]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/use_count}{use\char`_count}
+        & returns the number of \texttt{shared\char`_ptr} objects that manage the object \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/expired}{expired}
+        & checks whether the referenced object was already deleted \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/lock}{lock}
+        & creates a \texttt{shared\char`_ptr} that manages the referenced object \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/owner_before}{owner\char`_before}
+        & provides owner-based ordering of weak pointers \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}       
 
+\newpage
 \subsubsection{\texttt{std::auto\char`_ptr}}
-It was deprecated in C++11 and removed in C++17.
+    \href{https://en.cppreference.com/w/cpp/memory/auto_ptr}{cppreference documentation} 
+    about \textbf{\texttt{std::auto\char`_ptr}}.
+    \newline
+    It was deprecated in C++11 and removed in C++17.

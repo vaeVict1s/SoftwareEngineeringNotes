@@ -1,27 +1,88 @@
 \section{Containers}
+\label{sec:containers}
 \vspace{10.5cm}
+The \href{https://en.cppreference.com/w/cpp/container}{Containers library} is a generic collection 
+of class templates and algorithms that allow programmers to easily implement 
+common data structures like queues, lists and stacks.
+\newline{}
+The container classes are:
+\begin{itemize}
+    \item sequence containers
+    \item associative containers, which can be searched in $O(\log{n})$.
+    \item unordered associative containers, which can be searched in $O(1)$ on average and in $O(n)$ in the worst one.
+\end{itemize}
 
-\subsection{Sequence Containers}
-\subsubsection{array}
-\subsubsection{vector}
-\subsubsection{deque}
-\subsubsection{forward\char`_list}
-\subsubsection{list}
-\subsection{Associative Containers}
-\subsubsection{set}
-\subsubsection{map}
-\subsubsection{multiset}
-\subsubsection{multimap}
-\subsection{Unordered Associative Containers}
-\subsubsection{unordered\char`_set}
-\subsubsection{unordered\char`_map}
-\subsubsection{unordered\char`_multiset}
-\subsubsection{unordered\char`_multimap}
-\subsection{Container Adaptors}
-\subsubsection{stack}
-\subsubsection{queue}
-\subsubsection{priority\char`_queue}
-\subsubsection{flat\char`_set}
-\subsubsection{flat\char`_map}
-\subsubsection{flat\char`_multiset}
-\subsubsection{flat\char`_multimap}
+\subsection{Links to the CPP Reference documentation}
+
+\subsubsection{Sequence Containers}
+\href{https://en.cppreference.com/w/cpp/container/array}{array}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/vector}{vector}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/deque}{deque}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/forward_{list}}{forward\char`_list}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/list}{list}
+
+\subsubsection{Associative Containers}
+
+\href{https://en.cppreference.com/w/cpp/container/set}{set}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/map}{map}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/multiset}{multiset}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/multimap}{multimap}
+
+\subsubsection{Unordered Associative Containers}
+
+\href{https://en.cppreference.com/w/cpp/container/unordered_set}{unordered\char`_set}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/unordered_map}{unordered\char`_map}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/unordered_multiset}{unordered\char`_multiset}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/unordered_multimap}{unordered\char`_multimap}
+
+\subsubsection{Container Adaptors}
+\href{https://en.cppreference.com/w/cpp/container/stack}{stack}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/queue}{queue}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/priority_queue}{priority\char`_queue}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/flat_set}{flat\char`_set}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/flat_map}{flat\char`_map}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/flat_multiset}{flat\char`_multiset}\quad | \quad
+\href{https://en.cppreference.com/w/cpp/container/flat_multimap}{flat\char`_multimap}
+
+\subsection{Invalidation of Iterators and References}
+\begin{table}[ht]
+\footnotesize{}
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+        \hline
+        \multirow{2}{*}{Category} & \multirow{2}{*}{Container} & \multicolumn{2}{c|}{Valid after \textbf{insertion}} & \multicolumn{2}{c|}{Valid after \textbf{erasure}} &  \multirow{2}{*}{Conditionality} \\
+                                &                              &iterators&reference&iterators&reference& \\
+        \hline
+        \multirow{10}{*}{\shortstack{Sequence\\Containers}} & array & \multicolumn{2}{c|}{ N/A } & \multicolumn{2}{c|}{ N/A } & \\
+        \cline{2-7}
+                                                            & \multirow{5}{*}{vector}            & \multicolumn{2}{c|}{No}    & \multicolumn{2}{c|}{N/A} & Insertion changed capacity\\
+        \cline{3-7}
+                                                            &                                    & \multicolumn{2}{c|}{\multirow{3}{*}{Yes}}      &  \multicolumn{2}{c|}{\multirow{3}{*}{Yes}}  & \multirow{3}{*}{\shortstack{Before modified element(s)\\(for insertion only if capacity\\didn't change) }} \\
+                                                            &                                    &  \multicolumn{2}{c|}{}                         &  \multicolumn{2}{c|}{}                       &  \\
+                                                            &                                    &  \multicolumn{2}{c|}{}                         &  \multicolumn{2}{c|}{}                       &  \\
+        \cline{3-7}
+                                                            &                                    &  \multicolumn{2}{c|}{No}                       &  \multicolumn{2}{c|}{No}                     & At or after modified element(s) \\
+        \cline{2-7}
+                                                            & \multirow{2}{*}{deque} & \multirow{2}{*}{No} & Yes& \multicolumn{2}{c|}{Yes, but erased one(s)} & Modified first or last element \\
+        \cline{4-7}
+                                                            & & &No& \multicolumn{2}{c|}{No} & Modified middle only \\
+        \cline{2-7}
+                                                            & list & \multicolumn{2}{c|}{Yes} & \multicolumn{2}{c|}{Yes, but erased one(s)} & \\
+        \cline{2-7}
+                                                            & forward\char`_list & \multicolumn{2}{c|}{Yes} & \multicolumn{2}{c|}{Yes, but erased one(s)} & \\
+        \cline{1-7}
+
+        \multirow{4}{*}{\shortstack{Associative\\Containers}} & set & \multicolumn{2}{c|}{\multirow{4}{*}{Yes}}& \multicolumn{2}{c|}{\multirow{4}{*}{Yes, but erased one(s)}} & \\
+                                                              & multiset & \multicolumn{2}{c|}{} & \multicolumn{2}{c|}{}& \\
+                                                              & map & \multicolumn{2}{c|}{} & \multicolumn{2}{c|}{} & \\
+                                                              & multimap & \multicolumn{2}{c|}{} & \multicolumn{2}{c|}{} & \\
+        \cline{1-7}
+        \multirow{4}{*}{\shortstack{Unordered\\associative\\Containers}} & unordered\char`_set & \multirow{2}{*}{No}& \multirow{4}{*}{Yes}& \multicolumn{2}{c|}{\multirow{2}{*}{N/A}} & \multirow{2}{*}{Insertion caused rehash}\\
+                                                              & unordered\char`_multiset & & & \multicolumn{2}{c|}{} &  \\
+        \cline{3-3}\cline{5-7}
+                                                              & unordered\char`_map &\multirow{2}{*}{Yes} & & \multicolumn{2}{c|}{\multirow{2}{*}{Yes, but erased one(s)}} & \multirow{2}{*}{No rehash} \\
+                                                              & unordered\char`_multimap & & & \multicolumn{2}{c|}{} &\\
+        \cline{1-7}
+    \end{tabular}
+    \label{tab:iterator-reference-validity}
+\end{table}
+\normalsize

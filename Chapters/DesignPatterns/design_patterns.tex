@@ -1,15 +1,18 @@
 \section{Design Patterns}
+\label{sec:designpatterns}
 \vspace{10.5cm}
 \textbf{Design Patterns} describe how to solve recurring design problems 
 to design flexible and reusable object-oriented software, that is, 
 objects that are easier to implement, change, test, and reuse.
+%%%
 \subsection{Creational Patterns}
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Factory Method}
-    \textbf{Factory Method} uses factory methods to deal with the problem of 
+    This pattern uses \textbf{factory methods} to deal with the problem of 
     \textbf{creating objects without having to specify the exact class} of 
-    the object that will be created.\\
-    This is done by creating objects by calling a factory method --- either specified 
+    the object that will be created.
+    \newline
+    Objects creation is achieved by calling a factory method --- either specified 
     in an interface and implemented by child classes, or implemented 
     in a base class and optionally overridden by derived classes --- 
     rather than by calling a constructor.
@@ -60,9 +63,9 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Abstract Factory}
-    \textbf{Abstract Factory} makes easier to produce families of related items
+    This pattern makes it easier to produce families of related items
     without specifying their concrete classes.\\
     This is achieved declaring \textbf{explicit interfaces for each distinct product} of the product family and making 
     \textbf{all variants of products need to follow those interfaces}.\\
@@ -103,7 +106,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Builder}
     \textbf{Builder} facilitates the \textbf{construction of complex objects step by step},
     producing different types and representations of an object using the same construyction code.
@@ -144,7 +147,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Prototype}
     \textbf{Prototype} enables the copy of existing objects without implementing 
     code which depends on their classes. This is achieved delegating the cloning process 
@@ -179,7 +182,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Singleton}
     \textbf{Singleton} ensures that a class could have one instance only, 
     while providing a global access point to this instance. This functionality 
@@ -214,10 +217,10 @@ objects that are easier to implement, change, test, and reuse.
     \end{itemize}
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
-
 \newpage
+%%%
 \subsection{Behavioral Patterns}
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Chain of Responsibility}
     \textbf{Chain of Responsibility} makes possible to pass a request 
     along a chain of handlers, each of which decides upon receiving 
@@ -252,7 +255,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Command}
     \textbf{Command}
     
@@ -289,7 +292,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Iterator}
     \textbf{Iterator} enables the client to traverse elements of a collection 
     without exposing its underlying representation. This is achieved 
@@ -334,7 +337,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Mediator}
     \textbf{Mediator} reduces chaotic and confusing dependencies between objects, 
     restricting direct communications between the objects and forcing them 
@@ -376,7 +379,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Memento}
     \textbf{Memento}
 
@@ -410,7 +413,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Observer}
     \textbf{Observer}
 
@@ -443,7 +446,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{State}
     \textbf{State}
 
@@ -476,7 +479,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Strategy}
     \textbf{Strategy}
     \nparagraph{When to use this pattern}
@@ -509,7 +512,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Template Method}
     \textbf{Template Method}
 
@@ -538,7 +541,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
 
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Visitor}
     \textbf{Visitor}
 
@@ -574,10 +577,10 @@ objects that are easier to implement, change, test, and reuse.
     
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
-
 \newpage
+%%%
 \subsection{Structural Patterns}
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Adapter}
     \textbf{Adapter} allows the collaboration among objects with incompatible interfaces.
     This is achieved through the implementation of an Adapter which make 
@@ -619,7 +622,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Bridge}
     \textbf{Bridge} splits a large class or a set of closely related classes 
     into two separate hierarchies which can be developed independently of each other.
@@ -662,7 +665,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Composite}
     \textbf{Composite} after enabling composition of objects into tree structures, 
     this pattern let clients work with these structures as they were individual objects.
@@ -698,7 +701,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Decorator}
     \textbf{Decorator} attaches new behaviors to objects by placing these objects inside
     special wrapper objects containing the desired behavior.
@@ -736,7 +739,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Facade}
     \textbf{Facade} consists of a simplified interface to a complex subsystem 
     which contains lots of moving parts. Functionalities provided by the Facade 
@@ -772,7 +775,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}    
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Flyweight}
     \textbf{Flyweight} reduces RAM consumption by sharing common parts of state 
     between multiple objects, instead of creating copies of same data in each object.
@@ -813,7 +816,7 @@ objects that are easier to implement, change, test, and reuse.
     \paragraph{Pros and Cons}
     \paragraph{Relation with other Design Patterns}
     
-    %%% %%% %%%
+    %%% %%%
     \subsubsection{Proxy}
     \textbf{Proxy} 
 

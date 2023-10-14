@@ -1,0 +1,55 @@
+\section{Idioms}
+\label{sec:idioms}
+\vspace{10.5cm}
+%%%
+\subsection{PImpl Idiom}
+
+\href{https://en.cppreference.com/w/cpp/language/pimpl}{cppreference documentation} 
+about the \textbf{\texttt{PImple Idiom}}.
+\newline
+"Pointer to implementation" or "pImpl" is a C++ programming technique 
+that \textbf{removes implementation details of a class from its object representation} 
+by placing them in a separate class, accessed \textbf{through an opaque pointer}.
+\newline
+This idiom is also know as \textbf{\texttt{Compiler Firewall Idiom}}.
+
+\nparagraph{Problematic Scenario}
+Whenever file class definition changes in a header, all users of that class 
+must be recompiled. The reason is the textual inclusion on which 
+the C++ build model is based. The user is assumed to know two features 
+which could be affected by private members: \textbf{size and layout} 
+and \textbf{functions}.
+
+\nparagraph{Solution}
+\begin{lstlisting}[language=C++]
+// Pimpl idiom - basic idea
+class widget {
+    // :::
+private:
+    struct impl;        // things to be hidden go here
+    impl* pimpl_;       // opaque pointer to forward-declared class
+};    
+\end{lstlisting}
+
+
+
+
+
+
+%%%
+\subsection{Fast PImpl Idiom}
+
+%%%
+\subsection{Handle/Object Idiom}
+\subsection{Copy and Swap Idiom}
+This idiom aims at creating a strong exception-safe implementation of 
+the overloaded assignment operator. 
+\newline
+This idiom makes use of the \textbf{RAII} idiom in order to acquire 
+the new resource before it forfeits its current resource. If the 
+acquisition is successful
+
+\subsection{RAII - Resource acquisition is initialization}
+
+
+

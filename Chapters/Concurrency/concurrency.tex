@@ -1,4 +1,426 @@
 \section{Concurrency}
+\label{sec:concurrency}
 \vspace{10.5cm}
-\subsection{Atomicity}
+C++ includes built-in support for threads, atomic operations, mutual exclusion, 
+condition variables, and futures.
+\newline
+%%% Paragraph
+\subsection{Threads}
+%~ \vspace{-8truemm} %% needed in case of a nparagraph
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/thread}{thread}
+        & manages a separate thread \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/jthread}{jthread} 
+        & thread with support for auto-joining and cancellation \\
+        \cline{1-2}   
+    \end{tabular}
+\end{table}
+%%% Paragraph
+\nparagraph{Functions managing the current thread}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/yield}{yield} 
+        & suggests that the implementation reschedule execution of threads \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/get_id}{get\char`_id} 
+        & returns the thread id of the current thread \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/sleep_for}{sleep\char`_for} 
+        & stops the execution of the current thread for a specified time duration \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/sleep_until}{sleep\char`_until} 
+        & stops the execution of the current thread until a specified time point \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+%%% Subsection
+\subsection{Atomic operations}
+These components are provided for fine-grained atomic operations 
+allowing for lockless concurrent programming. Each atomic operation is 
+indivisible with regards to any other atomic operation that involves 
+the same object. 
+Atomic objects are 
+\href{https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races}{free of data races}. 
 \newpage
+%%% Paragraph
+\nparagraph{Atomic types}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/atomic/atomic}{atomic}} 
+        & atomic class template and specializations for \\
+        & bool, integraln and pointer types \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_ref}{atomic\char`_ref}
+        & provides atomic operations on non-atomic objects \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+%%% Paragraph
+\nparagraph{Operations on atomic types}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{adjustbox}{width=1.1\columnwidth,left}
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_is_lock_free}{atomic\char`_is\char`_lock\char`_free} 
+        & checks if the atomic type's operations are lock-free \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_store}{atomic\char`_store} \\ 
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_store}{atomic\char`_store\char`_explicit}}}
+                         & atomically replaces the value of the atomic object  \\
+                         & with a non-atomic argument \\
+        \cline{1-2}
+
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_load}{atomic\char`_load} \\
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_load}{atomic\char`_load\char`_explicit}}}
+                       & atomically obtains the value stored \\
+                       & in an atomic object \\
+       \cline{1-2}
+       \multirow{2}{*}{\parbox{4.5cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_exchange}{atomic\char`_exchange} \\ 
+                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_exchange}{atomic\char`_exchange\char`_explicit}}}
+                       &  atomically replaces the value of the atomic object with non-atomic argument\\
+                       &  and returns the old value of the atomic\\
+        \cline{1-2}
+        \multirow{4}{*}{\parbox{7.5cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_weak} \\
+                                       \href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_weak\char`_explicit} \\ 
+                                       \href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_strong} \\ 
+                                       \href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_strong\char`_explicit}}}
+                        & \\
+                        & atomically compares the value of the atomic object with non-atomic argument \\
+                        & and performs atomic exchange if equal or atomic load if not \\
+                        & \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_add}{atomic\char`_fetch\char`_add} \\ 
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_add}{atomic\char`_fetch\char`_add\char`_explicit}}}
+                        & adds a non-atomic value to an atomic object\\
+                        & and obtains the previous value of the atomic \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_sub}{atomic\char`_fetch\char`_sub} \\ 
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_sub}{atomic\char`_fetch\char`_sub\char`_explicit}}}
+                        & subtracts a non-atomic value from an atomic object\\
+                        & and obtains the previous value of the atomic\\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_and}{atomic\char`_fetch\char`_and} \\
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_and}{atomic\char`_fetch\char`_and\char`_explicit}}}
+                        & replaces the atomic object with the result of bitwise AND with a non-atomic argument\\
+                        & and obtains the previous value of the atomic\\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or} \\
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or\char`_explicit}}}
+                        & replaces the atomic object with the result of bitwise OR with a\\
+                        & a non-atomic argument and obtains the previous value of the atomic \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_xor}{atomic\char`_fetch\char`_xor} \\
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_xor}{atomic\char`_fetch\char`_xor\char`_explicit}}}
+                        & blocks the thread until notified and the atomic value changes \\
+                        & \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_wait}{atomic\char`_wait} \\
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_wait}{atomic\char`_wait\char`_explicit}}}
+                        & replaces the atomic object with the result of bitwise XOR with a non-atomic argument \\
+                        & and obtains the previous value of the atomic \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_notify_one}{atomic\char`_notify\char`_one} 
+        & notifies a thread blocked in \texttt{atomic\char`_wait} \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_notify_all}{atomic\char`_notify\char`_all} 
+        & notifies all threads blocked in \texttt{atomic\char`_wait} \\
+        \cline{1-2}
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+\nparagraph{Flag type and operations}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag}{atomic\char`_flag} 
+              & the lock-free boolean atomic type \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{6cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_test_and_set}{atomic\char`_flag\char`_test\char`_and\char`_set} \\
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_test_and_set}{atomic\char`_flag\char`_test\char`_and\char`_set\char`_explicit}}}
+                        & atomically sets the flag to true and returns its previous \\
+                        & value\\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_clear}{atomic\char`_flag\char`_clear} \\
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_clear}{atomic\char`_flag\char`_clear\char`_explicit}}}
+                        & atomically sets the value of the flag to false\\
+                        &  \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_test}{atomic\char`_flag\char`_test} \\ 
+                                        \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_test}{atomic\char`_flag\char`_test\char`_explicit}}}
+                        & atomically returns the value of the flag \\
+                        & \\
+        \cline{1-2}
+        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_wait}{atomic\char`_flag\char`_wait} \\ 
+                                     \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_wait}{atomic\char`_flag\char`_wait\char`_explicit}}}
+                        & blocks the thread until notified and the flag changes \\
+                        & \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_notify_one}{atomic\char`_flag\char`_notify\char`_one} 
+        & notifies a thread blocked in atomic\char`_flag\char`_wait \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_notify_all}{atomic\char`_flag\char`_notify\char`_all} 
+        & notifies all threads blocked in atomic\char`_flag\char`_wait \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\newpage
+\nparagraph{Initialization}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/atomic_init}{atomic\char`_init} 
+        & non-atomic initialization of a default-constructed atomic object \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/ATOMIC_VAR_INIT}{ATOMIC\char`_VAR\char`_INIT} 
+        & constant initialization of an atomic variable of static storage duration \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/atomic/ATOMIC_FLAG_INIT}{ATOMIC\char`_FLAG\char`_INIT} 
+        & initializes an \texttt{std::atomic\char`_flag} to false\\
+        \cline{1-2}
+   \end{tabular}
+\end{table}
+
+\nparagraph{Memory synchronization ordering}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+         \cline{1-2}
+         \href{https://en.cppreference.com/w/cpp/atomic/memory_order}{memory\char`_order} 
+         & defines memory ordering constraints for the given atomic operation \\
+         \cline{1-2}
+         \href{https://en.cppreference.com/w/cpp/atomic/kill_dependency}{kill\char`_dependency} 
+         & \small{removes the specified object from the \texttt{memory\char`_order\char`_consume} dependency tree} \\
+         \cline{1-2}
+         \href{https://en.cppreference.com/w/cpp/atomic/atomic_thread_fence}{atomic\char`_thread\char`_fence} 
+         & generic memory order-dependent fence synchronization primitive \\
+         \cline{1-2}
+         \href{https://en.cppreference.com/w/cpp/atomic/atomic_signal_fence}{atomic\char`_signal\char`_fence} 
+         & fence between a thread and a signal handler executed in the same thread \\
+         \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Mutual exclusion}
+Mutual exclusion algorithms prevent multiple threads from simultaneously accessing shared resources. 
+This prevents data races and provides support for synchronization between threads. 
+\newline
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/mutex}{mutex} 
+        & provides basic mutual exclusion facility \\
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/timed_mutex}{timed\char`_mutex} }
+        & provides mutual exclusion facility which implement \\
+        & locking with a timeout \\ 
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/recursive_mutex}{recursive\char`_mutex}} 
+        & provides mutual exclusion facility which can be locked recursively \\
+        & by the same thread \\
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/recursive_timed_mutex}{recursive\char`_timed\char`_mutex}} 
+        & provides mutual exclusion facility which can be locked recursively \\
+        & by the same thread and implements locking with a timeout\\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/shared_mutex}{shared\char`_mutex} 
+        & provides shared mutual exclusion facility \\
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/shared_timed_mutex}{shared\char`_timed\char`_mutex}} 
+        & provides shared mutual exclusion facility and implements \\
+        & locking with a timeout \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Generic mutex management}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/lock_guard}{lock\char`_guard} 
+        & implements a strictly scope-based mutex ownership wrapper \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/scoped_lock}{scoped\char`_lock} 
+        & deadlock-avoiding RAII wrapper for multiple mutexes \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/unique_lock}{unique\char`_lock} 
+        & implements movable mutex ownership wrapper \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/shared_lock}{shared\char`_lock} 
+        & implements movable shared mutex ownership wrapper \\
+        \cline{1-2}
+        \multirow{3}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/thread/lock_tag_t}{defer\char`_lock\char`_t} \\
+                                     \href{https://en.cppreference.com/w/cpp/thread/lock_tag_t}{try\char`_to\char`_lock\char`_t} \\
+                                     \href{https://en.cppreference.com/w/cpp/thread/lock_tag_t}{adopt\char`_lock\char`_t}}} 
+                        &  \\
+                        & tag type used to specify locking strategy  \\
+                        &  \\
+        \cline{1-2}
+        \multirow{3}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/thread/lock_tag}{defer\char`_lock} \\
+                                     \href{https://en.cppreference.com/w/cpp/thread/lock_tag}{try\char`_to\char`_lock} \\
+                                     \href{https://en.cppreference.com/w/cpp/thread/lock_tag}{adopt\char`_lock}}} 
+                        &  \\
+                        & tag constants used to specify locking strategy  \\
+                        &  \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Generic locking management}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/try_lock}{try\char`_lock} 
+        & attempts to obtain ownership of mutexes via repeated calls to \texttt{try\char`_lock} \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/lock}{lock} 
+        & locks specified mutexes, blocks if any are unavailable \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Call once}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/once_flag}{once\char`_flag} 
+        & helper object to ensure that \texttt{call\char`_once} invokes the function only once \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/call_once}{call\char`_once} 
+        & invokes a function only once even if called from multiple threads \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Condition variables}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+         \cline{1-2}
+         \href{https://en.cppreference.com/w/cpp/thread/condition_variable}{condition\char`_variable} 
+         & provides a condition variable associated with a \texttt{std::unique\char`_lock} \\
+         \cline{1-2}
+         \href{https://en.cppreference.com/w/cpp/thread/condition_variable_any}{condition\char`_variable\char`_any} 
+         & provides a condition variable associated with any lock type \\
+         \cline{1-2}
+         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/notify_all_at_thread_exit}{notify\char`_all\char`_at\char`_thread\char`_exit}} 
+         & schedules a call to \texttt{notify\char`_all} to be invoked when this thread is \\
+         & completely finished \\
+         \cline{1-2}
+         \href{https://en.cppreference.com/w/cpp/thread/cv_status}{cv\char`_status} 
+         & lists the possible results of timed waits on condition variables \\
+         \cline{1-2}
+    \end{tabular}
+\end{table}
+\newpage
+\nparagraph{Futures}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/promise}{promise} 
+        & stores a value for asynchronous retrieval \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/packaged_task}{packaged\char`_task} 
+        & packages a function to store its return value for asynchronous retrieval \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/future}{future} 
+        & waits for a value that is set asynchronously \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/shared_future}{shared\char`_future} 
+        & waits for a value (possibly referenced by other futures) that is set asynchronously \\
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/async}{async}} 
+        & runs a function asynchronously (potentially in a new thread) and returns \\
+        & a \texttt{std::future} that will hold the result  \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/launch}{launch} 
+        & specifies the launch policy for \texttt{std::async} \\
+        \cline{1-2}
+        \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/future_status}{future\char`_status}} 
+        & specifies the results of timed waits performed on \\
+        & \texttt{std::future} and \texttt{std::shared\char`_future} \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+
+\nparagraph{Future errors}
+\vspace{-8truemm}
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/future_error}{future\char`_error} 
+        & reports an error related to futures or promises \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/future_category}{future\char`_category} 
+        & identifies the future error category \\
+        \cline{1-2}
+        \href{https://en.cppreference.com/w/cpp/thread/future_errc}{future\char`_errc} 
+        & identifies the future error codes \\
+        \cline{1-2}
+    \end{tabular}
+\end{table}
+\newpage
+
+\subsection{Memory Order}
+\begin{itemize}
+    \item \textbf{\texttt{memory\char`_order\char`_relaxed}} 
+    \newline
+    Relaxed operation: there are no synchronization or ordering constraints
+    imposed on other reads or writes, only this operation's atomicity is 
+    guaranteed \item \textbf{\texttt{memory\char`_order\char`_consume}}
+    \newline
+    A load operation with this memory order performs a consume operation 
+    on the affected memory location: no reads or writes in the current thread 
+    dependent on the value currently loaded can be reordered before this load. 
+    Writes to data-dependent variables in other threads that release 
+    the same atomic variable are visible in the current thread. 
+    On most platforms, this affects compiler optimizations only 
+    
+    \item \textbf{\texttt{memory\char`_order\char`_acquire}}
+    \newline
+    A load operation with this memory order performs the acquire operation 
+    on the affected memory location: no reads or writes in the current 
+    thread can be reordered before this load. All writes in other threads 
+    that release the same atomic variable are visible in the current thread 
+    
+    \item \textbf{\texttt{memory\char`_order\char`_release}} 	\newline
+    A store operation with this memory order performs the release operation: 
+    no reads or writes in the current thread can be reordered after this store. 
+    All writes in the current thread are visible in other threads that 
+    acquire the same atomic variable and writes that carry a dependency 
+    into the atomic variable become visible in other threads that consume the 
+    same atomic
+    
+    \item \textbf{\texttt{memory\char`_order\char`_acq\char`_rel}} 
+    \newline
+    A read-modify-write operation with this memory order is both an 
+    acquire operation and a release operation. No memory reads or writes 
+    in the current thread can be reordered before the load, 
+    nor after the store. All writes in other threads that release 
+    the same atomic variable are visible before the modification and the 
+    modification is visible in other threads that acquire the same 
+    atomic variable.
+    
+    \item \textbf{\texttt{memory\char`_order\char`_seq\char`_cst}} 	\newline
+    A load operation with this memory order performs an acquire operation, 
+    a store performs a release operation, 
+    and read-modify-write performs both an acquire operation and a release operation, 
+    plus a single total order exists in which all threads observe 
+    all modifications in the same order.
+\end{itemize}

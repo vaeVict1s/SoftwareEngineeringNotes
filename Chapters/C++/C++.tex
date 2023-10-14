@@ -1,0 +1,481 @@
+\section{C++}
+\label{sec:c++newfeatures}
+\vspace{10.5cm}
+\subsection{C++ Good Practices}
+\subsubsection{Rule of three/five/zero}
+\nparagraph{Rule of three}
+If a class requires a \textbf{user-defined destructor}, a user-defined 
+\textbf{copy constructor}, or a user-defined \textbf{copy assignment 
+operator}, it almost certainly requires all three.
+
+Because C++ copies and copy-assigns objects of user-defined types in 
+various situations (passing/returning by value, manipulating a 
+container, etc), these special member functions will be called, 
+if accessible, and if they are not user-defined, they are 
+implicitly-defined by the compiler.
+
+The implicitly-defined special member functions are typically incorrect 
+if the class manages a resource whose handle is an object of non-class 
+type (raw pointer, POSIX file descriptor, etc), whose destructor does 
+nothing and copy constructor/assignment operator performs a 
+"shallow copy" (copy the value of the handle, without duplicating the 
+underlying resource).
+
+%~ \textbf{CODE EXAMPLE HERE}
+
+Classes that manage non-copyable resources through copyable handles 
+may have to declare copy assignment and copy constructor private 
+and not provide their definitions or define them as deleted. 
+This is another application of the rule of three: deleting one 
+and leaving the other to be implicitly-defined will most likely result 
+in errors.
+
+\nparagraph{Rule of five}
+Because the presence of a user-defined destructor, copy-constructor, 
+or copy-assignment operator prevents the implicit definition of the 
+move constructor and the move assignment operator, \textbf{any class 
+for which move semantics are desirable}, has to declare all five special 
+member functions.
+
+%~ \textbf{CODE EXAMPLE HERE}
+
+Unlike Rule of Three, 
+failing to provide move constructor and move assignment 
+is usually not an error, 
+but a missed optimization opportunity.
+
+\nparagraph{Rule of zero}
+Classes that have custom 
+destructors, copy/move constructors or copy/move assignment operators 
+should deal exclusively with ownership 
+(which follows from the Single Responsibility Principle). 
+Other classes should not have custom 
+destructors, copy/move constructors or copy/move assignment operators.
+(see~\cite{fernandesruleofzero})
+
+This rule also appears 
+in the C++ Core Guidelines as C.20: 
+If you can avoid defining default operations, do.
+
+When a \textbf{base class is intended for polymorphic use}, 
+its destructor may have to be declared public and virtual. 
+This blocks implicit moves (and deprecates implicit copies), 
+and so the special member functions have to be declared as defaulted
+(see~\cite{meyersconcernaboutruleof0})
+
+However, this makes the class prone to slicing, 
+which is why polymorphic classes often 
+define copy as deleted 
+(see~\cite{cpp-core-guidelines-C67}), 
+which leads to the following generic wording for the Rule of Five:
+If you define or =delete any default operation, 
+define or =delete them all
+(see~\cite{cpp-core-guidelines-C21})
+
+\subsubsection{Const Correctness}
+Const Correctness consists in using the keyword \texttt{const} to 
+prevent \texttt{const} objects from being mutated.
+
+\nparagraph{const and pointer combinations}
+Reading it right-to-left
+\begin{table}[h!t]
+    \begin{tabular}{l|r}
+        \texttt{const X* p} & p is a pointer to an X that is constant.\\
+        \hline
+        \texttt{X const* p} & equivalent to \texttt{const X* p}.\\
+        \hline
+        \texttt{X* const p} & p is a \texttt{const} pointer to an X that 
+                              is not \texttt{const}.\\
+        \hline
+        \texttt{const X* const p} &  p is a \texttt{const} pointer to an 
+                                     X that is \texttt{const}.\\
+    \end{tabular}
+\end{table}
+
+The second combination is equivalent to the first one because of the 
+\textbf{\texttt{const}-on-the-right style}, which require to write the 
+\texttt{const} specifier on the right of the object it makes 
+\texttt{const}. This style is also called "consistent \texttt{const}" 
+since it is consistent with the way of defining a const member function. 
+Moreover, it is also more consistent with pointer declarations.
+\nparagraph{const and reference combinations}
+Reading it right-to-left
+\begin{table}[h!t]
+    \begin{tabular}{l|r}
+        \texttt{const X\& r} & r aliases an X object, which can not be changed via r \\
+        \hline
+        \texttt{X const\& r} & equivalent to \texttt{const X\& r} \\
+        \hline
+        \texttt{X\& const r} & nonsense functionally equivalent to \texttt{X\& r}\\
+        \hline
+        \texttt{const X\& const r} & nonsense functionally equivalent to \texttt{const X\& r}\\       
+    \end{tabular}
+\end{table}
+The equivalence between the second and the first combination is due 
+to the same reason valid for the pointers.
+\newline
+The last two combinations are nonsense and should be avoided. They are 
+redundant as a reference is always constant, in the sense that you can 
+never reseat a reference to make it refer to a different object.
+
+\nparagraph{Logical and Physical state}
+When reasoning in terms of const-correctness, it's important to 
+distinguish the logical and the physical state of an object.
+\newline
+On the inside, an object has a \textbf{physical state}, also called 
+\textbf{concrete} or \textbf{bitwise} state. This state is the one 
+visible to the programmer who implements the software. From the outside, 
+the client has an access to the object restricted to public member 
+functions and friend functions. What is visible is the \textbf{logical} 
+or \textbf{abstract} or \textbf{meaningwise state}.
+\newline
+A lookup functionality for a collection-object is a good example to 
+show how there could be bits in the object's physical state that haev 
+no corresponding elements in the object's logical state. The lookup 
+functionality might improve the performance using a cache to store 
+the already looked-up items. The implementation of the cache is part of 
+the object's physical state but the implementation is internal and 
+the details will probably not be exposed to the users, i.e. it is not 
+part of the object's logical state.
+
+\nparagraph{\texttt{const}ness of \texttt{public} member functions}
+The constness of a public method must make sense to the object's users, 
+and those users can see only the object's logical state. Therefore, in 
+this context the \texttt{const}ness to take care of is the logical one. 
+\begin{itemize}    
+    \item If a method changes any part of the object’s logical state, 
+          it logically is a mutator; it should not be const even if 
+          (as actually happens!) the method doesn’t change any physical 
+          bits of the object’s concrete state.
+    \item Conversely, a method is logically an inspector and should be 
+          const if it never changes any part of the object’s logical 
+          state, even if (as actually happens!) the method changes 
+          physical bits of the object’s concrete state.
+\end{itemize}
+
+\nparagraph{return-by-reference and \texttt{const} member function}
+A \texttt{const} member function must not change nor allow its caller to 
+change the logical state of the \texttt{this} object it's been called 
+on.
+\newline
+
+\nparagraph{\texttt{const} overloading}
+\nparagraph{\texttt{mutable} keyword}
+\nparagraph{Error converting \texttt{F**} into \texttt{const F**}}
+
+\subsection{C++11 New Features}
+\subsubsection{Value Categories}
+\href{https://en.cppreference.com/w/cpp/language/value_category}{cppreference documentation} 
+about value categories.
+\newline    
+Due to the expressiveness of the C++ language, the terms \textbf{lvalue} 
+and \textbf{rvalue} references evolved in a more complex set.
+\nparagraph{glvalues}
+\textbf{G}eneralized lvalue is used to refer to something that could be 
+either a \textbf{lvalue} or \textbf{xvalue}.
+\nparagraph{rvalues}
+This term is inherited from C, in which \textbf{rvalues} can be on the 
+\textbf{r}ight side of an assignment. In C++ this term can refer to 
+things that are either \textbf{xvalues} and \textbf{prvalues}.
+\nparagraph{lvalues}
+This term is also inherited from C, in which \textbf{lvalues} can be 
+on the \textbf{l}eft side of an assignment. Therefore, the simplest one 
+is the name of a variable in a declaration.
+\newline
+Any expression resulting in an \textbf{lvalue reference} is also an 
+\textbf{lvalue}.
+\begin{lstlisting}[language=C+++]
+int v;          // v is an lvalue of type int
+A*  p1;         // *p1 is an lvalue
+A&  r1 = v1;    // r1 is an lvalue
+A&  f();        // f() is an lvalue
+\end{lstlisting}
+
+Accessing memebers of objects through pointers or references yields 
+\textbf{lvalues}. For example, with the following code
+\begin{lstlisting}[language=C+++]
+struct Foo
+{
+    Bar a;
+    Bar b;
+};
+
+Foo& f2();
+Foo* p2;
+Foo  v2;
+\end{lstlisting}
+\texttt{f2().a}, \texttt{p2->b} and \texttt{v2.a} are all 
+\textbf{lvalues} if type A.
+\newline
+\textbf{String literals} are \textbf{lvalues} of type array.
+\newline
+To conclude, a \textbf{named object} declared with an 
+\textbf{rvalue reference} is an \textbf{lvalue}. The name rvalue 
+reference indicates that it can bind to an \textbf{rvalue}, and once 
+you've declared a variable and given it a name it is an \textbf{lvalue}.
+\begin{lstlisting}[language=C+++]
+void Foo(A&& bar)
+{
+    // within Foo, bar is an lvalue 
+    // which will only bind to rvalues
+}
+\end{lstlisting}
+
+\nparagraph{xvalues}
+This term indicates e\textbf{X}piring value: an unnamed object that 
+will be destroyed soon. \textbf{xvalues} can be treated either as 
+\textbf{glvalues} or \textbf{rvalues}, based on the context.
+\newline
+Usually, \textbf{xvalues} only arise through \textbf{explicit casts} and 
+\textbf{function calls}. If an expression is cast to an rvalue reference 
+to some type T then the result is an xvalue of type T 
+\begin{lstlisting}[language=C+++]
+static_cast<A&&>(v1) // yields an xvalue of type A
+\end{lstlisting}
+If the return type of a function is an \textbf{rvalue reference} to some 
+type \textbf{T}, the result is an \textbf{xvalue} of type \textbf{T}.
+For example, the \texttt{std::move} is declared as
+\begin{lstlisting}[language=C+++]
+template <typename T>
+constexpr remove_reference_t<T>&& move(T&& t) noexcept;
+\end{lstlisting}
+\texttt{std::move(v1)} is an \textbf{xvalue} of type \texttt{A}. 
+The type deduction rules deduce \textbf{T} to be \texttt{A\&} 
+because \texttt{v1} is an \textbf{lvalue}.
+
+\nparagraph{prvalues}
+\textbf{P}ure \textbf{rvalue} is an \textbf{rvalue} which is not an  
+\textbf{xvalue}
+\newline
+Literals other than string literals are \textbf{pvalues}. For example, 
+$42$ is a \textit{prvalue} of type \texttt{int} and $3.141f$ is a 
+\textit{prvalue} of type \texttt{float}
+\newline
+\textbf{Temporaries} are \textbf{prvalues}. For example any temporaries 
+created as a result of an implicit conversion is also a \textbf{prvalue}. 
+In the following code
+\begin{lstlisting}[language=C+++]
+int consume_string(std::string&& s);
+int i = consume_string("hello");
+\end{lstlisting}
+the string literal in the function call will implicitly convert to a 
+temporary of type 
+\newline 
+\texttt{std::string}, which can bind to the rvalue 
+reference used for the function parameter since the temporary is a 
+\textit{prvalue}
+\nparagraph{Reference Binding}
+\href{https://en.cppreference.com/w/cpp/language/reference}{cppreference documentation} 
+about reference declaration.
+\newline
+The main difference between \textbf{lavalues} and \textbf{rvalues} is 
+the way they bind to references. The differences in type deduction rules 
+can have a big impact too.
+\nsubparagraph{lvalue references}
+These references are declared with a single ampersand $\&$.
+\newline
+A \textbf{non-const lvalue reference will only bind to non-const 
+lvalues} of the same type, or a class derived from the referenced type
+\begin{lstlisting}[language=C+++]
+class C : public A{};
+
+int i = 42;
+A a;
+B b;
+C c;
+const A ca{};
+
+A&   r1  = a;
+A&   r2  = c;
+A&   r3  = b;     // error, wrong type
+int& r4  = i;
+int& r5  = 42;    // error, cannot bind rvalue
+A&   r6  = ca;    // error, cannot bind const object
+                  // to non const ref
+A&   r7  = r1;
+A&   r8  = A();   // error, cannot bind rvalue
+A&   r9  = B().a; // error, cannot bind rvalue
+A&   r10 = C();   // error, cannot bind rvalue
+\end{lstlisting}
+A \textbf{const lvalue reference can also bind to rvalues}. The 
+object bound to the reference must have the same type as the referenced 
+type or a class derived from the referenced type. It is possible to 
+bind both const and non-const values to a const lvalue reference.
+\begin{lstlisting}[language=C+++]
+const A&   cr1  = a;
+const A&   cr2  = c;
+const A&   cr3  = b;     // error, wrong type
+const int& cr4  = i;
+const int& cr5  = 42;    // rvalue can bind OK
+const A&   cr6  = ca;    // OK, can bind const object to const ref
+const A&   cr7  = cr1;
+const A&   cr8  = A();   // OK, can bind rvalue
+const A&   cr9  = B().a; // OK, can bind rvalue
+const A&   cr10 = C();   // OK, can bind rvalue
+const A&   cr11 = r1;
+\end{lstlisting}
+Binding a temporary object (i.e. a \textbf{prvalue}) to a const lvalue 
+reference \textbf{extends the lifetime} of that temporary to the 
+lifetime of the reference. In the previous example, it is possible 
+to use \texttt{r8}, \texttt{r9} and \texttt{r10} later in the code.
+\newline
+Lifetime extension does not extend to references initialized from the 
+first reference. If a function parameter is a const lvalue reference 
+and gets bound to a temporary passed to the function call, the temporary 
+is destroyed when the function returns. This happens also if the 
+reference was stored in a longer-lived variable, such as a member of a 
+newly constructed object.
+\newline
+\textbf{volatile} and \textbf{const volatile} lvalue references are much 
+less used but behave as expected: volatile T\& bind to a volatile or 
+non-volatile, non-const lvalue of type T or a class derived from T. 
+However, volatile const lvalue references do not bind to rvalues.
+
+\nsubparagraph{rvalue references}
+An \textbf{rvalue reference} can be used to extend the lifetime of 
+temporary objects, making the referenced object modifiable through 
+them. The reference must be const in order to bind to a const object, 
+though const rvalue reference are much rarer.
+\begin{lstlisting}[language=C+++]
+const A make_const_A();
+A&&       rr1  = a;                // error, cannot bind lvalue 
+                                   // to rvalue reference
+A&&       rr2  = A();
+A&&       rr3  = B();              // error, wrong type
+int&&     rr4  = i;                // error, cannot bind lvalue
+int&&     rr5  = 42;
+A&&       rr6  = make_const_A();   // error, cannot bind 
+                                   //        const object 
+                                   //        to non const ref
+const A&& rr7  = A();
+const A&& rr8  = make_const_A();
+A&&       rr9  = B().a;
+A&&       rr10 = C();
+A&&       rr11 = std::move(a);     // std::move returns an rvalue
+A&&       rr12 = rr11;             // error rvalue references 
+                                   //       are lvalues
+\end{lstlisting}
+rvalue references extend the lifetime of temporary objects in the same 
+way const lvalue references do, therefore temporaries associated with 
+\texttt{rr2}, \texttt{rr5}, \texttt{rr7}, \texttt{rr8}, \texttt{rr9} 
+and \texttt{rr10} remain valid until the corresponding references are 
+destroyed. 
+
+\nsubparagraph{Reference Collapsing}
+In C++ it is possible to form reference to reference in 
+\textbf{templates} and \texttt{typedef} expressions. In this context, 
+the refefrence collapsing rule apply: rvalue reference to rvalue 
+reference collapses to an rvalue reference, all the others collapse to 
+lvaue references.
+\begin{lstlisting}[language=C+++]
+typedef int&  lref;
+typedef int&& rref;
+int n;
+ 
+lref&  r1 = n; // type of r1 is int&
+lref&& r2 = n; // type of r2 is int&
+rref&  r3 = n; // type of r3 is int&
+rref&& r4 = 1; // type of r4 is int&&
+\end{lstlisting}
+
+\nsubparagraph{Implicit conversion}
+A reference-to-A can be initialized with any D object which has an 
+inplicit conversion operator that returns \texttt{A\&}. In this case 
+the reference is bound to the result of the conversion operator.
+\newline
+A const lvalue-reference-to-E will bind only to objects implicitly 
+convertible to E. The reference is bound to the temporary resulting 
+from the conversion.
+
+\nsubparagraph{General properties}
+In general, \textbf{rvalues} can't be modified and their address can't 
+be taken.
+\newline
+However, as long as class \texttt{X} has a member function 
+named \texttt{do\char`_something}, the expression 
+\texttt{X().do\char`_something} is valid.
+\newline
+\textbf{ref qualifiers} along with \texttt{const} can be used to tag 
+different overloads of class member functions, to indicate they can be 
+applied to only \textit{lvalues} or to only \textit{rvaules}.
+\newline
+When the type of a variable or function template parameter is deduce 
+from its initializer, whether the initializer is an lvalue or rvalue 
+can affect the deduced type.
+
+\subsubsection{Move Semantic}
+Move semantics is a new way of moving resources around in an optimal way 
+by \textbf{avoiding unnecessary copies} of temporary objects. It is 
+based on rvalue references and plays an \textbf{important role in 
+exception safety} for C++. 
+
+%~ \subsubsection{Universal Reference}
+%~ \href{https://en.cppreference.com/w/cpp/language/reference#Forwarding_references}{cppreference documentation}
+%~ about universal reference
+%~ \newline
+\subsubsection{Perfect Forwarding}
+\href{https://en.cppreference.com/w/cpp/utility/forward}{cppreference documentation} 
+about \textbf{forward} utility.
+\newline
+\href{https://en.cppreference.com/w/cpp/language/reference#Forwarding_references}{cppreference documentation} 
+about \textbf{forwarding references}.
+\newline
+Perfect forwarding is an important C++0x feature built on top of rvalue 
+references. It provides the programmer with the capability automatically 
+apply the move semantics, even when there are intervening function calls 
+to separate the soure and the destination of a move.
+\newline
+Examples include constructors and setter functions, that can forward 
+arguments they receive directly to the data member they are initializing 
+or setting. Standard Library functions like \texttt{make\char`_shared} 
+"perfect-forwards" its arguments to the class constructor of whatever 
+object the to-be-created \texttt{shared\char`_ptr} is to point to.
+\newline
+The idiomatic expression of the perfect forwarding make use of the 
+\texttt{std::forward} 
+\begin{lstlisting}[language=C+++]
+template <typename T>
+void wrapper(T&& arg) 
+{
+    wrapped(std::forward<T1>(t1), std::forward<T2>(t2));
+}
+\end{lstlisting}
+
+\subsubsection{auto}
+\subsubsection{decltype}
+\subsubsection{const-expr}
+
+\subsection{C++23 New Features}
+\subsubsection{Containers}
+With C++23, we have 12 associative Containers:
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+    \textbf{C++98} & \texttt{std::map}, \texttt{std::set}, \texttt{std::multimap}, \texttt{std::multiset} \\
+    \hline
+    \multirow{2}{*}{\textbf{C++11}} 
+    & \texttt{std::unordered\char`_map}, \texttt{std::unordered\char`_set} \\
+    & \texttt{std::unordered\char`_multimap}, \texttt{std::unordered\char`_multiset} \\
+    \hline
+    \multirow{2}{*}{\textbf{C++23}} 
+    & \texttt{std::flat\char`_map}, \texttt{std::flat\char`_set},\\
+    & \texttt{std::flat\char`_multimap}, \texttt{std::flat\char`_multiset} \\
+    \end{tabular}
+\end{table}
+\newpage
+\begin{table}[h!t]
+    \begin{tabular}{l|l|l|l|l}
+        \multirow{2}{*}{Associative Container} & \multirow{2}{*}{Sorted} & \multirow{2}{*}{Value} & Several Identical & \multirow{2}{*}{Access Time} \\
+                                               &        &       & keys possible & \\
+        \hline
+        \texttt{std::set} & yes & no & no & logarithmic \\
+        \texttt{std::unordered\char`_set} & no & no & no & constant \\
+        \texttt{std::map} & yes & yes & no & logarithmic \\
+        \texttt{std::unordered\char`_map} & no & yes & no & constant \\
+        \texttt{std::multiset} & yes & no & yes & logarithmic\\
+        \texttt{std::unordered\char`_multiset} & no & no & yes & constant\\
+        \texttt{std::multimap} & yes & yes & yes & logarithmic\\
+        \texttt{std::unordered\char`_multimap} & no & yes & yes & constant\\
+    \end{tabular}
+\end{table}
+\newpage{}
+
