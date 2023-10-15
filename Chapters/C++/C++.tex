@@ -163,6 +163,47 @@ on.
 \nparagraph{\texttt{mutable} keyword}
 \nparagraph{Error converting \texttt{F**} into \texttt{const F**}}
 
+\subsection{C++ General Knowledge}
+\subsubsection{Classes and Inheritance}
+This is section is based upon the \href{https://isocpp.org/wiki/faq/basics-of-inheritance}{isocpp FAQ about inheritance}
+\nparagraph{Virtual member function}
+A \href{https://en.cppreference.com/w/cpp/language/virtual}{virtual member function} 
+is the way of C++ to allow derived classes to replace the implementation 
+provided by the base class. The compiler makes sure the correct 
+derived class' implementation is called, even when the object is 
+accessed through a pointer to the base class.
+\newline
+The reason why the member function are not \texttt{virtual} by default 
+is that many classes are not designed to be used as a base class. 
+Moreover, the \texttt{virtual} function call mechanism needs requires 
+an overhead of memory, typically one word per object.
+\nparagraph{Dynamic Binding and Static Typing}
+\textbf{Static typing} means that the legality of a member function 
+invocation is checked as early as possible, i.e. at compile time by the 
+compiler itself. In this kind of check, the compiler uses the 
+\textbf{static type} of the pointer to determine whether the member 
+function invocation is correct, meaning that the type pointed by the 
+pointer can handle the member function.
+\textbf{Dynamic binding} is the \texttt{virtual} function call 
+mechanism, which checks the correctness of the function call at the last 
+possible moment, i.e. at run time and based on the dynamic type of 
+the object pointed to.
+
+\subsubsection{Member Function call: \texttt{virtual} vs. non-\texttt{virtual}}
+The practical difference is that non-\texttt{virtual} member functinos 
+are resolved statically, i.e. the correct member function is selected 
+statically \textbf{depending on the type of the pointer or reference to 
+the object}.
+\newline
+On the other side, a \texttt{virtual} member function call is resolved 
+dynamically 
+\subsubsection{Virtual Member Function Call - Overhead Estimation}
+\subsubsection{Calling a Base Class \texttt{virtual} member function}
+\subsubsection{Heterogeneous list of objects}
+\subsubsection{\texttt{virtual} destructor}
+\subsubsection{\texttt{virtual} constructor}
+
+
 \subsection{C++11 New Features}
 \subsubsection{Value Categories}
 \href{https://en.cppreference.com/w/cpp/language/value_category}{cppreference documentation} 
