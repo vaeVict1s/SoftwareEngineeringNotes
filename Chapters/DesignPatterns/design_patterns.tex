@@ -1,13 +1,13 @@
-\section{Design Patterns}
-\label{sec:designpatterns}
+\chapter{Design Patterns}
+\label{chap:designpatterns}
 \vspace{10.5cm}
 \textbf{Design Patterns} describe how to solve recurring design problems 
 to design flexible and reusable object-oriented software, that is, 
 objects that are easier to implement, change, test, and reuse.
 %%%
-\subsection{Creational Patterns}
+\section{Creational Patterns}
     %%% %%%
-    \subsubsection{Factory Method}
+    \subsection{Factory Method}
     This pattern uses \textbf{factory methods} to deal with the problem of 
     \textbf{creating objects without having to specify the exact class} of 
     the object that will be created.
@@ -17,7 +17,7 @@ objects that are easier to implement, change, test, and reuse.
     in a base class and optionally overridden by derived classes --- 
     rather than by calling a constructor.
     
-    \nparagraph{When to use this pattern} 
+    \subsubsection*{When to use this pattern} 
     The object's creation may lead to a significant duplication of code, 
     may require information not accessible to the composing object, 
     may not provide a sufficient level of abstraction, 
@@ -33,7 +33,7 @@ objects that are easier to implement, change, test, and reuse.
         \item there is the concern to save system resources by reusing existing objects instead of rebuilding them each time.
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{CreationalPatterns/Factory_Method_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5\textwidth]{Missing Class Diagram}
@@ -60,11 +60,11 @@ objects that are easier to implement, change, test, and reuse.
     from the core business logic the Creator might and usually does have.
     \newpage
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
     
     %%% %%%
-    \subsubsection{Abstract Factory}
+    \subsection{Abstract Factory}
     This pattern makes it easier to produce families of related items
     without specifying their concrete classes.\\
     This is achieved declaring \textbf{explicit interfaces for each distinct product} of the product family and making 
@@ -74,14 +74,14 @@ objects that are easier to implement, change, test, and reuse.
     \textbf{a separate factory class} based on the AbstractFactory interface will be needed 
     and \textbf{clients access with both factories and products via their abstract interfaces}.
     
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.3]{CreationalPatterns/Abstract_Factory_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5\textwidth]{Missing Class Diagram}        
@@ -103,11 +103,11 @@ objects that are easier to implement, change, test, and reuse.
               corresponding abstract interfaces'. 
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
     
     %%% %%%
-    \subsubsection{Builder}
+    \subsection{Builder}
     \textbf{Builder} facilitates the \textbf{construction of complex objects step by step},
     producing different types and representations of an object using the same construyction code.
     This is achieved extracting the construction code out of its own class
@@ -119,14 +119,14 @@ objects that are easier to implement, change, test, and reuse.
     the steps in a specific order, while the Builder provides 
     the implementation of what to do.
     
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{CreationalPatterns/Builder_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram} 
@@ -144,11 +144,11 @@ objects that are easier to implement, change, test, and reuse.
         let latter be used for any further construction.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Prototype}
+    \subsection{Prototype}
     \textbf{Prototype} enables the copy of existing objects without implementing 
     code which depends on their classes. This is achieved delegating the cloning process 
     to the actual objects that are being cloned. A common interface is implemented 
@@ -158,14 +158,14 @@ objects that are easier to implement, change, test, and reuse.
     An object which could be cloned is called Prototype. 
     Cloning is an alternative to subclassing for objects with many fields and configurations.
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{CreationalPatterns/Prototype_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -179,11 +179,11 @@ objects that are easier to implement, change, test, and reuse.
         \item \textbf{Client} can produce a copy of any object which follows the prototype interface.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
     
     %%% %%%
-    \subsubsection{Singleton}
+    \subsection{Singleton}
     \textbf{Singleton} ensures that a class could have one instance only, 
     while providing a global access point to this instance. This functionality 
     could be interpreted as a violation of the Single Responsibility Principle.\\ 
@@ -195,14 +195,14 @@ objects that are easier to implement, change, test, and reuse.
            %~ Following calls to this method will return the cached object.         
     %~ \end{itemize}
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{CreationalPatterns/Singleton_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -215,25 +215,25 @@ objects that are easier to implement, change, test, and reuse.
         A static method \texttt{getInstance} is responsible to create and store 
         the first and only instance in a static field. Successive calls return the same instance.
     \end{itemize}
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 \newpage
 %%%
-\subsection{Behavioral Patterns}
+\section{Behavioral Patterns}
     %%% %%%
-    \subsubsection{Chain of Responsibility}
+    \subsection{Chain of Responsibility}
     \textbf{Chain of Responsibility} makes possible to pass a request 
     along a chain of handlers, each of which decides upon receiving 
     a request either to process the request or to pass it to the next handler in the chain.
     
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Chain_of_Responsibility_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -252,21 +252,21 @@ objects that are easier to implement, change, test, and reuse.
         depending on its own logic as well. The request can be sent to any handler in the chain.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Command}
+    \subsection{Command}
     \textbf{Command}
     
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Command_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -289,11 +289,11 @@ objects that are easier to implement, change, test, and reuse.
         all the parameters needed and a reference to the Receiver.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Iterator}
+    \subsection{Iterator}
     \textbf{Iterator} enables the client to traverse elements of a collection 
     without exposing its underlying representation. This is achieved 
     extracting the traversal behavior of a collection into a separate object, called iterator.
@@ -304,14 +304,14 @@ objects that are easier to implement, change, test, and reuse.
     compatible with any collection type or any trasversal algorithm, 
     as long as there's a proper iterator. 
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Iterator_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -334,25 +334,25 @@ objects that are easier to implement, change, test, and reuse.
         using their interfaces.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Mediator}
+    \subsection{Mediator}
     \textbf{Mediator} reduces chaotic and confusing dependencies between objects, 
     restricting direct communications between the objects and forcing them 
     to collaborate only through a mediator object. This is achieved cutting 
     all direct communication between the components which are required 
     to be independent of each other abd ...
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Mediator_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -376,21 +376,21 @@ objects that are easier to implement, change, test, and reuse.
     Likewise, the sender doesn't know who will handle the request as well as the 
     receiver doesn't know who sent the request.
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Memento}
+    \subsection{Memento}
     \textbf{Memento}
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.3]{BehavioralPatterns/Memento_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -410,21 +410,21 @@ objects that are easier to implement, change, test, and reuse.
     In the previous design, the Memento class is embedded in the Originator, 
     in order to make it easier to the latter to access the former's methods and data members.
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Observer}
+    \subsection{Observer}
     \textbf{Observer}
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Observer_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -443,21 +443,21 @@ objects that are easier to implement, change, test, and reuse.
         \item \textbf{Client} creates both publisher and subscriber objects and 
         manage the registrations for updates.
     \end{itemize}
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{State}
+    \subsection{State}
     \textbf{State}
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/State_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -476,20 +476,20 @@ objects that are easier to implement, change, test, and reuse.
     \end{itemize}
     A different Concrete State can be set by both the concrete states themselves.
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Strategy}
+    \subsection{Strategy}
     \textbf{Strategy}
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Strategy_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -509,21 +509,21 @@ objects that are easier to implement, change, test, and reuse.
         to the context.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Template Method}
+    \subsection{Template Method}
     \textbf{Template Method}
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Template_Method_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -538,21 +538,21 @@ objects that are easier to implement, change, test, and reuse.
         the \textbf{templateMethod} itself.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 
     %%% %%%
-    \subsubsection{Visitor}
+    \subsection{Visitor}
     \textbf{Visitor}
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{BehavioralPatterns/Visitor_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -575,13 +575,13 @@ objects that are easier to implement, change, test, and reuse.
         the abstract interface.
     \end{itemize}
     
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
 \newpage
 %%%
-\subsection{Structural Patterns}
+\section{Structural Patterns}
     %%% %%%
-    \subsubsection{Adapter}
+    \subsection{Adapter}
     \textbf{Adapter} allows the collaboration among objects with incompatible interfaces.
     This is achieved through the implementation of an Adapter which make 
     one interface understandable by an object of a different class.
@@ -591,14 +591,14 @@ objects that are easier to implement, change, test, and reuse.
     in a format and order it could understand.
     An Adapter could work in both directions.
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{StructuralPatterns/Adapter_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -619,11 +619,11 @@ objects that are easier to implement, change, test, and reuse.
     it doesn't get coupled. Therefore, different adapters can be added to the program 
     without breaking any existing code.
 
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}    
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}    
     
     %%% %%%
-    \subsubsection{Bridge}
+    \subsection{Bridge}
     \textbf{Bridge} splits a large class or a set of closely related classes 
     into two separate hierarchies which can be developed independently of each other.
     This is achieved by switching from inheritance to object composition.
@@ -634,14 +634,14 @@ objects that are easier to implement, change, test, and reuse.
     This extraction makes a class able to delegate any 'dimension-related' work
     to the linked 'dimension-related' object.
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{StructuralPatterns/Bridge_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -662,23 +662,23 @@ objects that are easier to implement, change, test, and reuse.
         it with one of the implementation objects.
     \end{itemize}
 
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}    
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}    
     
     %%% %%%
-    \subsubsection{Composite}
+    \subsection{Composite}
     \textbf{Composite} after enabling composition of objects into tree structures, 
     this pattern let clients work with these structures as they were individual objects.
     This is achieved extending the class
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{StructuralPatterns/Composite_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -698,22 +698,22 @@ objects that are easier to implement, change, test, and reuse.
         through the component interface.
     \end{itemize}
 
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}    
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}    
     
     %%% %%%
-    \subsubsection{Decorator}
+    \subsection{Decorator}
     \textbf{Decorator} attaches new behaviors to objects by placing these objects inside
     special wrapper objects containing the desired behavior.
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{StructuralPatterns/Decorator_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -736,23 +736,23 @@ objects that are easier to implement, change, test, and reuse.
     Multiple layers of decorations are possible as long as the Client 
     interacts with the object through the component.
 
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}    
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}    
     
     %%% %%%
-    \subsubsection{Facade}
+    \subsection{Facade}
     \textbf{Facade} consists of a simplified interface to a complex subsystem 
     which contains lots of moving parts. Functionalities provided by the Facade 
     could be reduced to the subset the client is interested in.
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{StructuralPatterns/Facade_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -772,22 +772,22 @@ objects that are easier to implement, change, test, and reuse.
         \item \textbf{Client} calls the subsystem classes through the Facade only. 
     \end{itemize}
 
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}    
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}    
     
     %%% %%%
-    \subsubsection{Flyweight}
+    \subsection{Flyweight}
     \textbf{Flyweight} reduces RAM consumption by sharing common parts of state 
     between multiple objects, instead of creating copies of same data in each object.
 
-    \nparagraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
     
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{StructuralPatterns/Flyweight_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -813,21 +813,21 @@ objects that are easier to implement, change, test, and reuse.
         data into parameters of its methods.
     \end{itemize}
 
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
     
     %%% %%%
-    \subsubsection{Proxy}
+    \subsection{Proxy}
     \textbf{Proxy} 
 
-    \paragraph{When to use this pattern}
+    \subsubsection*{When to use this pattern}
     \begin{itemize}
         \item
         \item
         \item
     \end{itemize}
 
-    \nparagraph{Structure}
+    \subsubsection*{Structure}
     \begin{figure}[H]
         \includegraphics[scale=0.5]{StructuralPatterns/Proxy_Pattern_Class_Diagram}
         %~ \missingfigure[figwidth=0.5	\textwidth]{Missing Class Diagram}        
@@ -846,8 +846,8 @@ objects that are easier to implement, change, test, and reuse.
         is the same as the Service's.
     \end{itemize}
 
-    \paragraph{Pros and Cons}
-    \paragraph{Relation with other Design Patterns}
+    \subsubsection*{Pros and Cons}
+    \subsubsection*{Relation with other Design Patterns}
     
     
     

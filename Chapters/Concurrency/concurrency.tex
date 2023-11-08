@@ -1,11 +1,11 @@
-\section{Concurrency}
-\label{sec:concurrency}
+\chapter{Concurrency}
+\label{chap:concurrency}
 \vspace{10.5cm}
 C++ includes built-in support for threads, atomic operations, mutual exclusion, 
 condition variables, and futures.
 \newline
 %%% Paragraph
-\subsection{Threads}
+\section{Threads}
 %~ \vspace{-8truemm} %% needed in case of a nparagraph
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -19,7 +19,7 @@ condition variables, and futures.
     \end{tabular}
 \end{table}
 %%% Paragraph
-\nparagraph{Functions managing the current thread}
+\subsection{Functions managing the current thread}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -39,6 +39,8 @@ condition variables, and futures.
     \end{tabular}
 \end{table}
 %%% Subsection
+
+\section{Atomicity}
 \subsection{Atomic operations}
 These components are provided for fine-grained atomic operations 
 allowing for lockless concurrent programming. Each atomic operation is 
@@ -48,7 +50,7 @@ Atomic objects are
 \href{https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races}{free of data races}. 
 \newpage
 %%% Paragraph
-\nparagraph{Atomic types}
+\subsection{Atomic types}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -63,7 +65,7 @@ Atomic objects are
     \end{tabular}
 \end{table}
 %%% Paragraph
-\nparagraph{Operations on atomic types}
+\subsection{Operations on atomic types}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{adjustbox}{width=1.1\columnwidth,left}
@@ -137,7 +139,7 @@ Atomic objects are
     \end{adjustbox}
 \end{table}
 
-\nparagraph{Flag type and operations}
+\subsection{Flag type and operations}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -175,7 +177,7 @@ Atomic objects are
 \end{table}
 
 \newpage
-\nparagraph{Initialization}
+\subsection{Initialization}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -192,7 +194,7 @@ Atomic objects are
    \end{tabular}
 \end{table}
 
-\nparagraph{Memory synchronization ordering}
+\subsection{Memory synchronization ordering}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -212,7 +214,7 @@ Atomic objects are
     \end{tabular}
 \end{table}
 
-\nparagraph{Mutual exclusion}
+\subsection{Mutual exclusion}
 Mutual exclusion algorithms prevent multiple threads from simultaneously accessing shared resources. 
 This prevents data races and provides support for synchronization between threads. 
 \newline
@@ -245,7 +247,7 @@ This prevents data races and provides support for synchronization between thread
     \end{tabular}
 \end{table}
 
-\nparagraph{Generic mutex management}
+\subsection{Generic mutex management}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -278,8 +280,8 @@ This prevents data races and provides support for synchronization between thread
         \cline{1-2}
     \end{tabular}
 \end{table}
-
-\nparagraph{Generic locking management}
+\newpage
+\subsection{Generic locking management}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -293,7 +295,7 @@ This prevents data races and provides support for synchronization between thread
     \end{tabular}
 \end{table}
 
-\nparagraph{Call once}
+\subsection{Call once}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -307,7 +309,7 @@ This prevents data races and provides support for synchronization between thread
     \end{tabular}
 \end{table}
 
-\nparagraph{Condition variables}
+\subsection{Condition variables}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -328,7 +330,7 @@ This prevents data races and provides support for synchronization between thread
     \end{tabular}
 \end{table}
 \newpage
-\nparagraph{Futures}
+\subsection{Futures}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -359,7 +361,7 @@ This prevents data races and provides support for synchronization between thread
     \end{tabular}
 \end{table}
 
-\nparagraph{Future errors}
+\subsection{Future errors}
 \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -378,12 +380,27 @@ This prevents data races and provides support for synchronization between thread
 \newpage
 
 \subsection{Memory Order}
+\href{https://en.cppreference.com/w/cpp/atomic/memory_order}{Cppreference documentation about \textbf{\texttt{std::memory\char`_order}}}. 
+\newline
+C++ defines several memory orders to specify how memory accesses are to 
+be ordered around an atomic operation. Without any constraint, the 
+apparent order of changes can even differ among multiple reader threads.
+\newline
+The defualt behavior provides for sequentially consistent ordering, 
+This default behavior can reduce performance, therefore the possibility 
+to give an additional 
+\newline
+\texttt{std::memory\char`_order} argument to 
+define the constraints that the compiler and processor must enforce 
+beyond atomicity.
 \begin{itemize}
     \item \textbf{\texttt{memory\char`_order\char`_relaxed}} 
     \newline
-    Relaxed operation: there are no synchronization or ordering constraints
+    Relaxed operation: there are \textbf{no synchronization or ordering constraints}
     imposed on other reads or writes, only this operation's atomicity is 
-    guaranteed \item \textbf{\texttt{memory\char`_order\char`_consume}}
+    guaranteed
+    
+    \item \textbf{\texttt{memory\char`_order\char`_consume}}
     \newline
     A load operation with this memory order performs a consume operation 
     on the affected memory location: no reads or writes in the current thread 

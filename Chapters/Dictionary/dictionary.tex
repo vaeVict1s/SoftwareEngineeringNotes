@@ -2,13 +2,18 @@
 \clearpage
 \pagestyle{dictionarystyle}
 
-\section{Dictionary}
-\label{sec:dictionary}
+\chapter{Dictionary}
+\label{chap:dictionary}
 \vspace{10.5cm}
 
 \subsection{A}
 
 \begin{multicols*}{2}
+
+    \dictentry{ADL}{}
+
+    \dictentry{Allocate}{to assign, allot, distribute, or set apart for 
+    a particular purpose}
 
     \dictentry{Atomic}{Objects of atomic types are the only C++ objects 
     that are free from data races; that is, if one thread writes to an 
@@ -17,9 +22,6 @@
     inter-thread synchronization and order non-atomic memory accesses 
     as specified by \textbf{\texttt{std::memory\char`_order}}.}
     
-    \dictentry{Allocate}{to assign, allot, distribute, or set apart for 
-    a particular purpose}
-
 \end{multicols*}
 
 \subsection{B}
@@ -60,8 +62,12 @@
 
 \end{multicols*}
 
-%~ \subsection{E}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{E}
+\begin{multicols*}{2}
+
+    \dictentry{encapsulation}{preventing unauthorized access to some piece of information or functionality}
+
+\end{multicols*}
 
 %~ \subsection{F}
 %~ \begin{multicols*}{2}\end{multicols*}
@@ -100,7 +106,10 @@
 
 \subsection{M}
 \begin{multicols*}{2}
+
     \dictentry{method chaining}{}
+
+    \dictentry{most vexing parsing}{}
 \end{multicols*}
 
 %~ \subsection{N}
@@ -109,6 +118,8 @@
 \subsection{O}
 
 \begin{multicols*}{2}
+
+    \dictentry{}{region of storage with associated semantics}
 
     \dictentry{Overloading}{a compile time polymorphism achieved 
     specifying more than one function with the same name but different 
@@ -145,6 +156,8 @@
     
     \dictentry{RAII}{acronym for Resource Acquisition Is Initialization.}
     
+    \dictentry{RBV optimization}{see~\cite{isocpp-rbv-optimization}.}
+    
     \dictentry{RVO}{acronym for Return Value Optimization.}
 
 \end{multicols*}
@@ -154,6 +167,12 @@
     \dictentry{static typing}{}
     
 \begin{multicols*}{2}
+    
+    \dictentry{SFINAE}{acronym for \textbf{Substitution} \textbf{Failure} 
+    \textbf{Is} \textbf{Not} \textbf{An} \textbf{Error}, a technique 
+    used in template programming which discards the specialization from 
+    the overloaded set avoiding a compile error, when substituting the 
+    explicitly specified or deduced type for the template parameter fails.}
     
     \dictentry{Stack}{LIFO-ordered contiguous region of temporary memory 
     whose size is known to the compiler, which manages to allocate and 

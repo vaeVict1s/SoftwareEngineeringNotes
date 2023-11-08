@@ -1,9 +1,9 @@
-\section{OOP and UML}
-\label{sec:c++newfeatures}
+\chapter{OOP and UML}
+\label{chap:c++newfeatures}
 \vspace{10.5cm}
 %%% OOP.
-\subsection{Object Oriented Programming}
-    \subsubsection{Polymorphism}
+\section{Object Oriented Programming}
+    \subsection{Polymorphism}
     In C++ there are different kinds of polymorphism, summarized it 
     the figure~\ref{fig:cpp-poly}
     \begin{figure}[H]
@@ -12,16 +12,16 @@
         \caption{Polimorphism in C++}
         \label{fig:cpp-poly}
     \end{figure}
-    \nparagraph{Compile time polymorphism}
+    \subsubsection*{Compile time polymorphism}
     Overloaded functions are invoked by matching the type and number of 
     arguments at compile time, because the compiler already has all the 
     information needed. This is know by the name of 
     \textbf{static binding} or \textbf{}.
-    \nparagraph{Run time polymorphism}
+    \subsubsection*{Run time polymorphism}
 %%% UML 
-\subsection{UML}
+\section{UML}
     %% Class Diagram
-    \subsubsection{Class Diagram}
+    \subsection{Class Diagram}
     In Unified Modeling Language, a class diagram is used to describe 
     the static structure of a system by showing the system's classes, 
     their attributes, operations (methods) and the relationship among 
@@ -31,7 +31,7 @@
     structure of the software application. In case of detailed modeling, 
     it is also possible to translate the diagram into programming code.
     %%% Visibility
-    \nparagraph{Visibility}
+    \subsubsection{Visibility}
     To indicate visibility for methods and sttributes, this notation 
     must be placed before their names
     \begin{table}[ht]
@@ -43,7 +43,7 @@
         \end{tabular}
     \end{table}
     %%% Scope
-    \nparagraph{Scope}
+    \subsubsection{Scope}
     UML defines \textbf{instance} and \textbf{class} scopes for members. 
     The latter is represented by \underline{underlined names}.
     \begin{itemize}
@@ -52,7 +52,7 @@
         "static"
     \end{itemize}
     %%% Arrows
-    \nparagraph{Arrows}
+    \subsubsection{Arrows}
     The relationship defined in UML are represented by the following 
     logical connectors
     \begin{figure}[H]
@@ -134,7 +134,7 @@
         %~ \item Aggregation relationship
     %~ \end{itemize}
     %%% Class level relationship
-    \nparagraph{Class-level relationships}
+    \subsubsection{Class-level relationships}
     \begin{itemize}
         \item \textbf{Generalization/Inheritance} indicates the one of 
               the two related classes (called \textbf{subclass}) is 
@@ -159,7 +159,7 @@
               that the other model element (the supplier) specifies.
     \end{itemize}
     %%% General relationship
-    \nparagraph{General relationship}
+    \subsubsection{General relationship}
     \begin{itemize}
         \item \textbf{Dependency} can be a weaker form of bond that 
               indicates that one class depends on another because it 
@@ -186,7 +186,7 @@
              \end{table}
     \end{itemize}
 
-    \nparagraph{Class and Sequence diagram Cheatsheet}
+    \subsubsection{Class and Sequence diagram Cheatsheet}
     Following a summary of the information for class and sequance UML 
     diagrams
     \begin{figure}[H]

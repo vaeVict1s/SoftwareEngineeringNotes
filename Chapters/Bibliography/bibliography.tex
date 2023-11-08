@@ -1,25 +1,30 @@
-\titleformat{\section} % this is needed to change the title formatting for the bibliography
-   {\normalfont\Large\bfseries}{\thesection}{0.5em}{#1}
-\stepcounter{section} % this is needed to display bibliografy section number correctly
+\titleformat{\chapter} % this is needed to change the title formatting for the bibliography
+   {\normalfont\Large\bfseries}{\thechapter}{0.5em}{#1}
+\stepcounter{chapter} % this is needed to display bibliografy section number correctly
 \begin{thebibliography}{99}
-	%~ \vspace{10.5cm}
+    \input{./Chapters/Algorithms/algorithms_bibliography.tex}
     \input{./Chapters/SolidPrinciples/solid_principles_bibliography.tex}
+    \input{./Chapters/DesignPatterns/design_patterns_bibliography.tex}
     \input{./Chapters/Idioms/idioms_bibliography.tex}
+    \input{./Chapters/Containers/containers_bibliography.tex}
     \input{./Chapters/SmartPointers/smart_pointers_bibliography.tex}
     \input{./Chapters/C++/C++_bibliography.tex}
     \input{./Chapters/OOPandUML/OOP_and_UML_bibliography.tex}
+    \input{./Chapters/Concurrency/concurrency_bibliography.tex}
+    \input{./Chapters/Python/Python_bibliography.tex}
+    \input{./Chapters/Dictionary/dictionary_bibliography.tex}
     %%%
     % Sparse references start
     %%%
     %% %% 1
-    \bibitem{gotw-22-objectlifetimeI} Herb Sutter - \emph{Object Lifetimes - Part I}
-    \newline
-    Retrieved from: \href{http://www.gotw.ca/gotw/022.htm}{Guru of the Week - 22}
+    %~ \bibitem{gotw-22-objectlifetimeI} Herb Sutter - \emph{Object Lifetimes - Part I}
+    %~ \newline
+    %~ Retrieved from: \href{http://www.gotw.ca/gotw/022.htm}{Guru of the Week - 22}
 
-    %% %%
-    \bibitem{gotw-23-objectlifetimeII} Herb Sutter - \emph{Object Lifetimes - Part II}
-    \newline
-    Retrieved from: \href{http://www.gotw.ca/gotw/023.htm}{Guru of the Week - 23}
+    %~ %% %%
+    %~ \bibitem{gotw-23-objectlifetimeII} Herb Sutter - \emph{Object Lifetimes - Part II}
+    %~ \newline
+    %~ Retrieved from: \href{http://www.gotw.ca/gotw/023.htm}{Guru of the Week - 23}
     %%%
 
     % Sparse references end
@@ -33,5 +38,5 @@
 
 
 \end{thebibliography}
-\addtocounter{section}{1}
-\addcontentsline{toc}{section}{\protect\numberline{\thesection}~~~ References}
+\addtocounter{chapter}{1}
+\addcontentsline{toc}{chapter}{\protect\numberline{\thesection}~~~ References}

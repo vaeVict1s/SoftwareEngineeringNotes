@@ -1,5 +1,5 @@
-\section{Containers}
-\label{sec:containers}
+\chapter{Containers}
+\label{chap:containers}
 \vspace{10.5cm}
 The \href{https://en.cppreference.com/w/cpp/container}{Containers library} is a generic collection 
 of class templates and algorithms that allow programmers to easily implement 
@@ -12,30 +12,30 @@ The container classes are:
     \item unordered associative containers, which can be searched in $O(1)$ on average and in $O(n)$ in the worst one.
 \end{itemize}
 
-\subsection{Links to the CPP Reference documentation}
+\section{Links to the CPP Reference documentation}
 
-\subsubsection{Sequence Containers}
+\subsection{Sequence Containers}
 \href{https://en.cppreference.com/w/cpp/container/array}{array}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/vector}{vector}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/deque}{deque}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/forward_{list}}{forward\char`_list}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/list}{list}
 
-\subsubsection{Associative Containers}
+\subsection{Associative Containers}
 
 \href{https://en.cppreference.com/w/cpp/container/set}{set}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/map}{map}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/multiset}{multiset}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/multimap}{multimap}
 
-\subsubsection{Unordered Associative Containers}
+\subsection{Unordered Associative Containers}
 
 \href{https://en.cppreference.com/w/cpp/container/unordered_set}{unordered\char`_set}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/unordered_map}{unordered\char`_map}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/unordered_multiset}{unordered\char`_multiset}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/unordered_multimap}{unordered\char`_multimap}
 
-\subsubsection{Container Adaptors}
+\subsection{Container Adaptors}
 \href{https://en.cppreference.com/w/cpp/container/stack}{stack}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/queue}{queue}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/priority_queue}{priority\char`_queue}\quad | \quad
@@ -44,7 +44,24 @@ The container classes are:
 \href{https://en.cppreference.com/w/cpp/container/flat_multiset}{flat\char`_multiset}\quad | \quad
 \href{https://en.cppreference.com/w/cpp/container/flat_multimap}{flat\char`_multimap}
 
-\subsection{Invalidation of Iterators and References}
+\section{Containers' Access Time}
+\begin{table}[h!t]
+    \begin{tabular}{l|c|c|c|c}
+        \multirow{2}{*}{Associative Container} & \multirow{2}{*}{Sorted} & \multirow{2}{*}{Value} & Multiple Identical & \multirow{2}{*}{Access Time} \\
+                                               &        &       & Keys & \\
+        \hline
+        \texttt{std::set} & yes & no & no & logarithmic \\
+        \texttt{std::unordered\char`_set} & no & no & no & constant \\
+        \texttt{std::map} & yes & yes & no & logarithmic \\
+        \texttt{std::unordered\char`_map} & no & yes & no & constant \\
+        \texttt{std::multiset} & yes & no & yes & logarithmic\\
+        \texttt{std::unordered\char`_multiset} & no & no & yes & constant\\
+        \texttt{std::multimap} & yes & yes & yes & logarithmic\\
+        \texttt{std::unordered\char`_multimap} & no & yes & yes & constant\\
+    \end{tabular}
+\end{table}
+\newpage
+\section{Invalidation of Iterators and References}
 \begin{table}[ht]
 \footnotesize{}
     \begin{tabular}{|c|c|c|c|c|c|c|}
@@ -86,3 +103,23 @@ The container classes are:
     \label{tab:iterator-reference-validity}
 \end{table}
 \normalsize
+
+\section{C++23 New Container Adaptors}
+\subsection{Containers}
+With C++23, the following four Container Adaptors were introduced:
+\begin{table}[h!t]
+    \begin{tabular}{|l|l|}
+    %~ \textbf{C++98} & \texttt{std::map}, \texttt{std::set}, \texttt{std::multimap}, \texttt{std::multiset} \\
+    %~ \hline
+    %~ \multirow{2}{*}{\textbf{C++11}} 
+    %~ & \texttt{std::unordered\char`_map}, \texttt{std::unordered\char`_set} \\
+    %~ & \texttt{std::unordered\char`_multimap}, \texttt{std::unordered\char`_multiset} \\
+    \hline
+    \multirow{2}{*}{\textbf{C++23}} 
+    & \texttt{std::flat\char`_map}, \texttt{std::flat\char`_multimap},\\
+    & \texttt{std::flat\char`_set}, \texttt{std::flat\char`_multiset} \\
+    \hline
+    \end{tabular}
+\end{table}
+
+\newpage{}

@@ -1,28 +1,28 @@
-\section{Solid Principles}
-\label{sec:solidprinciples}
+\chapter{Solid Principles}
+\label{chap:solidprinciples}
 \vspace{10.5cm}
 
 \textbf{SOLID} is a mnemonic acronym for five design principles intended 
 to make object-oriented designs more understandable, flexible, and maintainable.\\
 The principles are a subset of many principles promoted by 
-American software engineer and instructor \textbf{Robert C. Martin},~\cite{poO}-~\cite{SOLIDstart}-~\cite{sood}. \\
+American software engineer and instructor \textbf{Robert C. Martin},~\cite{martin-poO}-~\cite{martin-SOLIDstart}-~\cite{metz-sood}. \\
 They were first introduced in his 2000 paper Design Principles and Design Patterns, 
-while the acronym was introduced later, around 2004, by \textbf{Michael Feathers}~\cite{cleanArch}. \\
+while the acronym was introduced later, around 2004, by \textbf{Michael Feathers}~\cite{feathers-clean-architecture}. \\
 Although the SOLID principles apply to any object-oriented design, 
 they can also form a core philosophy for methodologies such as 
 agile development or adaptive software development.
 
-\subsection{Single-Responsibility}
-    "There should never be more than one reason for a class to change."~\cite{srp}
+\section{Single-Responsibility}
+    "There should never be more than one reason for a class to change."~\cite{martin-srp}
     \newline
-    In other words, every class should have only one responsibility.~\cite{agileSoftDev}
-\subsection{Open-Close}
+    In other words, every class should have only one responsibility.~\cite{martin-agileSoftDev}
+\section{Open-Close}
     "Software entities \ldots  should be open for extension, but closed for modification."~\cite{ocp}
-\subsection{Liskov Substitution}
+\section{Liskov Substitution}
     "Functions that use pointers or references to base classes must be able to use objects of derived classes without knowing it."~\cite{lsp} \\
     See also: \href{https://en.wikipedia.org/wiki/Design_by_contract}{Design by contract}. 
-\subsection{Interface Segregation}
-    "Clients should not be forced to depend upon interfaces that they do not use."~\cite{isp}~\cite{pap}
-\subsection{Dependency Inversion}
-    "Depend upon abstractions, [not] concretions."~\cite{dip}~\cite{pap}
+\section{Interface Segregation}
+    "Clients should not be forced to depend upon interfaces that they do not use."~\cite{isp}~\cite{martin-pap}
+\section{Dependency Inversion}
+    "Depend upon abstractions, [not] concretions."~\cite{dip}~\cite{martin-pap}
 

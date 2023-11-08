@@ -1,7 +1,6 @@
 % ===== Document Class & Packages =====
-\documentclass[12pt,hidelinks]{article}
-    %~ \setcounter{tocdepth}{3}
-    %~ \usepackage{graphicx} %
+\documentclass[12pt,hidelinks]{book}
+    \setcounter{tocdepth}{4}
     \usepackage{url}
     \usepackage{acronym}
     \usepackage{adjustbox}
@@ -13,7 +12,6 @@
     \usepackage{layout}
     \usepackage{tocbibind}
 	\usepackage{lipsum} 
-	%~ \usepackage{titlesec}
 	\usepackage[explicit]{titlesec}
 	\usepackage{titletoc}
 	\usepackage{tocloft}
@@ -56,7 +54,7 @@
 		left=33mm,
 		right=33mm,
 		top=20mm}
-
+    \usepackage{ifthen}
     
 % ========= Path to images ============
 %   - Direct the computer on the path 
@@ -80,6 +78,7 @@
 
 % ======= Sections redefinitions ======
 \newcommand{\nparagraph}[1]{\paragraph{#1}\mbox{}\\}
+\newcommand{\toclessnparagraph}[1]{\paragraph*{#1}\mbox{}\\}
 \newcommand{\nsubparagraph}[1]{\subparagraph{#1}\mbox{}\\}
 
 % ======== Dictionary Entries =========
@@ -115,6 +114,8 @@
     
 % =====================================
 \renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thechapter}{\arabic{chapter}} % added to change the titleformat
+                                             % from section to chapter
 \newcommand\sectionnumfont{% font specification for the number
 	\fontsize{380}{130}\color{myblueii}\selectfont}
 \newcommand\sectionnamefont{% font specification for the name "PART"
@@ -143,25 +144,35 @@
 \definecolor{whitesmoke}{rgb}{0.96, 0.96, 0.96}
 \definecolor{lightgray}{rgb}{0.92, 0.92, 0.92}
 \definecolor{floralwhite}{rgb}{1.0, 0.98, 0.94}
-% ----- code colors
+
+% ----- Colors added by me
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
+\definecolor{shadecolor}{RGB}{0,140,69}      
+\definecolor{textcolor}{RGB}{0, 61, 165}  
 
 % ========== Text Highlight ===========
 %~ \usepackage[skins]{tcolorbox}
 \definecolor{tpgray}{gray}{0.90}
 \newtcbox\tcbtp{hbox, on line, colback=tpgray, enhanced, frame hidden, boxrule=0pt, 
     top=-2pt, bottom=-2pt, right=-2pt, left=-2pt, rounded corners}
-\newcommand{\myHilight}[2]{\tcbtp{\textit{\color{#1}{#2}}}}
-\definecolor{shadecolor}{RGB}{0,140,69}      
-\definecolor{textcolor}{RGB}{0, 61, 165}  
+\newcommand{\highlight}[2][textcolor]{\tcbtp{{\color{#1}{#2}}}}
+\newcommand{\highlightit}[2][textcolor]{\tcbtp{\textit{\color{#1}{#2}}}}
+\newcommand{\highlighttt}[2][textcolor]{\tcbtp{\texttt{\color{#1}{#2}}}}
+\newcommand{\highlightbf}[2][textcolor]{\tcbtp{\textbf{\color{#1}{#2}}}}
+\newcommand{\inlinecode}[1]{\tcbtp{\texttt{\color{textcolor}{#1}}}}
 
-% ============ Part Format ============
+%~ \newcommand{\highlightit}[2][]{
+    %~ \ifthenelse{\equal{#1}{}}
+    %~ {\tcbtp{\texttt{\color{textcolor}{#2}}}}
+    %~ {\tcbtp{\texttt{\color{#1}{#2}}}}
+%~ }
 
-\titleformat{\section}
+% ======= Chapter Title Format ========
+\titleformat{\chapter}
 {\normalfont\huge\filleft}
 {}
 {20pt}
@@ -180,11 +191,11 @@
     anchor=south east,
     inner sep=0pt,
     outer sep=0pt] (partnum) at ([xshift=-20pt]parttop.south) 
-    {\sectionnumfont\thesection};
+    {\sectionnumfont\thechapter}; % changed \thesection to \thechapter
 \node[
     anchor=south,
     inner sep=0pt] (partname) at ([yshift=2pt]partnum.south)   
-    {\sectionnamefont SECTION};
+    {\sectionnamefont CHAPTER}; % chandeg SECTION to CHAPTER
 \node[
     anchor=north east,
     align=right,
@@ -536,39 +547,40 @@ Enjoy!
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %~ \normallayout
 \input{./Chapters/Algorithms/algorithms.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SolidPrinciples/solid_principles.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/DesignPatterns/design_patterns.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Idioms/idioms.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Containers/containers.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SmartPointers/smart_pointers.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/C++/C++.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/OOPandUML/OOP_and_UML.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Concurrency/concurrency.tex}
-\newpage
+%~ \newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Chapters/Python/Python.tex}
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Dictionary/dictionary.tex}
-\newpage
+%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %~ \input{./Chapters/AuthorContacts/author_contacts.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Bibliography/bibliography.tex} \newpage
 %~ \printbibliography
 \end{document}
-
-    

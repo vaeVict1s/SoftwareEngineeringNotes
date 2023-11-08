@@ -1,11 +1,14 @@
-\section{Idioms}
-\label{sec:idioms}
+\chapter{Idioms}
+\label{chap:idioms}
 \vspace{10.5cm}
-%%%
+\section{C++ Idioms}
+An idiom can be considered as the most natural way to express something 
+or to solve a problem. More specifically, an idiom is a group of code 
+fragments sharing an equivalet semantic role, which recurs frequently in 
+one or more programming languages or libraries.
 \subsection{PImpl Idiom}
 
-\href{https://en.cppreference.com/w/cpp/language/pimpl}{cppreference documentation} 
-about the \textbf{\texttt{PImple Idiom}}.
+\href{https://en.cppreference.com/w/cpp/language/pimpl}{cppreference documentation about the \textbf{\texttt{PImple Idiom}}}.
 \newline
 "Pointer to implementation" or "pImpl" is a C++ programming technique 
 that \textbf{removes implementation details of a class from its object representation} 
@@ -13,14 +16,14 @@ by placing them in a separate class, accessed \textbf{through an opaque pointer}
 \newline
 This idiom is also know as \textbf{\texttt{Compiler Firewall Idiom}}.
 
-\nparagraph{Problematic Scenario}
+\subsubsection*{Problematic Scenario}
 Whenever file class definition changes in a header, all users of that class 
 must be recompiled. The reason is the textual inclusion on which 
 the C++ build model is based. The user is assumed to know two features 
 which could be affected by private members: \textbf{size and layout} 
 and \textbf{functions}.
 
-\nparagraph{Solution}
+\subsubsection*{Solution}
 \begin{lstlisting}[language=C++]
 // Pimpl idiom - basic idea
 class widget {
@@ -30,11 +33,6 @@ private:
     impl* pimpl_;       // opaque pointer to forward-declared class
 };    
 \end{lstlisting}
-
-
-
-
-
 
 %%%
 \subsection{Fast PImpl Idiom}
@@ -49,7 +47,25 @@ This idiom makes use of the \textbf{RAII} idiom in order to acquire
 the new resource before it forfeits its current resource. If the 
 acquisition is successful
 
-\subsection{RAII - Resource acquisition is initialization}
+\subsection{RAII - Resource Acquisition is Initialization}
+
+\subsection{DBDII - Dynamic Binding During Initialization Idiom}
+\label{subsec:dbdii}
+\href{https://isocpp.org/wiki/faq/strange-inheritance#calling-virtuals-from-ctor-idiom}{calling-virtuals-from-ctor-idiom}
 
 
+\subsection{Named Constructor Idiom}
+\cite{isocpp-named-ctor-idiom}
 
+\subsection{Construct On First Use Idiom}
+\cite{isocpp-const-first-use-idiom}
+
+\subsection{Nifty Counter Idiom}
+\cite{isocpp-nifty-counter-idiom}
+
+\subsection{Named Parameter Idiom}
+\cite{isocpp-named-parameter-idiom}
+
+\subsection{Virtual Friend Function Idiom}
+\label{subsec:virtual-friend-function}
+\cite{isocpp-virtual-friend-function}

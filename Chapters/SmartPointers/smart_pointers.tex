@@ -1,8 +1,8 @@
-\section{Memory Management and Smart Pointers}
-\label{sec:smartpointers}
+\chapter{Memory Management and Smart Pointers}
+\label{chap:smartpointers}
 \vspace{10.5cm}
 
-\subsection{Memory Management}
+\section{Memory Management}
 Allocation means to assign, allot, distribute or "set apart for 
 a particular purpose". Programs manage their memory paritioning or 
 dividing it into different units performing specific tasks.
@@ -28,13 +28,13 @@ variables through the \textbf{\texttt{new}} and \textbf{\texttt{delete}}
 operators. The space in between is allocated by the operating system but 
 not used, and is meant to let both the heap and stack grow.
 
-\nparagraph{Stack}
+\subsubsection*{Stack}
 This is a simple LIFO (last in, first out) data structure which must 
 support at least the \textbf{push} and \textbf{pop} operations. Even 
 though a stack only allows accesses at the top, it is easy to implement 
 and fast to execute push and pop operations.
 
-\nparagraph{Heap}
+\subsubsection*{Heap}
 This is a more flexible data structure, which allows programs to 
 allocate or deallocate memory anywhere and in any convenient order. This 
 might cause hole in the heap, i.e. unallocated memory surrounded by 
@@ -49,9 +49,11 @@ and to coalesce adjacent blocks of memory returned by the program.
 Side effect is that the operation on the heap are slower than the 
 operations on the stack.
 
-\subsection{Smart Pointers in C++}
-\href{https://en.cppreference.com/w/cpp/memory}{Smart pointers} enable 
-automatic, exception-safe, object lifetime management.
+\section{Smart Pointers in C++}
+\href{https://en.cppreference.com/w/cpp/memory}{Cppreference documentation about \textbf{smart pointers}}. 
+\newline
+\textbf{Smart pointers} enable automatic, exception-safe, object 
+lifetime management.
 \newline
 Generally speaking, a \textbf{smart pointer} is a data type whose value 
 can be used like a pointer, but which provides the additional feature of 
@@ -59,9 +61,8 @@ memory management which frees the memory when the smart pointer is
 no longer used. A smart pointer should therefore be used any time 
 the ownership of memory needs to be tracked.
 %% Unique Pointer
-\subsubsection{\texttt{std::unique\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/unique_ptr}{cppreference documentation} 
-    about \textbf{\texttt{std::unique\char`_ptr}}.
+\subsection{\texttt{std::unique\char`_ptr}}
+    \href{https://en.cppreference.com/w/cpp/memory/unique_ptr}{cppreference documentation about \textbf{\texttt{std::unique\char`_ptr}}}.
     \newline
     \texttt{std::unique\char`_ptr} is a smart pointer that \textbf{owns and manages} 
     another object through a pointer and \textbf{disposes of} that object 
@@ -77,7 +78,7 @@ the ownership of memory needs to be tracked.
         via \texttt{operator=} or \texttt{reset()}. 
     \end{itemize}
 
-\nparagraph{Notes}
+\subsubsection*{Notes}
 Only \textbf{non-const} \texttt{std::unique\char`_ptr} can 
 \textbf{transfer the ownership} of the managed object to another 
 \texttt{std::unique\char`_ptr}.
@@ -108,9 +109,9 @@ of objects, including:
 \texttt{std::unique\char`_ptr} may be constructed for an
 \textbf{incomplete type} T, such as to facilitate the use as a handle 
 in the pImpl idiom.
-
-\nparagraph{Member types}
-\vspace{-8truemm}
+\newpage
+\subsubsection*{Member types}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -126,8 +127,8 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
 
-\nparagraph{Member functions}
-\vspace{-8truemm}
+\subsubsection*{Member functions}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -143,8 +144,8 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
 
-\nparagraph{Modifiers}
-\vspace{-8truemm}
+\subsubsection*{Modifiers}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -159,11 +160,10 @@ in the pImpl idiom.
         \cline{1-2}
     \end{tabular}
 \end{table}
-\newpage
 
-\nparagraph{Observers}
-\vspace{-8truemm}
-\begin{table}[ht]
+\subsubsection*{Observers}
+%~ \vspace{-8truemm}
+\begin{table}[h!t]
     \begin{tabular}{|l|l|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/get}{get}
@@ -178,9 +178,9 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
 
-\nparagraph{Single-object versioin, \texttt{unique\char`_ptr}}
-\vspace{-8truemm}
-\begin{table}[ht]
+\subsubsection*{Single-object versioin, \texttt{unique\char`_ptr}}
+%~ \vspace{-8truemm}
+\begin{table}[h!t]
     \begin{tabular}{|l|l|}
         \cline{1-2}
         \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator*}{operator*} \\
@@ -193,9 +193,8 @@ in the pImpl idiom.
 %%
 \newpage
 %% Shared Ptr
-\subsubsection{\texttt{std::shared\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{cppreference documentation} 
-    about \textbf{\texttt{std::shared\char`_ptr}}.
+\subsection{\texttt{std::shared\char`_ptr}}
+    \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{Cppreference documentation about \textbf{\texttt{std::shared\char`_ptr}}}.
     \newline
     This is a smart pointer that retains shared ownership of an object 
     through a pointer.
@@ -220,8 +219,8 @@ in the pImpl idiom.
     \texttt{std::shared\char`_ptr} may have a non-null stored pointer 
     if the aliasing constructor was used to create it). 
 
-\nparagraph{Member functions}
-\vspace{-8truemm}
+\subsubsection*{Member functions}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -237,8 +236,8 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}    
 
-\nparagraph{Modifiers}
-\vspace{-8truemm}
+\subsubsection*{Modifiers}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -251,8 +250,8 @@ in the pImpl idiom.
     \end{tabular}
 \end{table} 
 
-\nparagraph{Observers}
-\vspace{-8truemm}
+\subsubsection*{Observers}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -284,9 +283,8 @@ in the pImpl idiom.
 %%
 \newpage
 %% Weak Ptr
-\subsubsection{\texttt{std::weak\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/weak_ptr}{cppreference documentation} 
-    about \textbf{\texttt{std::weak\char`_ptr}}.
+\subsection{\texttt{std::weak\char`_ptr}}
+    \href{https://en.cppreference.com/w/cpp/memory/weak_ptr}{cppreference documentation about \textbf{\texttt{std::weak\char`_ptr}}}.
     \newline
     \texttt{std::weak\char`_ptr} is a smart pointer that holds a non-owning ("weak") reference 
     to an object that is managed by \texttt{std::shared\char`_ptr}. 
@@ -294,8 +292,8 @@ in the pImpl idiom.
     \newline
     \texttt{std::weak\char`_ptr} models temporary ownership
     
-\nparagraph{Member functions}
-\vspace{-8truemm}
+\subsubsection*{Member functions}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -311,8 +309,8 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
     
-\nparagraph{Modifiers}
-\vspace{-8truemm}
+\subsubsection*{Modifiers}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -323,8 +321,8 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
     
-\nparagraph{Observers}
-\vspace{-8truemm}
+\subsubsection*{Observers}
+%~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
         \cline{1-2}
@@ -344,8 +342,7 @@ in the pImpl idiom.
 \end{table}       
 
 \newpage
-\subsubsection{\texttt{std::auto\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/auto_ptr}{cppreference documentation} 
-    about \textbf{\texttt{std::auto\char`_ptr}}.
+\subsection{\texttt{std::auto\char`_ptr}}
+    \href{https://en.cppreference.com/w/cpp/memory/auto_ptr}{cppreference documentation about \textbf{\texttt{std::auto\char`_ptr}}}.
     \newline
     It was deprecated in C++11 and removed in C++17.

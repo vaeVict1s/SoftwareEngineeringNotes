@@ -1,12 +1,17 @@
-\section{C++}
-\label{sec:c++newfeatures}
+\chapter{C++}
+\label{chap:c++}
 \vspace{10.5cm}
-\subsection{C++ Good Practices}
-\subsubsection{Rule of three/five/zero}
-\nparagraph{Rule of three}
-If a class requires a \textbf{user-defined destructor}, a user-defined 
-\textbf{copy constructor}, or a user-defined \textbf{copy assignment 
-operator}, it almost certainly requires all three.
+\section{C++: General Knowledge and Good Practices}
+\label{sec:c++gen-knowledge}
+\subsection{Rule of three/five/zero}
+References in bibliography:~\cite{fernandes-ruleofzero}, 
+\cite{meyers-concern-ruleof0}, \cite{cppcoreguidelines-C67}, \cite{cppcoreguidelines-C21}.
+\subsubsection{Rule of three}
+\label{subsubsec:c++ruleof3}
+If a class requires a \highlightit{user-defined destructor}, a user-defined 
+\highlightit{copy constructor}, or a user-defined 
+\highlightit{copy assignment operator}, it almost certainly requires all 
+three.
 
 Because C++ copies and copy-assigns objects of user-defined types in 
 various situations (passing/returning by value, manipulating a 
@@ -30,10 +35,11 @@ This is another application of the rule of three: deleting one
 and leaving the other to be implicitly-defined will most likely result 
 in errors.
 
-\nparagraph{Rule of five}
+\subsubsection{Rule of five}
+\label{subsubsec:c++ruleof5}
 Because the presence of a user-defined destructor, copy-constructor, 
 or copy-assignment operator prevents the implicit definition of the 
-move constructor and the move assignment operator, \textbf{any class 
+move constructor and the move assignment operator, \highlightit{any class 
 for which move semantics are desirable}, has to declare all five special 
 member functions.
 
@@ -44,39 +50,48 @@ failing to provide move constructor and move assignment
 is usually not an error, 
 but a missed optimization opportunity.
 
-\nparagraph{Rule of zero}
+\subsubsection{Rule of zero}
+\label{subsubsec:c++ruleof0}
 Classes that have custom 
 destructors, copy/move constructors or copy/move assignment operators 
 should deal exclusively with ownership 
 (which follows from the Single Responsibility Principle). 
 Other classes should not have custom 
 destructors, copy/move constructors or copy/move assignment operators.
-(see~\cite{fernandesruleofzero})
+(see~\cite{fernandes-ruleofzero})
 
 This rule also appears 
 in the C++ Core Guidelines as C.20: 
 If you can avoid defining default operations, do.
 
-When a \textbf{base class is intended for polymorphic use}, 
+When a \highlightit{base class is intended for polymorphic use}, 
 its destructor may have to be declared public and virtual. 
 This blocks implicit moves (and deprecates implicit copies), 
 and so the special member functions have to be declared as defaulted
-(see~\cite{meyersconcernaboutruleof0})
+(see~\cite{meyers-concern-ruleof0})
 
 However, this makes the class prone to slicing, 
 which is why polymorphic classes often 
 define copy as deleted 
-(see~\cite{cpp-core-guidelines-C67}), 
+(see~\cite{cppcoreguidelines-C67}), 
 which leads to the following generic wording for the Rule of Five:
 If you define or =delete any default operation, 
 define or =delete them all
-(see~\cite{cpp-core-guidelines-C21})
+(see~\cite{cppcoreguidelines-C21})
 
-\subsubsection{Const Correctness}
-Const Correctness consists in using the keyword \texttt{const} to 
+\subsubsection{The Most Vexing Parse}
+\label{subsubsec:most-vex-parse}
+\nparagraph{Examples}
+\nparagraph{How to fix it}
+
+\subsection{Const Correctness}
+\label{subsec:c++const-corr}
+\href{https://isocpp.org/wiki/faq/const-correctness}{ISOCpp FAQ about \highlight{\texttt{const} correctness}}.
+\newline
+Const correctness consists in using the keyword \highlighttt{const} to 
 prevent \texttt{const} objects from being mutated.
 
-\nparagraph{const and pointer combinations}
+\subsubsection{const and pointer combinations}
 Reading it right-to-left
 \begin{table}[h!t]
     \begin{tabular}{l|r}
@@ -92,13 +107,13 @@ Reading it right-to-left
     \end{tabular}
 \end{table}
 
-The second combination is equivalent to the first one because of the 
-\textbf{\texttt{const}-on-the-right style}, which require to write the 
+The second combination is equivalent to the first one: the 
+\highlight{\texttt{const}-on-the-right style} requires to write the 
 \texttt{const} specifier on the right of the object it makes 
-\texttt{const}. This style is also called "consistent \texttt{const}" 
+\texttt{const}. This style is also called \highlight{consistent \texttt{const}} 
 since it is consistent with the way of defining a const member function. 
 Moreover, it is also more consistent with pointer declarations.
-\nparagraph{const and reference combinations}
+\subsubsection{const and reference combinations}
 Reading it right-to-left
 \begin{table}[h!t]
     \begin{tabular}{l|r}
@@ -118,16 +133,17 @@ The last two combinations are nonsense and should be avoided. They are
 redundant as a reference is always constant, in the sense that you can 
 never reseat a reference to make it refer to a different object.
 
-\nparagraph{Logical and Physical state}
+\subsubsection{Logical and Physical State}
+\label{subsubsec:logphystate}
 When reasoning in terms of const-correctness, it's important to 
 distinguish the logical and the physical state of an object.
 \newline
-On the inside, an object has a \textbf{physical state}, also called 
-\textbf{concrete} or \textbf{bitwise} state. This state is the one 
+On the inside, an object has a \highlightbf{physical state}, also called 
+\highlightit{concrete} or \highlightit{bitwise} state. This state is the one 
 visible to the programmer who implements the software. From the outside, 
 the client has an access to the object restricted to public member 
-functions and friend functions. What is visible is the \textbf{logical} 
-or \textbf{abstract} or \textbf{meaningwise state}.
+functions and friend functions. What is visible is the \highlightbf{logical} 
+or \highlightit{abstract} or \highlightit{meaningwise state}.
 \newline
 A lookup functionality for a collection-object is a good example to 
 show how there could be bits in the object's physical state that haev 
@@ -138,7 +154,7 @@ the object's physical state but the implementation is internal and
 the details will probably not be exposed to the users, i.e. it is not 
 part of the object's logical state.
 
-\nparagraph{\texttt{const}ness of \texttt{public} member functions}
+\subsubsection{\texttt{const}ness of \texttt{public} member functions}
 The constness of a public method must make sense to the object's users, 
 and those users can see only the object's logical state. Therefore, in 
 this context the \texttt{const}ness to take care of is the logical one. 
@@ -153,20 +169,167 @@ this context the \texttt{const}ness to take care of is the logical one.
           physical bits of the object’s concrete state.
 \end{itemize}
 
-\nparagraph{return-by-reference and \texttt{const} member function}
+\subsubsection{return-by-reference and \texttt{const} member function}
 A \texttt{const} member function must not change nor allow its caller to 
 change the logical state of the \texttt{this} object it's been called 
 on.
 \newline
+If an inspector method needs to return a data member of a \texttt{this} 
+object, it should return by \texttt{const reference} or by copy. 
+For example
+\begin{lstlisting}[language=C++]
+class Person
+{
+    public:
+        const std::string& get_name() const;  // good one
+        std::string& get_lastname() const;    // wrong one
+        int get_age();                        // good one
+}
+\end{lstlisting}
 
-\nparagraph{\texttt{const} overloading}
-\nparagraph{\texttt{mutable} keyword}
-\nparagraph{Error converting \texttt{F**} into \texttt{const F**}}
+Compilers won't always catch such a mistake, therefore it is 
+responsibility of the programmer.
 
-\subsection{C++ General Knowledge}
-\subsubsection{Classes and Inheritance}
-This is section is based upon the \href{https://isocpp.org/wiki/faq/basics-of-inheritance}{isocpp FAQ about inheritance}
-\nparagraph{Virtual member function}
+\subsubsection{\texttt{const} overloading}
+\texttt{const} overloading is a way to achieve \texttt{const} 
+correctness when there are an inspector and mutator method with the 
+same name. One of the most common case is due to  the subscript 
+operators, which usually come in pair as in the following
+\begin{lstlisting}[language=C++]
+class PersonList
+{
+    public:
+        // Subscript operators often come in pairs
+        const Person& operator[] (unsigned index) const;  
+        Person&       operator[] (unsigned index);        
+        // ...
+};
+\end{lstlisting}
+Of course \texttt{const}-overloading can be used for other things than 
+subscript operator.
+\newline
+Following some links to the \texttt{isocpp FAQs}
+\begin{itemize}
+    \item \href{https://isocpp.org/wiki/faq/operator-overloading#matrix-subscript-op}{Subscript operator for Matric class}
+    \item \href{https://isocpp.org/wiki/faq/freestore-mgmt#multidim-arrays2}{Matrix class made simpler}
+    \item \href{https://isocpp.org/wiki/faq/freestore-mgmt#multidim-arrays3}{Matrix using templates}
+    \item \href{https://isocpp.org/wiki/faq/freestore-mgmt#multidim-arrays4}{Matrix using templates and \texttt{vector}s}
+    \item \href{https://isocpp.org/wiki/faq/templates#class-templates}{Class Template's syntax and semantics}
+\end{itemize}
+
+\subsubsection{\texttt{mutable} keyword}
+\texttt{mutable} keyword helps achieving the \texttt{const} correctness, 
+when the code needs to make changes to a \texttt{const} object's 
+physical state. An example could be again the cached previous lookup
+in~\ref{subsubsec:logphystate}. In this case, the cache would be marked as 
+\texttt{mutable} and the compiler would let the programmer change it 
+even in case of a \texttt{const} object because it would know that 
+a change of that attribute would reflect in a change in the physical 
+state, leaving the logical state as it was before.
+\newline
+Using \texttt{const} is better than removing the constness with a 
+\texttt{const\char`_cast}
+
+\subsubsection{Error converting \quad \texttt{F** $\rightarrow$ const F**}}
+\label{subsubsec:error-converting}
+C++ allows the conversion \texttt{F** $\rightarrow$ F const*} but gives 
+an error if a program tries to implicitly convert 
+\texttt{F** $\rightarrow$ const F**}.
+\newline
+The reason why this conversion is not legal in C++ is that it would let 
+silently and accidentally modify a \texttt{const Foo} object without a 
+cast.
+\begin{lstlisting}[language=C++]
+class Foo
+{
+    public:
+    void modify();  // make some modification to the this object
+};
+
+int main()
+{
+    const Foo x;
+    Foo* p;
+    const Foo** q = &p;  // q now points to p;
+                         // this is (fortunately!) an error
+    *q = &x;             // p now points to x
+    p->modify();         // Ouch: modifies a const Foo!!
+    // ...
+}
+\end{lstlisting}
+In case the third line of the main were legal, \texttt{q} would be 
+pointing at \texttt{p} and the next line it would change \texttt{p} to 
+point at \texttt{x}. This would maje the \texttt{const} qualifier 
+disappear. The last line would then use \texttt{p} ability to modify 
+its referent and the program would end up modifying a 
+\texttt{const Foo}.
+\newline
+In case of necessity, the solution is to change \texttt{const Foo**} to 
+\texttt{const Foo* const*}.
+
+\subsection{Classes and Inheritance}
+
+\subsubsection{Classes and Objects}
+\href{https://isocpp.org/wiki/faq/classes-and-objects}{ISOCpp FAQ about \textbf{Classes and Objects}}
+
+\subsubsection{Constructors}
+\href{https://isocpp.org/wiki/faq/ctors}{ISOCpp FAQ about \textbf{Constructors}}
+
+\subsubsection{Destructors}
+\href{https://isocpp.org/wiki/faq/dtors}{ISOCpp FAQ about \textbf{Destructors}}
+
+\subsubsection{Assignment Operator}
+\href{https://isocpp.org/wiki/faq/assignment-operators}{ISOCpp FAQ about \textbf{Assignment Operator}}
+
+\subsubsection{Operator Overloading}
+\href{https://isocpp.org/wiki/faq/operator-overloading}{ISOCpp FAQ about \textbf{Operator Overloading}}
+
+\subsubsection{Friends}
+\label{subsubsec:friend}
+\href{https://isocpp.org/wiki/faq/friends}{ISOCpp FAQ about \textbf{Friends}}
+\newline
+\href{https://en.cppreference.com/w/cpp/language/friend}{Cppreference documentation about \textbf{Friends}}
+\newline
+A \highlighttt{friend} can be a \highlighttt{function}, a \highlighttt{class}, 
+and both their \highlighttt{template} version.
+\newline
+The friend declaration appears in a class body and grants a function or 
+another class access to \highlighttt{private} and \highlighttt{protected} 
+members of the class where the friend declaration appears. 
+\newline
+\highlighttt{friend} declaration helps enforcing encapsulation. Indeed, 
+granting access to \texttt{private} and \texttt{protected} members 
+removes the burden of creating public \highlighttt{getters} and 
+\highlighttt{setters}, since in most of the cases these methods destroy 
+encapsulation, exposing private and protected details which make no 
+sense outside of the class.
+\newline
+The disadvantage of \texttt{friend} functions is that they require 
+extra code when dynamic binding is needed. Indeed, the \texttt{friend} 
+function should call a hidden (usually \texttt{protected}) \texttt{virtual} 
+member function, as explained in details in~\ref{sec:virtual-friend-function}.
+\newline
+Friendship \highlightit{is not inherited, transitive or reciprocal}:
+\begin{itemize}
+    \item a derived class of a friend class is not a friend class;
+    \item a friend of a friend is not necessarily a friend;
+    \item if \texttt{class A}\, declares \texttt{class B}\, its friend, 
+    \texttt{B} objects have access to \texttt{A} objects' private data, 
+    but the opposite is not true. 
+\end{itemize}
+
+Usually, it is better to rely on member function fi possible and \texttt{friend} 
+ones when it is really needed.
+
+\subsubsection{Inheritance - Basics}
+\label{subsubsec:inheritance-basics}
+\href{https://isocpp.org/wiki/faq/basics-of-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Basics}} 
+
+\nparagraph{\texttt{static} initialization}
+
+\subsubsection{Inheritance - Virtual member function}
+\href{https://isocpp.org/wiki/faq/virtual-functions}{ISOCpp FAQ about Inheritance - \textbf{\texttt{virtual} functions}}.
+\newline
 A \href{https://en.cppreference.com/w/cpp/language/virtual}{virtual member function} 
 is the way of C++ to allow derived classes to replace the implementation 
 provided by the base class. The compiler makes sure the correct 
@@ -177,54 +340,332 @@ The reason why the member function are not \texttt{virtual} by default
 is that many classes are not designed to be used as a base class. 
 Moreover, the \texttt{virtual} function call mechanism needs requires 
 an overhead of memory, typically one word per object.
+
 \nparagraph{Dynamic Binding and Static Typing}
-\textbf{Static typing} means that the legality of a member function 
+A pointer to an object may actually point to a class that is derived 
+from the class of the pointer. Thus there are two different types 
+to consider: the (static) type of the pointer and the (dynamic) type 
+of the actual pointed object.
+\newline
+\highlightbf{Static typing} means that the legality of a member function 
 invocation is checked as early as possible, i.e. at compile time by the 
 compiler itself. In this kind of check, the compiler uses the 
-\textbf{static type} of the pointer to determine whether the member 
+\highlightit{static type} of the pointer to determine whether the member 
 function invocation is correct, meaning that the type pointed by the 
 pointer can handle the member function.
-\textbf{Dynamic binding} is the \texttt{virtual} function call 
+\newline
+\highlightbf{Dynamic binding} is the \texttt{virtual} function call 
 mechanism, which checks the correctness of the function call at the last 
 possible moment, i.e. at run time and based on the dynamic type of 
 the object pointed to.
 
-\subsubsection{Member Function call: \texttt{virtual} vs. non-\texttt{virtual}}
+\nparagraph{Member Function call: \texttt{virtual} vs. non-\texttt{virtual}}
 The practical difference is that non-\texttt{virtual} member functinos 
-are resolved statically, i.e. the correct member function is selected 
-statically \textbf{depending on the type of the pointer or reference to 
-the object}.
+are resolved statically, i.e. the compiler checks the 
+\highlightit{type of the pointer or reference to the object} and selects 
+the correct member function statically at compile time.
 \newline
 On the other side, a \texttt{virtual} member function call is resolved 
-dynamically 
-\subsubsection{Virtual Member Function Call - Overhead Estimation}
-\subsubsection{Calling a Base Class \texttt{virtual} member function}
-\subsubsection{Heterogeneous list of objects}
-\subsubsection{\texttt{virtual} destructor}
-\subsubsection{\texttt{virtual} constructor}
+dynamically.
 
+\nparagraph{\texttt{virtual} Member Function Call - Overhead Estimation}
+As explained, a non-\texttt{virtual} member function is resolved 
+statically based on the type of the pointer or reference to the object.
+\newline
+In contrast, \highlightbf{dynamic binding} select the correct 
+\texttt{virtual} member function at run time following a compiler-based 
+variant of the following technique: for each virtual function, the 
+compiler create in each object an hidden \highlightit{v-pointer} 
+(virtual pointer) pointing to a global table called \highlightit{v-table} 
+(virtual table). One single \highlightit{v-table} is created for each class
+which contains at least a \highlighttt{virtual} function.
+\newline
+To resolve a call to a \highlightit{virtual} function, the run-time procedure 
+follows the object's \highlightit{v-pointer} to the class's \highlightit{v-table}, 
+and then follows the appropriate slot in the \highlightit{v-table} to the 
+method code.
+\newline
+The \highlightbf{space-cost} overhead consists of an extra pointer per object 
+needing to be dynamically binded and another extra pointer per 
+\texttt{virtual} method. The \highlightbf{time-space} overhead compared to 
+a normal function call consits of the two extra fetches to get the 
+value of the \highlightit{v-pointer} and a second one to get the address of  
+the method.
+\newline
+Suppose to have a \highlighttt{Base} class with $5$ \highlighttt{virtual} 
+functions
+\begin{lstlisting}[language=C++]
+// Original C++ source code
+class Base
+{
+    public:
+        virtual return_type virt0( /*...arbitrary params...*/ );
+        virtual return_type virt1( /*...arbitrary params...*/ );
+        virtual return_type virt2( /*...arbitrary params...*/ );
+        virtual return_type virt3( /*...arbitrary params...*/ );
+        virtual return_type virt4( /*...arbitrary params...*/ );
+        // ...
+};
+\end{lstlisting}
+
+There are three steps the compiler goes through
+
+\nsubparagraph{First step: building a static table}
+Compiler build a static table containing 5 function-pointers, most 
+likely while compiling the \texttt{.cpp} that define the \texttt{Base}'s 
+first non-\texttt{inline} \texttt{virtual} function. 
+\newline
+Let's call this table \highlighttt{\textbf{Base::\char`_\char`_vtable}}. 
+If a function pointer fits into one machine word, the \highlightit{v-table} 
+adds $5$ hidden words of memory overall.
+\begin{lstlisting}[language=C++]
+// FunctionPtr is a generic pointer to a generic member function
+FunctionPtr Base::__vtable[5] = {
+    &Base::virt0, &Base::virt1, &Base::virt2, 
+    &Base::virt3, &Base::virt4 };
+\end{lstlisting}
+
+\nsubparagraph{Second step: adding an hidden pointer}
+An hidden pointer called \highlightit{v-pointer} is added by the compiler to 
+\highlight{each object of \texttt{Base}} class as it was an hidden data member.
+
+\begin{lstlisting}[language=C++]
+// Original C++ source code
+class Base 
+{
+    public:
+    // ...
+        FunctionPtr* __vptr;  // Supplied by the compiler, 
+                              // hidden from the programmer
+    // ...
+};
+\end{lstlisting}
+
+\nsubparagraph{Third step: initializing \texttt{this->\char`_\char`_vptr}}
+Compiler initializes \highlighttt{this->\char`_\char`_vptr} within each 
+constructor in order to let each object's \highlighttt{v-pointer} to point 
+at its class \highlighttt{v-table}. This step could be thought of as if 
+the following instruction is added in each constructor's 
+\highlightit{init list}.
+\begin{lstlisting}[language=C++]
+Base::Base( /*...arbitrary params...*/ )
+  : __vptr(&Base::__vtable[0])  // Supplied by the compiler, 
+                                // hidden from the programmer
+  // ...
+{
+  // ...
+}
+\end{lstlisting}
+
+When the code defines a \highlighttt{Der} class which inherits from the 
+\highlighttt{Base} class, the compiler repeats the first and third steps, 
+but \highlightit{skips the second step}.
+\newline
+In the \highlightbf{first step}, compiler creates another hidden 
+\textit{v-table}, in which the compiler replaces the virtual methods 
+overridden in the derived class. For example, in case \highlighttt{{Der}} 
+overrides \highlight{\texttt{virt0()} \ldots \texttt{virt2()}} the \texttt{Der}'s 
+\highlightit{v-table} looks like
+\begin{lstlisting}[language=C++]
+// Pseudo-code (not C++, not C)
+// for a static table defined within file Der.cpp
+FunctionPtr Der::__vtable[5] = {
+    &Der::virt0, &Der::virt1, &Der::virt2,
+    &Base::virt3, &Base::virt4 };
+\end{lstlisting}
+
+In the \highlightbf{third step}, the compilers for each \highlighttt{Der} 
+object changes the \highlighttt{v-pointer} in order to make it point to its 
+class \highlighttt{v-table}.
+
+At this point, it is possible to call a virtual function with code like
+\begin{lstlisting}[language=C++]
+void mycode(Base* p)
+{
+    p->virt3();
+}
+\end{lstlisting}
+The compiler rewrites the code like
+\begin{lstlisting}[language=C++]
+void mycode(Base* p)
+{
+    p->__vptr[3](p);
+}
+\end{lstlisting}
+At this point
+\begin{itemize}
+    \item a \highlightit{first load} gets the \texttt{v-pointer} and stores it in a 
+          register which we call \texttt{r1}
+    \item a \highlightit{second load} gets the work at \texttt{r1 + 3*4} (if 
+          function-pointers are 4-bytes long) and stores it in a second 
+          register \texttt{r2}
+    \item \highlightit{compiler calls} the code at location \texttt{r2}
+\end{itemize}
+
+Therefore, it is possible to state that:
+\begin{itemize}
+    \item a \highlightit{minimal space-overhead} is needed to manage \texttt{virtual} 
+          functions
+    \item \texttt{virtual} function calls are almost \highlightit{as fast as} 
+          non-\texttt{virtual} function calls
+    \item there is \highlightit{no chaining effect}, i.e. the fetch-fetch-call 
+          mechanism is not dependent on how deep the inheritance gets.
+\end{itemize}
+
+\nparagraph{Calling a Base Class \texttt{virtual} member function}
+When a \texttt{virtual} function is called by its \highlightit{fully-qualified name}, 
+the compiler skip the \texttt{virtual} call mechanism and uses the same 
+mechanism used for non-\texttt{virtua} functions. Therefore, the 
+fully-qualified \texttt{virtual} function is called by name rather than 
+by slot-number.
+\newline
+To call the \texttt{virtual} function defined in the \texttt{Base} 
+within the derived class, it is possible to write
+\begin{lstlisting}[language=C++]
+void Der::f()
+{
+    Base::f();
+}
+\end{lstlisting}
+
+\nparagraph{\texttt{virtual} destructor}
+A \texttt{virtual} destructor is required any time someone 
+\texttt{delete}s a derived-class object through a base-class pointer. 
+In this case, indeed, the destructor invoked matches the type of the 
+pointed object ignoring the type of the pointer itself.
+\newline
+In general, a \texttt{virtual} destructor is needed
+\begin{itemize}
+    \item if the class is meant to be \highlightit{derived from}
+    \item \textit{and} if code uses \highlighttt{new Derived}
+    \item \textit{and} if code uses \highlighttt{delete p} in which 
+          \texttt{p} is a pointer to \texttt{Base} pointing to an actual 
+          object of \texttt{Derived} class.
+\end{itemize}
+To be shorter, destructor needs to be \texttt{virtual} any time there 
+is a \texttt{virtual} method in the class. Indeed
+\begin{itemize}
+    \item it's a general safety measure in case the class will be used 
+    as a base class;
+    \item it costs nothing since the 
+\end{itemize}
+
+\nparagraph{\texttt{virtual} constructor}
+\label{npar:virtual-ctor}
+An idiom that allows to achieve a behavior that C++ does not really 
+support.
+\newline
+\href{https://isocpp.org/wiki/faq/virtual-functions#virtual-ctors}{virtual-ctors} \\
+\href{https://isocpp.org/wiki/faq/abcs#copy-of-abc-via-clone}{copy-of-abc-via-clone}
+
+
+
+\subsubsection{Inheritance - Proper Inheritance and Substitutability}
+\label{subsubsec:proper-inheritance}
+\href{https://isocpp.org/wiki/faq/proper-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Proper Inheritance and Substainability}}
+\nparagraph{Converting \texttt{Derived** $\rightarrow$ Base**}}
+Differently from the conversion \texttt{Derived* $\rightarrow$ Base*}, 
+the conversion mentioned in the title does not compile, because it 
+would be dangerous.
+\newline
+Even though a \texttt{Derived} object is a kind of 
+\texttt{Base} object, in case the conversion in the title was possible 
+the \highlighttt{Base**} could be dereferenced and it could be possible 
+to make \highlighttt{Base*} point to an object of a 
+\highlighttt{different derived class}.
+\newline
+This prohibition has similarities with~\ref{subsubsec:error-converting}.
+
+\nparagraph{container of \highlighttt{Thing} \texttt{==} kind-of container of \highlighttt{Everything}?}
+As a consequence of~\ref{subsubsec:proper-inheritance}, a container 
+of a certain \highlighttt{class Thing} objects is not a container of 
+\highlighttt{class Anything} objects, even if \highlighttt{Thing} is a 
+kind of \highlighttt{Anything}.
+
+\nparagraph{Is an array of \texttt{Derived} a kind-of array of \texttt{Base}?}
+In the same perspective of the previous two paragraphs, the answer is negative 
+and easy to explain: a \texttt{Derived} object is larger than a 
+\texttt{Base} object and it would mess up the pointer aritmetics in case 
+it was possible to store both the kinds of objects in the same array. 
+
+
+\subsubsection{Inheritance - Abstract Base Classes (ABCs)}
+\href{https://isocpp.org/wiki/faq/abcs}{ISOCpp FAQ about \textbf{Inheritance - Abstract Base Classes}}
+At the design level, an \highlighttt{ABC} corresponds to an abstract 
+concept. At the programming language level, an \highlighttt{ABC} is a 
+class containing one or more pure \highlighttt{virtual} functions, as 
+in the following example
+\begin{lstlisting}[language=C++]
+class Shape
+{
+public:
+    virtual void draw() const = 0;  // = 0 means "pure virtual"
+    // ...
+};
+\end{lstlisting}
+Even though it is possible to provide a definition of a pure 
+\highlighttt{virtual} function, it could be confusing.
+
+\nparagraph{Copy Constructor and Assignment Operator for a class containing a pointer\\to a (abstract) base class}
+If a class owns \ref{npar:virtual-ctor}
+
+
+\subsubsection{Inheritance - What your mother never told you}
+\href{https://isocpp.org/wiki/faq/strange-inheritance}{ISOCpp FAQ about \textbf{Inheritance - What your mother never told you}}
+
+\subsubsection{Inheritance - \texttt{private} and \texttt{protected} inheritance}
+\href{https://isocpp.org/wiki/faq/private-inheritance}{ISOCpp FAQ about \textbf{Inheritance - \texttt{private} and \texttt{protected} inheritance}}
+\newline
+Private and protected inheritance are expressed using respectively the 
+keyword \highlighttt{private} and \highlighttt{protected} in place of 
+\highlighttt{public} in the definition of the derived class.
+\newline
+\highlighttt{private} inheritance is a syntactiv variant of the concepts 
+of composition or aggregation. For example, the "\highlighttt{Car} 
+\textbf{has-a} \highlighttt{Engine}" relationship can be implemented 
+both using single composition and \highlighttt{private} inheritance. 
+For the latter, an example is
+\begin{lstlisting}[language=C++]
+class Car : private Engine
+{
+    public:
+    Car() : Engine(8) {}  // in case Engine has a ctor 
+                          // which takes an int
+    using Engine::start;
+}
+\end{lstlisting} 
+
+\nparagraph{Which should I prefer: composition or private inheritance?}
+\nparagraph{Should I pointer-cast from a private derived class to its base class?}
+
+
+\subsubsection{Inheritance - Multiple and Virtual Inheritance}
+\href{https://isocpp.org/wiki/faq/multiple-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Multiple and Virtual Inheritance}}
 
 \subsection{C++11 New Features}
 \subsubsection{Value Categories}
-\href{https://en.cppreference.com/w/cpp/language/value_category}{cppreference documentation} 
-about value categories.
+\label{subsubsec:value-categories}
+\href{https://en.cppreference.com/w/cpp/language/value_category}{Cppreference documentation about \textbf{value categories}}. 
 \newline    
-Due to the expressiveness of the C++ language, the terms \textbf{lvalue} 
-and \textbf{rvalue} references evolved in a more complex set.
+Due to the expressiveness of the C++ language, the terms \highlightbf{lvalue} 
+and \highlightbf{rvalue} references evolved in a more complex set.
+
 \nparagraph{glvalues}
-\textbf{G}eneralized lvalue is used to refer to something that could be 
-either a \textbf{lvalue} or \textbf{xvalue}.
+\highlight{\textbf{G}eneralized} lvalue is used to refer to something that could be 
+either a \highlightbf{lvalue} or \highlightbf{xvalue}.
+
 \nparagraph{rvalues}
-This term is inherited from C, in which \textbf{rvalues} can be on the 
-\textbf{r}ight side of an assignment. In C++ this term can refer to 
-things that are either \textbf{xvalues} and \textbf{prvalues}.
+This term is inherited from C, in which \highlightbf{rvalues} can be on the 
+\highlight{\textbf{r}ight} side of an assignment. In C++ this term can refer to 
+things that are either \highlightbf{xvalues} and \highlightbf{prvalues}.
+
 \nparagraph{lvalues}
-This term is also inherited from C, in which \textbf{lvalues} can be 
-on the \textbf{l}eft side of an assignment. Therefore, the simplest one 
+This term is also inherited from C, in which \highlightbf{lvalues} can be 
+on the \highlight{\textbf{l}eft} side of an assignment. Therefore, the simplest one 
 is the name of a variable in a declaration.
 \newline
-Any expression resulting in an \textbf{lvalue reference} is also an 
-\textbf{lvalue}.
+Any expression resulting in an \highlightit{lvalue reference} is also an 
+\highlightit{lvalue}.
 \begin{lstlisting}[language=C+++]
 int v;          // v is an lvalue of type int
 A*  p1;         // *p1 is an lvalue
@@ -233,7 +674,7 @@ A&  f();        // f() is an lvalue
 \end{lstlisting}
 
 Accessing memebers of objects through pointers or references yields 
-\textbf{lvalues}. For example, with the following code
+\highlightit{lvalues}. For example, with the following code
 \begin{lstlisting}[language=C+++]
 struct Foo
 {
@@ -246,14 +687,14 @@ Foo* p2;
 Foo  v2;
 \end{lstlisting}
 \texttt{f2().a}, \texttt{p2->b} and \texttt{v2.a} are all 
-\textbf{lvalues} if type A.
+\highlightit{lvalues} if type A.
 \newline
-\textbf{String literals} are \textbf{lvalues} of type array.
+\highlightbf{String literals} are \highlightit{lvalues} of type array.
 \newline
-To conclude, a \textbf{named object} declared with an 
-\textbf{rvalue reference} is an \textbf{lvalue}. The name rvalue 
-reference indicates that it can bind to an \textbf{rvalue}, and once 
-you've declared a variable and given it a name it is an \textbf{lvalue}.
+To conclude, a \highlightbf{named object} declared with an 
+\highlightit{rvalue reference} is an \highlightit{lvalue}. The name rvalue 
+reference indicates that it can bind to an \highlightit{rvalue}, and once 
+you've declared a variable and given it a name it is an \highlightit{lvalue}.
 \begin{lstlisting}[language=C+++]
 void Foo(A&& bar)
 {
@@ -263,18 +704,18 @@ void Foo(A&& bar)
 \end{lstlisting}
 
 \nparagraph{xvalues}
-This term indicates e\textbf{X}piring value: an unnamed object that 
-will be destroyed soon. \textbf{xvalues} can be treated either as 
-\textbf{glvalues} or \textbf{rvalues}, based on the context.
+This term indicates \highlight{e\textbf{X}piring} value: an unnamed object that 
+will be destroyed soon. \highlightbf{xvalues} can be treated either as 
+\highlightit{glvalues} or \highlightit{rvalues}, based on the context.
 \newline
-Usually, \textbf{xvalues} only arise through \textbf{explicit casts} and 
-\textbf{function calls}. If an expression is cast to an rvalue reference 
-to some type T then the result is an xvalue of type T 
+Usually, \highlightit{xvalues} only arise through \highlightit{explicit casts} and 
+\highlightit{function calls}. If an expression is \highlight{cast to an \textit{rvalue} reference 
+to some type \texttt{T}} then the result is an \highlight{\textit{xvalue} of type \texttt{T}} 
 \begin{lstlisting}[language=C+++]
 static_cast<A&&>(v1) // yields an xvalue of type A
 \end{lstlisting}
-If the return type of a function is an \textbf{rvalue reference} to some 
-type \textbf{T}, the result is an \textbf{xvalue} of type \textbf{T}.
+If the return type of a function is an \highlightit{rvalue reference} to some 
+type \highlightbf{T}, the result is an \highlightit{xvalue} of type \highlightbf{T}.
 For example, the \texttt{std::move} is declared as
 \begin{lstlisting}[language=C+++]
 template <typename T>
@@ -285,15 +726,15 @@ The type deduction rules deduce \textbf{T} to be \texttt{A\&}
 because \texttt{v1} is an \textbf{lvalue}.
 
 \nparagraph{prvalues}
-\textbf{P}ure \textbf{rvalue} is an \textbf{rvalue} which is not an  
-\textbf{xvalue}
+\highlight{\textbf{P}ure} \highlightit{rvalue} is an \highlightit{rvalue} 
+which is not an \highlightit{xvalue}
 \newline
-Literals other than string literals are \textbf{pvalues}. For example, 
-$42$ is a \textit{prvalue} of type \texttt{int} and $3.141f$ is a 
-\textit{prvalue} of type \texttt{float}
+Literals other than string literals are \highlightit{pvalues}. For example, 
+$42$ is a \highlightit{prvalue} of type \texttt{int} and $3.141f$ is a 
+\highlightit{prvalue} of type \texttt{float}
 \newline
-\textbf{Temporaries} are \textbf{prvalues}. For example any temporaries 
-created as a result of an implicit conversion is also a \textbf{prvalue}. 
+\highlightbf{Temporaries} are \highlightit{prvalues}. For example any temporaries 
+created as a result of an implicit conversion is also a \highlightit{prvalue}. 
 In the following code
 \begin{lstlisting}[language=C+++]
 int consume_string(std::string&& s);
@@ -302,20 +743,21 @@ int i = consume_string("hello");
 the string literal in the function call will implicitly convert to a 
 temporary of type 
 \newline 
-\texttt{std::string}, which can bind to the rvalue 
-reference used for the function parameter since the temporary is a 
-\textit{prvalue}
+\texttt{std::string}, which can \highlight{bind to the rvalue 
+reference} used for the function parameter since the temporary is a 
+\highlightit{prvalue}
 \nparagraph{Reference Binding}
 \href{https://en.cppreference.com/w/cpp/language/reference}{cppreference documentation} 
 about reference declaration.
 \newline
-The main difference between \textbf{lavalues} and \textbf{rvalues} is 
+The \highlightit{main difference} between \highlightit{lavalues} and \highlightit{rvalues} is 
 the way they bind to references. The differences in type deduction rules 
 can have a big impact too.
+
 \nsubparagraph{lvalue references}
 These references are declared with a single ampersand $\&$.
 \newline
-A \textbf{non-const lvalue reference will only bind to non-const 
+A \highlightbf{non-const lvalue reference will only bind to non-const 
 lvalues} of the same type, or a class derived from the referenced type
 \begin{lstlisting}[language=C+++]
 class C : public A{};
@@ -338,7 +780,7 @@ A&   r8  = A();   // error, cannot bind rvalue
 A&   r9  = B().a; // error, cannot bind rvalue
 A&   r10 = C();   // error, cannot bind rvalue
 \end{lstlisting}
-A \textbf{const lvalue reference can also bind to rvalues}. The 
+A \highlightbf{const lvalue reference can also bind to rvalues}. The 
 object bound to the reference must have the same type as the referenced 
 type or a class derived from the referenced type. It is possible to 
 bind both const and non-const values to a const lvalue reference.
@@ -355,8 +797,8 @@ const A&   cr9  = B().a; // OK, can bind rvalue
 const A&   cr10 = C();   // OK, can bind rvalue
 const A&   cr11 = r1;
 \end{lstlisting}
-Binding a temporary object (i.e. a \textbf{prvalue}) to a const lvalue 
-reference \textbf{extends the lifetime} of that temporary to the 
+Binding a temporary object (i.e. a \highlightit{prvalue}) to a const lvalue 
+reference \highlightit{extends the lifetime} of that temporary to the 
 lifetime of the reference. In the previous example, it is possible 
 to use \texttt{r8}, \texttt{r9} and \texttt{r10} later in the code.
 \newline
@@ -367,13 +809,13 @@ is destroyed when the function returns. This happens also if the
 reference was stored in a longer-lived variable, such as a member of a 
 newly constructed object.
 \newline
-\textbf{volatile} and \textbf{const volatile} lvalue references are much 
-less used but behave as expected: volatile T\& bind to a volatile or 
+\highlighttt{volatile} and \highlighttt{const volatile} lvalue references are much 
+less used but behave as expected: volatile \texttt{T\&} bind to a volatile or 
 non-volatile, non-const lvalue of type T or a class derived from T. 
 However, volatile const lvalue references do not bind to rvalues.
 
 \nsubparagraph{rvalue references}
-An \textbf{rvalue reference} can be used to extend the lifetime of 
+An \highlightit{rvalue reference} can be used to extend the lifetime of 
 temporary objects, making the referenced object modifiable through 
 them. The reference must be const in order to bind to a const object, 
 though const rvalue reference are much rarer.
@@ -404,7 +846,7 @@ destroyed.
 
 \nsubparagraph{Reference Collapsing}
 In C++ it is possible to form reference to reference in 
-\textbf{templates} and \texttt{typedef} expressions. In this context, 
+\highlightit{templates} and \highlighttt{typedef} expressions. In this context, 
 the refefrence collapsing rule apply: rvalue reference to rvalue 
 reference collapses to an rvalue reference, all the others collapse to 
 lvaue references.
@@ -429,14 +871,14 @@ convertible to E. The reference is bound to the temporary resulting
 from the conversion.
 
 \nsubparagraph{General properties}
-In general, \textbf{rvalues} can't be modified and their address can't 
+In general, \highlightit{rvalues} can't be modified and their address can't 
 be taken.
 \newline
 However, as long as class \texttt{X} has a member function 
-named \texttt{do\char`_something}, the expression 
-\texttt{X().do\char`_something} is valid.
+named \highlighttt{do\char`_something}, the expression 
+\highlighttt{X().do\char`_something} is valid.
 \newline
-\textbf{ref qualifiers} along with \texttt{const} can be used to tag 
+\highlightit{ref qualifiers} along with \texttt{const} can be used to tag 
 different overloads of class member functions, to indicate they can be 
 applied to only \textit{lvalues} or to only \textit{rvaules}.
 \newline
@@ -445,32 +887,27 @@ from its initializer, whether the initializer is an lvalue or rvalue
 can affect the deduced type.
 
 \subsubsection{Move Semantic}
-Move semantics is a new way of moving resources around in an optimal way 
-by \textbf{avoiding unnecessary copies} of temporary objects. It is 
-based on rvalue references and plays an \textbf{important role in 
+Move semantics is a new way of moving resources around in an optimal way, 
+since it helps \highlightit{avoiding unnecessary copies} of temporary objects. 
+It is based on rvalue references and plays an \highlightit{important role in 
 exception safety} for C++. 
 
-%~ \subsubsection{Universal Reference}
-%~ \href{https://en.cppreference.com/w/cpp/language/reference#Forwarding_references}{cppreference documentation}
-%~ about universal reference
-%~ \newline
 \subsubsection{Perfect Forwarding}
-\href{https://en.cppreference.com/w/cpp/utility/forward}{cppreference documentation} 
-about \textbf{forward} utility.
+\href{https://en.cppreference.com/w/cpp/utility/forward}{Cppreference documentation about \textbf{forward} utility}. 
 \newline
-\href{https://en.cppreference.com/w/cpp/language/reference#Forwarding_references}{cppreference documentation} 
-about \textbf{forwarding references}.
+\href{https://en.cppreference.com/w/cpp/language/reference#Forwarding_references}{Cppreference about \textbf{forwarding references}}.
 \newline
 Perfect forwarding is an important C++0x feature built on top of rvalue 
 references. It provides the programmer with the capability automatically 
 apply the move semantics, even when there are intervening function calls 
-to separate the soure and the destination of a move.
+to separate the source and the destination of a move.
 \newline
-Examples include constructors and setter functions, that can forward 
-arguments they receive directly to the data member they are initializing 
-or setting. Standard Library functions like \texttt{make\char`_shared} 
-"perfect-forwards" its arguments to the class constructor of whatever 
-object the to-be-created \texttt{shared\char`_ptr} is to point to.
+Examples include \highlightit{constructors} and \highlightit{setter functions}, 
+that can forward arguments they receive directly to the data member they 
+are initializing or setting. Standard Library functions like 
+\highlighttt{make\char`_shared} "perfect-forwards" its arguments to the class 
+constructor of whatever object the to-be-created \texttt{shared\char`_ptr} 
+is to point to.
 \newline
 The idiomatic expression of the perfect forwarding make use of the 
 \texttt{std::forward} 
@@ -482,41 +919,294 @@ void wrapper(T&& arg)
 }
 \end{lstlisting}
 
-\subsubsection{auto}
-\subsubsection{decltype}
-\subsubsection{const-expr}
+\subsubsection{\texttt{auto}}
+\label{subsubsec:c++auto}
+\href{https://en.cppreference.com/w/cpp/language/auto}{Cppreference documentation about \texttt{\textbf{auto}}}.
+\newline
+References in bibliography:~\cite{gotw-auto-variablesI}, \cite{gotw-auto-variablesII},
+\cite{gotw-almost-always-auto}.
+\newline
+This placeholder type specifier has the following meanings:
+\begin{itemize}
+    \item for \highlightbf{variables}: \newline
+    the variable that is being declared will be automatically deduced 
+    from its initializer;
+    \item for \highlightbf{functions}: \newline
+    the return type will be deduced from its return statements;
+    \item for \highlightbf{non-type template parameters}: \newline
+    the type will be deduced from the argument.
+\end{itemize}
 
-\subsection{C++23 New Features}
-\subsubsection{Containers}
-With C++23, we have 12 associative Containers:
+Following a summary of \highlight{contextes in which \texttt{\textbf{auto}} may 
+appear}. 
+\newline
+In the summary, the 
+\href{https://en.cppreference.com/w/cpp/language/template_argument_deduction#Other_contexts}{rules for template argument deduction} 
+are referenced.
+
+\begin{itemize}
+    \item if used \highlightbf{in the type specifier of a variable} the variable 
+    type is deduced from the initializer list using the template 
+    argument deduction:
+    \begin{lstlisting}[language=C++]
+auto x = expr;
+    \end{lstlisting}
+    In case \highlightit{no pointer or reference} is 
+    attached to \texttt{auto}, both \texttt{const} and references are 
+    ignored:
+    \begin{lstlisting}[language=C++]
+int y = 10;
+int& r = y;
+auto x = r;               // type is int (reference ignored)
+
+const int y = 10;
+auto x = y;               // type is int (const ignored)
+
+int y = 10;
+const int& r = y;
+auto x = r;               // type is int
+                          // (const and reference ignored)
+
+const int a[10] = {};
+auto x = a;               // type is int*
+                          // (array to pointer conversion)
+    \end{lstlisting}
+    %~ \begin{lstlisting}[language=C++]
+%~ auto (*p)() -> int;       // declares p as 
+                          %~ // pointer to function returning int
+%~ auto (*q)() -> auto = p;  // declares q as 
+                          %~ // pointer to function returning T,
+                          %~ // deduced from the type of p
+    %~ \end{lstlisting}
+
+    \highlightit{Modifiers} which may accompany \texttt{auto} will partecipate in the 
+    type deduction. For example, in the code
+    \begin{lstlisting}[language=C++]
+const auto& i = expr;
+template<class U> void f(constU& u);
+    \end{lstlisting}
+    the type deduced for the first code line is the same deduced for 
+    the argument \texttt{u} of the second line if the function call 
+    \texttt{f(expr)} was compiled.
+    \newline
+    Therefore \highlighttt{auto\char`&\char`&} may be deduced both as an 
+    \highlightit{lvalue} reference and an \highlightit{rvalue} reference.
+    \newline
+    In case \highlighttt{auto} is used to declare multiple variables, the 
+    deduced type must match.
+    
+    \item If used \highlightbf{in a function defined with the trailing return type 
+    syntax}, it is just part of the syntax and automatic type deduction 
+    is not performed
+    \begin{lstlisting}[language=C++]
+auto function_name(parameter_list) -> return_type
+{
+    // Function implementation
+}  
+    \end{lstlisting}
+
+    \item If used \highlightbf{as return type of a function defined without
+    the trailing return type}, or\newline \highlightbf{as a return type 
+    of a lambda expression},    the keyword \texttt{auto} indicates 
+    that the return type will be deduced from the return statement, 
+    using the rules for template argument deduction.
+
+    \item If used \highlight{\textbf{in combination with \texttt{decltype}}} and the declared 
+    type of the variable is \texttt{decltype(auto)}, the keyword 
+    \texttt{auto} is replaced with the expression (or expression list) 
+    of its initializer and the actual type is deduced using the 
+    rules for \texttt{decltype}.
+
+    \item If used \highlight{\textbf{along with \texttt{decltype} in the return type of a 
+    function}} and the return type of the function is 
+    \texttt{decltype(auto)}, the keyword \texttt{auto} is replaced with 
+    the operand of its return statement, and the actual return type is 
+    deduced using the rules of \texttt{decltype}.
+
+    \item If used in the \highlight{\textbf{type-id of a \texttt{new} expression}}, 
+    the type is deduced from the initializer.
+    
+    \item If used \highlight{\textbf{in the parameter declaration of a non-type 
+    template parameter.}}, for example \highlighttt{template<auto I> struct A;}, 
+    its type is deduced from the corresponding argument.
+    
+    \item if used \highlightbf{as a nested scope like in  \texttt{auto::}} ???
+    
+    \item if used \highlightbf{in the parameter declaration of a lambda-expression}, 
+    such lambda expression is a \highlightit{generic lambda}. This means 
+    that the folowing generig lambda will be written by the compiler as 
+    an instance of the templates which follows 
+    \begin{lstlisting}[language=C++]
+auto g_lambda = [] (auto a) { return a; } ;
+class /* unnamed */
+{
+public:
+    template<typename T>
+    T operator () (T a) const { return a; }
+};
+    \end{lstlisting}
+
+    %~ \item void f(auto) since C++20
+    
+    \item if used \highlight{\textbf{in a function parameter declaration}}, 
+    like \highlighttt{void f(auto);}, the function declaration introduces 
+    an abbrevited function template~\cite{cppreference-abbreviated-functemplate}
+    
+\end{itemize}
+
+\subsubsection{\texttt{decltype}}
+\highlighttt{decltype} inspects the declared type of an entity or the 
+type and value category of an expression. 
+
+\highlightbf{Explain difference between parenthesized}
+
+See~\cite{cppreference-decltype}
+
+
+\subsubsection{Initializer list}
+\href{https://en.cppreference.com/w/cpp/utility/initializer_list}{Cppreference documentation about Initializer list}
+\newline
+An object of type \highlighttt{std::initializer\char`_list<T>} is a 
+lightweight proxy object that provides access to an array of objects of 
+type \highlighttt{const T}. 
+
+\subsubsection{Uniform initalization syntax and semantics}
+C++98 provides the users with several ways of initializing an object. 
+These ways depend on the type and the initialization context and have 
+different ways of working.
+\newline
+Some examples can be the following code lines
+\begin{lstlisting}[language=C++]
+string a[] = { "foo", " bar" };        // ok: initialize array
+vector<string> v = { "foo", " bar" };  // error: initializer list 
+                                       // for non-aggregate vector
+void f(string a[]);
+f( { "foo", " bar" } );                // syntax error: 
+                                       // block as argument
+\end{lstlisting}
+and
+\begin{lstlisting}[language=C++]    
+int a = 2;            // "assignment style"
+int aa[] = { 2, 3 };  // assignment style with list
+complex z(1,2);       // "functional style" initialization
+x = Ptr(y);           // "functional style" for 
+                      // conversion/cast/construction
+        
+int a(1);             // variable definition
+int b();              // function declaration
+int b(foo);           // variable definition or function declaration
+\end{lstlisting}
+
+C++11 introduces a \highlight{\texttt{\{\}}-initializer}, 
+which provides a much simpler and consistent way to perform initialization, 
+for all different initialization context as in the following example
+\begin{lstlisting}[language=C++]
+X x1 = X{1,2}; 
+X x2 = {1,2};   // the = is optional
+X x3{1,2}; 
+X* p = new X{1,2}; 
+struct D : X 
+{
+    D(int x, int y) :X{x,y} { /* ... */ };
+};
+struct S
+{
+    int a[3];
+    S(int x, int y, int z) :a{x,y,z} { /* ... */ }; // solution to
+                                                    // old problem
+};
+\end{lstlisting}
+
+\highlight{\texttt{\{\}}-initializer} produces the same result in any 
+context
+\begin{lstlisting}[language=C++]
+X x{a}; 
+X* p = new X{a};
+z = X{a};         // use as cast
+f({a});           // function argument (of type X)
+return {a};       // function return value (function returning X)
+\end{lstlisting}
+
+\highlight{\texttt{\{\}}-initializer} is also useful to solve the 
+\highlight{most vexing parse} problem, explained in~\ref{subsubsec:most-vex-parse}.
+
+\subsubsection{Range \texttt{for}}
+A \highlight{\texttt{range-for} statement} applies to all standard 
+containers and string as well, providing a less-typing way to 
+\texttt{for}-loop over a \textit{range} of elements.
+\newline
+An example of usage in the following code
+\begin{lstlisting}
+    
+\end{lstlisting}
+
+\subsubsection{\texttt{noexcept}} 
+\href{https://en.cppreference.com/w/cpp/language/noexcept}{Cppreference about \texttt{noexcept}}
+
+\subsubsection{\texttt{nullptr}}
+The keyword \highlighttt{nullptr} denotes the pointer literal. It is a 
+\highlighttt{prvalue} of type \highlighttt{std::nullptr\char`_t}. 
+There exist implicit conversions from \texttt{nullptr} to null pointer 
+value of any pointer type and any pointer to member type. 
+Similar conversions exist for any null pointer constant, 
+which includes values of type \highlighttt{std::nullptr\char`_t} as well 
+as the macro NULL. 
+
+\subsubsection{constexpr}
+\href{https://en.cppreference.com/w/cpp/language/constexpr}{Cppreference about \texttt{constexpr}}
+\newline
+The constexpr specifier declares that it is possible to evaluate 
+the value of the function or variable at compile time. Such variables 
+and functions can then be used where only compile time constant 
+expressions are allowed (provided that appropriate function arguments 
+are given). 
+
+\subsubsection{Lambda expressions}
+A \highlight{lambda expression} is a closure, i.e. an unnamed 
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
-    \textbf{C++98} & \texttt{std::map}, \texttt{std::set}, \texttt{std::multimap}, \texttt{std::multiset} \\
+    \begin{tabular}{l|l}
+    \multirow{11}{*}{captures} & a comma-separated list of zero or more captures, optionally beginning \\
+                              & with a capture-default \\
+                              & A lambda expression can use a variable without capturing it if the variable \\
+                              & \, $\bullet$ is a non-local variable or has static or thread local storage duration \\
+                              & \, \, \, (in which case the variable cannot be captured), or \\
+                              & \, $\bullet$ is a reference that has been initialized with a constant expression.\\
+                              & A lambda expression can read the value of a variable without capturing it \\
+                              & if the variable \\
+                              & \, $\bullet$ has const non-volatile integral or enumeration type and has been initialized \\ 
+                              & \, \, \, with a constant expression, or \\
+                              & \, $\bullet$ is constexpr and has no mutable members. \\
     \hline
-    \multirow{2}{*}{\textbf{C++11}} 
-    & \texttt{std::unordered\char`_map}, \texttt{std::unordered\char`_set} \\
-    & \texttt{std::unordered\char`_multimap}, \texttt{std::unordered\char`_multiset} \\
+    \multirow{2}{*}{tparams} & a non-empty comma-separated list of template parameters \\
+                             & used to provide names to the template parameters of a generic lambda\\
     \hline
-    \multirow{2}{*}{\textbf{C++23}} 
-    & \texttt{std::flat\char`_map}, \texttt{std::flat\char`_set},\\
-    & \texttt{std::flat\char`_multimap}, \texttt{std::flat\char`_multiset} \\
+    t-requires & adds constraints to tparams \\
+    \hline
+    front-attr & since C++23 \textbf{study} \\
+    \hline
+    params & the parameter list of \texttt{operator()} of the closure type \\
+    \hline
+    \multirow{6}{*}{specs} & A list of the following specifiers, each specifier is 
+                             allowed at most once\\
+                           & in each sequence. If not provided, the objects captured by copy are \highlighttt{const} \\
+                           &\, $\bullet$ \highlighttt{mutable} \, allows body to modify the objects captured by copy\\
+                           &\, $\bullet$ \highlighttt{constexpr} \, since C++17\\
+                           &\, $\bullet$ \highlighttt{consteval} \, since C++20\\
+                           &\, $\bullet$ \highlighttt{static} \, since C++23\\
+    \hline
+    \multirow{2}{*}{exception} & provides the dynamic exception specification \\ 
+              & or (until C++20) the noexcept specifier for operator() of the closure type \\
+    \hline
+    \multirow{2}{*}{back-attr} & an attribute specifier sequence applies to the type of operator() of the closure type\\
+                               & (and thus the \texttt{[[noreturn]]} attribute cannot be used) \\
+    \hline
+    trailing-type & \texttt{-> ret} where \texttt{ret} specifies the return type\\
+    \hline
+    requires & adds constraints to \texttt{operator()} of the closure type\\
+    \hline
+    body & function body\\
+    \hline
+    
+    %~ \multirow{}{}{} & \\
     \end{tabular}
 \end{table}
-\newpage
-\begin{table}[h!t]
-    \begin{tabular}{l|l|l|l|l}
-        \multirow{2}{*}{Associative Container} & \multirow{2}{*}{Sorted} & \multirow{2}{*}{Value} & Several Identical & \multirow{2}{*}{Access Time} \\
-                                               &        &       & keys possible & \\
-        \hline
-        \texttt{std::set} & yes & no & no & logarithmic \\
-        \texttt{std::unordered\char`_set} & no & no & no & constant \\
-        \texttt{std::map} & yes & yes & no & logarithmic \\
-        \texttt{std::unordered\char`_map} & no & yes & no & constant \\
-        \texttt{std::multiset} & yes & no & yes & logarithmic\\
-        \texttt{std::unordered\char`_multiset} & no & no & yes & constant\\
-        \texttt{std::multimap} & yes & yes & yes & logarithmic\\
-        \texttt{std::unordered\char`_multimap} & no & yes & yes & constant\\
-    \end{tabular}
-\end{table}
-\newpage{}
-

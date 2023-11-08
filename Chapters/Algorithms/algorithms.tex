@@ -1,9 +1,9 @@
 %~ \sectionA{Algorithms}
-\section{Algorithms}
-\label{sec:algorithms}
+\chapter{Algorithms}
+\label{chap:algorithms}
 \vspace{10.5cm}
-\subsection{Time Complexity}
-\nparagraph{Theta notation}
+\section{Time Complexity}
+\subsection{Theta notation}
 \begin{equation}
     \label{eqn:thetanotation}
     f(n) = \Theta(g(n)) \quad \text{if} \quad 0 \le c_1 g(n) \le f(n) \le c_2 g(n) \forall n \ge n_0     
@@ -13,7 +13,7 @@ For all values $n >= n_0$, $f(n)$ is equal to $g(n)$ within a constant factor.
 \newline
 $g(n)$ is an asimptotically tight bound for $f(n)$.
 
-\nparagraph{Big O notation}
+\subsection{Big O notation}
 \begin{equation}
     \label{eqn:bigOnotation}
     f(n) = O(g(n)) \quad \text{if} \quad 0 \le f(n) \le c g(n) \forall n \ge n_0      
@@ -23,7 +23,7 @@ For all values $n >= n_0$, $f(n)$ is on or below $c g(n)$.
 \newline
 A constant multiple of $g(n)$ is an asimptotic upper bound for $f(n)$.
 
-\nparagraph{Omega notation}
+\subsection{Omega notation}
 \begin{equation}
     \label{eqn:omeganotation}
     f(n) = \Omega(g(n)) \quad \text{if} \quad 0 \le c g(n) \le f(n) \forall n \ge n_0
@@ -33,7 +33,7 @@ For all values $n>=n_0$, $f(n)$ is on or abow $c g(n)$.
 \newline
 A constant multiple of $g(n)$ is an asimptotic lower bound for $f(n)$.
 
-\nparagraph{Meaning of previous notations - Insertion sort case}
+\subsection{Meaning of previous notations - Insertion sort case}
 \textbf{O-notation} describes an upper bound.
 When we use it to bound the worst-case running time of an algorithm, 
 we have a bound on the running time of the algorithm on every input. 
@@ -85,7 +85,7 @@ to say that the worst-case running time of insertion sort is $\Omega(n^2)$,
 since there exists an input that causes the algorithm to take $\Omega(n^2)$ time.
  
 
-\nparagraph{Methods for solving the recurrence}
+\subsection{Methods for solving the recurrence}
 There are three methods for solving recurrences:
 \begin{itemize}
     \item the substitution method
@@ -94,5 +94,5 @@ There are three methods for solving recurrences:
 \end{itemize}
 
 
-\subsection{Space Complexity}
+\section{Space Complexity}
 
