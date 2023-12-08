@@ -1,0 +1,26 @@
+\begin{center}
+    
+    \begin{tikzpicture}[show background grid]
+        
+        \begin{abstractclass}[text width=4cm]{ABCServiceInterface}{0,0}
+            \operationtt{+ operation()}
+        \end{abstractclass}
+        \begin{class}[text width=4cm]{Proxy}{-2.5,-4}
+            \implement{ABCServiceInterface}
+            \attributett{- realService: Service}
+            \operationtt{+ Proxy(s: Service)}
+            \operationtt{+ checkAccess()}
+            \operationtt{+ operation()}
+        \end{class}
+        \begin{class}[text width=3cm]{Service}{2.5,-4}
+            \implement{ABCServiceInterface}
+            \attributett{...}
+            \operationtt{+ operation()}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{-5,-0.2}
+        \end{class}
+        
+    \end{tikzpicture}
+    
+\end{center}

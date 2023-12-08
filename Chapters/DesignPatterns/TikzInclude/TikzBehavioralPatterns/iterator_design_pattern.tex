@@ -1,0 +1,32 @@
+\begin{center}
+    \begin{tikzpicture}[show background grid]
+
+        \begin{abstractclass}[text width=3.5cm]{ABCIterator}{0,0}
+            \operationtt{+ getNext()}
+            \operationtt{+ hasMore(): bool}
+        \end{abstractclass}
+        \begin{class}[text width=4.5cm]{IteratorA}{0,-4}
+            \implement{ABCIterator}
+            \attributett{- collection: Collection}
+            \attributett{- iterationState}
+            \operationtt{+ IteratorA(c: Collection)}
+            \operationtt{+ getNext()}
+            \operationtt{+ hasMore(): bool}
+        \end{class}
+
+        \begin{abstractclass}[text width=4.5cm]{ABCCollection}{6.5,0}
+            \operationtt{+ createIterator: ABCIterator}
+        \end{abstractclass}
+        \begin{class}[text width=4.5cm]{ConcreteCollection}{6.5,-4}
+            \implement{ABCCollection}
+            \attributett{...}
+            \operationtt{...}
+            \operationtt{+ createIterator(): ABCIterator}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{3,2}
+                    
+        \end{class}
+
+    \end{tikzpicture}
+\end{center}

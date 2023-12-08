@@ -1,0 +1,38 @@
+\begin{center}
+    
+    \begin{tikzpicture}[show background grid]
+        
+        \begin{abstractclass}[text width=3cm]{ABCComponent}{0,0}
+            \operationtt{+ execute()}
+        \end{abstractclass}
+        
+        \begin{class}[text width=3cm]{ComponentA}{0,-3}
+            \implement{ABCComponent}
+            \attributett{...}
+            \operationtt{+ execute()}
+        \end{class}
+        
+        \begin{abstractclass}[text width=5.5cm]{ABCDecorator}{6,-3}
+            \attributett{- wrappee: Component}
+            \operationtt{+ ABCDecorator(c: Component)}
+            \operationtt{+ execute()}
+        \end{abstractclass}
+        \begin{class}[text width=3cm]{DecoratorA}{4,-7}
+            \implement{ABCDecorator}
+            \attribute{...}
+            \operation{+ execute()}
+            \operation{+ extra()}
+        \end{class}
+        \begin{class}[text width=3cm]{DecoratorB}{8,-7}
+            \implement{ABCDecorator}
+            \attribute{...}
+            \operation{+ execute()}
+            \operation{+ extra()}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{0,2}
+        \end{class}
+        
+    \end{tikzpicture}
+    
+\end{center}

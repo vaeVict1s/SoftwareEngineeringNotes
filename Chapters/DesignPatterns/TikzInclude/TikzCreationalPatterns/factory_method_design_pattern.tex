@@ -1,0 +1,39 @@
+%~ \begin{center}
+\centering
+    \begin{tikzpicture}[show background grid]
+        \begin{class}[text width=5cm]{ABCCreator}{0,0}
+            \attributett{...}
+            \operationtt{+ someOperation()}
+            \operationtt{+ createProduct(): Product}
+        \end{class}
+        
+        \begin{class}[text width=5cm]{CreatorA}{-2.5,-5.5}
+            \inherit{ABCCreator}
+            \attributett{...}
+            \operationtt{+ createProduct(): Product}
+        \end{class}
+
+        \begin{class}[text width=5cm]{CreatorB}{2.5,-5.5}
+            \inherit{ABCCreator}
+            \attributett{...}
+            \operationtt{+ createProduct(): Product}
+        \end{class}
+        
+        \begin{abstractclass}[text width=3cm]{ABCProduct}{8,0.5}
+            \operationtt{+ method1()}
+            \operationtt{+ method2()}
+            \operationtt{+ method3()}
+        \end{abstractclass}
+        
+        \begin{class}[text width=3.3cm]{ProductA}{6,-4}
+        \implement{ABCProduct}\end{class}
+
+        \begin{class}[text width=3.3cm]{ProductB}{10,-4}
+        \implement{ABCProduct}\end{class}
+        
+        \draw [ umlcd style dashed line , - >] ( ABCCreator) -- 
+        %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
+        ( ABCProduct) ;
+        %~ \aggregation{Abstraction}{}{}{Implementation}
+    \end{tikzpicture}
+%~ \end{center}

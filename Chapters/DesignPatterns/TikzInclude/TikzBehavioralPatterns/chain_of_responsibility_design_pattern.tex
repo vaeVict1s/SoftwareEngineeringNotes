@@ -1,0 +1,31 @@
+\begin{center}
+\begin{tikzpicture}[show background grid]
+    \begin{abstractclass}[text width=4cm]{ABCHandler}{0,0}
+        \operationtt{+setNext(h: Handler)}
+        \operationtt{+handle(request)}
+        \end{abstractclass}
+        
+        \begin{class}[text width=4cm]{Handler}{0,-4}
+             \implement{ABCHandler}
+             \attributett{- next: Handler}      
+            \operationtt{+setNext(h: Handler)}
+            \operationtt{+handle(request)}
+        \end{class}
+        \begin{class}[text width=4cm]{SubHandlerA}{-3,-7.5}
+             \inherit{Handler}
+             \attributett{- next: Handler}      
+            \operationtt{+setNext(h: Handler)}
+            \operationtt{+handle(request)}
+        \end{class}    
+        \begin{class}[text width=4cm]{SubHandlerB}{3,-7.5}
+             \inherit{Handler}
+             \attributett{- next: Handler}      
+            \operationtt{+setNext(h: Handler)}
+            \operationtt{+handle(request)}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{-5,-0.3}
+        \end{class}
+        
+\end{tikzpicture}
+\end{center}

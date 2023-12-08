@@ -26,8 +26,16 @@
 	\usepackage{wrapfig}
     \usepackage{todonotes}
     \usepackage{float}
+    \usepackage{colortbl}
 	\usepackage{xcolor}
 	\usepackage{tikz,lipsum,lmodern}
+    %~ \usepackage{tikz-uml}
+    \usepackage{pgf-umlcd}
+    \renewcommand{\umldrawcolor}{black}
+    \renewcommand{\umlfillcolor}{white}
+    \usetikzlibrary{positioning}
+    \usetikzlibrary{shapes.geometric,shapes.multipart}
+    \usetikzlibrary{decorations.text}
 	\usetikzlibrary{calc}
 	\usepackage[english]{babel}
 	\usepackage{fancyhdr}
@@ -44,6 +52,8 @@
 	\usepackage{geometry}
 	\usepackage{marginnote}
     \usepackage{multicol, multirow}
+    \usepackage{tabularx}
+    \usepackage{caption}
     %~ \usepackage{exam}
     %~ \usepackage{fixltx2e}
 	\tcbuselibrary{theorems}
@@ -80,11 +90,16 @@
 \newcommand{\nparagraph}[1]{\paragraph{#1}\mbox{}\\}
 \newcommand{\toclessnparagraph}[1]{\paragraph*{#1}\mbox{}\\}
 \newcommand{\nsubparagraph}[1]{\subparagraph{#1}\mbox{}\\}
+\newcommand{\toclessnsubparagraph}[1]{\subparagraph*{#1}\mbox{}\\}
 
 % ======== Dictionary Entries =========
 % Defines the command to print each word on the page,
 % \markboth{}{} prints the first word on the page in the top left header and the last word in the top right
 \newcommand{\dictentry}[2]{\markboth{#1}{#1}\textbf{#1} \ $\bullet$\ {#2}}  
+
+% ===== Class Diagrams ====
+\newcommand{\operationtt}[1]{\operation{\footnotesize{\texttt{#1}}}}
+\newcommand{\attributett}[1]{\attribute{\footnotesize{\texttt{#1}}}}
 
 % ========== Defined Commands =========
 \def\CC{{C\nolinebreak[4]\hspace{-.05em}\raisebox{.4ex}{\tiny\bf ++}}}
@@ -561,7 +576,7 @@ Enjoy!
 \input{./Chapters/Containers/containers.tex}
 %~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/SmartPointers/smart_pointers.tex}
+\input{./Chapters/MemoryManagementAndSmartPointers/memory_management_and_smart_pointers.tex}
 %~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/C++/C++.tex}

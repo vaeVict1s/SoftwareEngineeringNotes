@@ -1,0 +1,41 @@
+\begin{center}
+    \begin{tikzpicture}[show background grid]
+
+        \begin{abstractclass}[text width=3.5cm]{ABCMediator}{0,0}
+            \operationtt{+ notify(sender)}
+        \end{abstractclass}
+        \begin{class}[text width=3.5cm]{Mediator}{0,-3}
+            \implement{ABCMediator}
+            \attributett{- componentA}
+            \attributett{- componentA}
+            \attributett{- componentA}
+            \attributett{- componentA}
+            \operationtt{+ notify(sender)}
+            \operationtt{+ reactOnA()}
+            \operationtt{+ reactOnB()}
+            \operationtt{+ reactOnC()}
+        \end{class}
+
+        \begin{abstractclass}[text width=4.5cm]{ABCComponent}{8,0}
+            \operationtt{+ operation()}
+        \end{abstractclass}
+        
+        \begin{class}[text width=3cm]{Component}{4,-4}
+            \implement{ABCComponent}
+            \attributett{- m: ABCMediator}       
+            \operationtt{+ operation()}
+        \end{class}
+        \begin{class}[text width=3cm]{Component}{8,-4}
+            \implement{ABCComponent}
+            \attributett{- m: ABCMediator}       
+            \operationtt{+ operation()}                    
+        \end{class}
+        \begin{class}[text width=3cm]{Component}{12,-4}
+            \implement{ABCComponent}
+            \attributett{- m: ABCMediator}       
+            \operationtt{+ operation()}                    
+        \end{class}
+
+    \end{tikzpicture}
+
+\end{center}

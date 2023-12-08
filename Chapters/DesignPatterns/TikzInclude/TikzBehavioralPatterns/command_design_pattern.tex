@@ -1,0 +1,39 @@
+\begin{center}
+    \begin{tikzpicture}[show background grid]
+        
+        \begin{class}[text width=4cm]{Invoker}{0,0}
+            \attributett{- command}
+            \operationtt{+ setCommand(command)}
+            \operationtt{+ executeCommand()}
+        \end{class}
+        
+        \begin{abstractclass}[text width=3cm]{ABCCommand}{5,-0.1}
+            \operationtt{+ execute()}
+        \end{abstractclass}
+        \begin{class}[text width=5.5cm]{CommandA}{2.3,-3}
+            \implement{ABCCommand}
+            \attributett{- receiver}
+            \attributett{- params}
+            \attributett{+ CommandA(receiver, params)}
+            \attributett{+ execute()}
+        \end{class}
+        \begin{class}[text width=3cm]{CommandB}{7.7,-3}
+            \implement{ABCCommand}
+            \operationtt{+ execute()}
+        \end{class}
+        
+        
+        
+        \begin{class}[text width=3cm]{Client}{-5,-.5}
+                    
+        \end{class}
+        \begin{class}[text width=4cm]{Receiver}{-5,-4}
+            \attributett{...}
+            \operationtt{+ operation(a, b, c)}
+        \end{class}
+        
+        \draw [ umlcd style , - >] ( Client)  -- ( Receiver);
+        \draw [ umlcd style , - >] ( Invoker)  -- ( ABCCommand);
+        \draw [ umlcd style dashed line, - >] ( Client)  -- ( CommandA);
+    \end{tikzpicture}
+\end{center}

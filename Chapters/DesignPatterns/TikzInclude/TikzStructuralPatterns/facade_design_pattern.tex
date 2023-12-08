@@ -1,0 +1,35 @@
+\begin{center}
+    
+    
+    \begin{tikzpicture}[show background grid]
+        
+        \begin{class}[text width=5cm]{Facade}{0,0}
+            \attributett{- linksToSubSysObjs}
+            \attributett{- optionalAdditionalFacde}
+            \operationtt{+ subSysOperation()}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{SubSystemA}{-3.5,-3.5}
+        \end{class}
+        \begin{class}[text width=3cm]{SubSystemB}{0,-3.5}
+        \end{class}
+        \begin{class}[text width=3cm]{SubSystemC}{3.5,-3.5}
+        \end{class}
+        
+        
+        \begin{class}[text width=4.5cm]{AdditionaFacade}{8.5,0}
+            \operationtt{+ anotherSubSysOperation}
+        \end{class}
+        
+        \begin{class}[text width=4.5cm]{AdditionalSubSys}{8.5,-3.5}
+        \end{class}
+        
+        
+        \begin{class}[text width=3cm]{Client}{0,2}
+        \end{class}
+        
+        
+    \end{tikzpicture}
+    
+
+\end{center}

@@ -1,0 +1,33 @@
+\begin{center}
+
+    \begin{tikzpicture}[show background grid]
+
+        \begin{class}[text width=6cm]{Publisher}{0,0}
+            \attributett{- subscriber: ABCSubscriber}
+            \attributett{- mainState}
+            \operationtt{+ subscribe(s: ABCSubscriber)}
+            \operationtt{+ unsubscribe(s: ABCSubscriber)}
+            \operationtt{+ notifySubscriber()}
+            \operationtt{+ mainBusinessLogic()}
+        \end{class}
+        
+        \begin{abstractclass}[text width=3.5cm]{ABCSubscriber}{7.5,0}
+            \operationtt{+ update(context)}
+        \end{abstractclass}
+        \begin{class}[text width=3.5cm]{SubscriberA}{5.5,-3}
+            \implement{ABCSubscriber}
+            \attributett{...}
+            \operationtt{+ update(context)}
+        \end{class}
+        \begin{class}[text width=3.5cm]{SubscriberB}{9.5,-3}
+            \implement{ABCSubscriber}
+            \attributett{...}
+            \operationtt{+ update(context)}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{0,-5.5}
+        \end{class}
+
+    \end{tikzpicture}
+
+\end{center}

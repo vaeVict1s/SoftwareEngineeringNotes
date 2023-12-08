@@ -20,7 +20,8 @@ used/unused memory in two different ways.
     \end{center}
 \end{figure}
 
-\textbf{Text} area contains machine instructions (i.e. the executable 
+\toclessnparagraph{Text}
+This area contains machine instructions (i.e. the executable 
 code). \textbf{Global} and \textbf{static} variables are typically 
 allocated at program startup. \textbf{Stack} contains all the automatic 
 variables. \textbf{Heap} is meant to allocate the memory for the dynamic 
@@ -28,13 +29,13 @@ variables through the \textbf{\texttt{new}} and \textbf{\texttt{delete}}
 operators. The space in between is allocated by the operating system but 
 not used, and is meant to let both the heap and stack grow.
 
-\subsubsection*{Stack}
+\toclessnparagraph{Stack}
 This is a simple LIFO (last in, first out) data structure which must 
 support at least the \textbf{push} and \textbf{pop} operations. Even 
 though a stack only allows accesses at the top, it is easy to implement 
 and fast to execute push and pop operations.
 
-\subsubsection*{Heap}
+\toclessnparagraph{Heap}
 This is a more flexible data structure, which allows programs to 
 allocate or deallocate memory anywhere and in any convenient order. This 
 might cause hole in the heap, i.e. unallocated memory surrounded by 
@@ -49,6 +50,14 @@ and to coalesce adjacent blocks of memory returned by the program.
 Side effect is that the operation on the heap are slower than the 
 operations on the stack.
 
+\subsection{Memory Allocation and Deallocation in C++}
+\subsubsection{\texttt{new}}
+\subsubsection{\texttt{delete}}
+
+\subsection{Memory Allocation and Deallocation in C}
+\subsubsection{\texttt{malloc}}
+\subsubsection{\texttt{free}}
+
 \section{Smart Pointers in C++}
 \href{https://en.cppreference.com/w/cpp/memory}{Cppreference documentation about \textbf{smart pointers}}. 
 \newline
@@ -60,6 +69,7 @@ can be used like a pointer, but which provides the additional feature of
 memory management which frees the memory when the smart pointer is 
 no longer used. A smart pointer should therefore be used any time 
 the ownership of memory needs to be tracked.
+
 %% Unique Pointer
 \subsection{\texttt{std::unique\char`_ptr}}
     \href{https://en.cppreference.com/w/cpp/memory/unique_ptr}{cppreference documentation about \textbf{\texttt{std::unique\char`_ptr}}}.
@@ -78,7 +88,7 @@ the ownership of memory needs to be tracked.
         via \texttt{operator=} or \texttt{reset()}. 
     \end{itemize}
 
-\subsubsection*{Notes}
+\toclessnparagraph{Notes}
 Only \textbf{non-const} \texttt{std::unique\char`_ptr} can 
 \textbf{transfer the ownership} of the managed object to another 
 \texttt{std::unique\char`_ptr}.
@@ -110,7 +120,7 @@ of objects, including:
 \textbf{incomplete type} T, such as to facilitate the use as a handle 
 in the pImpl idiom.
 \newpage
-\subsubsection*{Member types}
+\toclessnparagraph{Member types}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
@@ -127,7 +137,7 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
 
-\subsubsection*{Member functions}
+\toclessnparagraph{Member functions}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
@@ -144,7 +154,7 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
 
-\subsubsection*{Modifiers}
+\toclessnparagraph{Modifiers}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
@@ -161,7 +171,7 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
 
-\subsubsection*{Observers}
+\toclessnparagraph{Observers}
 %~ \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -178,7 +188,7 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
 
-\subsubsection*{Single-object versioin, \texttt{unique\char`_ptr}}
+\toclessnparagraph{Single-object versioin, \texttt{unique\char`_ptr}}
 %~ \vspace{-8truemm}
 \begin{table}[h!t]
     \begin{tabular}{|l|l|}
@@ -192,6 +202,7 @@ in the pImpl idiom.
 \end{table}
 %%
 \newpage
+
 %% Shared Ptr
 \subsection{\texttt{std::shared\char`_ptr}}
     \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{Cppreference documentation about \textbf{\texttt{std::shared\char`_ptr}}}.
@@ -219,9 +230,9 @@ in the pImpl idiom.
     \texttt{std::shared\char`_ptr} may have a non-null stored pointer 
     if the aliasing constructor was used to create it). 
 
-\subsubsection*{Member functions}
-%~ \vspace{-8truemm}
-\begin{table}[ht]
+\toclessnparagraph{Member functions}
+\vspace{-3truemm}
+\begin{table}[h!t]
     \begin{tabular}{|l|l|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/shared_ptr}{constructor}
@@ -236,9 +247,9 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}    
 
-\subsubsection*{Modifiers}
-%~ \vspace{-8truemm}
-\begin{table}[ht]
+\toclessnparagraph{Modifiers}
+\vspace{-3truemm}
+\begin{table}[h!t]
     \begin{tabular}{|l|l|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/reset}{reset}
@@ -250,9 +261,9 @@ in the pImpl idiom.
     \end{tabular}
 \end{table} 
 
-\subsubsection*{Observers}
-%~ \vspace{-8truemm}
-\begin{table}[ht]
+\toclessnparagraph{Observers}
+\vspace{-3truemm}
+\begin{table}[h!t]
     \begin{tabular}{|l|l|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/get}{get}
@@ -281,9 +292,10 @@ in the pImpl idiom.
     \end{tabular}
 \end{table} 
 %%
+
 \newpage
 %% Weak Ptr
-\subsection{\texttt{std::weak\char`_ptr}}
+  \subsection{\texttt{std::weak\char`_ptr}}
     \href{https://en.cppreference.com/w/cpp/memory/weak_ptr}{cppreference documentation about \textbf{\texttt{std::weak\char`_ptr}}}.
     \newline
     \texttt{std::weak\char`_ptr} is a smart pointer that holds a non-owning ("weak") reference 
@@ -292,7 +304,7 @@ in the pImpl idiom.
     \newline
     \texttt{std::weak\char`_ptr} models temporary ownership
     
-\subsubsection*{Member functions}
+\toclessnparagraph{Member functions}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
@@ -309,7 +321,7 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
     
-\subsubsection*{Modifiers}
+\toclessnparagraph{Modifiers}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
     \begin{tabular}{|l|l|}
@@ -321,9 +333,9 @@ in the pImpl idiom.
     \end{tabular}
 \end{table}
     
-\subsubsection*{Observers}
+\toclessnparagraph{Observers}
 %~ \vspace{-8truemm}
-\begin{table}[ht]
+\begin{table}[h!t]
     \begin{tabular}{|l|l|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/use_count}{use\char`_count}

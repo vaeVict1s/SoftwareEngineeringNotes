@@ -1,0 +1,24 @@
+\begin{center}
+    
+    \begin{tikzpicture}[show background grid]
+        
+        \begin{abstractclass}[text width=3cm]{Client Interface}{0,0}
+            \operationtt{+ method(data)}
+        \end{abstractclass}
+        \begin{class}[text width=3cm]{Adapter}{0,-3}
+            \attributett{- adaptee: Service}
+            \operationtt{+ mwthod(data)}
+        \end{class}
+        
+        \begin{class}[text width=5cm]{Service}{6,-3}
+            \attributett{...}
+            \operationtt{serviceMethod(specialData)}
+        \end{class}
+        
+        \begin{class}[text width=2cm]{Client}{-4,-0.3}
+            
+        \end{class}
+        
+    \end{tikzpicture}
+    
+\end{center}

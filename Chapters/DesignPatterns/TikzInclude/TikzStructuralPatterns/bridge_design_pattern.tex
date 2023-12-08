@@ -1,0 +1,27 @@
+    \begin{tikzpicture}[show background grid]
+        \begin{class}[text width=5cm]{Abstraction}{0,0}
+            \attributett{- impl: Implementation}
+            \operationtt{+ feature1()}
+            \operationtt{+ feature2()}
+        \end{class}
+        
+        \begin{class}[text width=3.5cm]{RefinedAbstraction}{0,-4}
+            \inherit{Abstraction}
+            \attributett{...}
+            \operationtt{+ featureN()}
+        \end{class}
+        
+        \begin{abstractclass}[text width=4cm]{Implementation}{8,0.5}
+            \operationtt{+ method1()}
+            \operationtt{+ method2()}
+            \operationtt{+ method3()}
+        \end{abstractclass}
+        
+        \begin{class}[text width=3cm]{ConcreteImplA}{6,-4}
+        \implement{Implementation}\end{class}
+
+        \begin{class}[text width=3cm]{ConcreteImplB}{10,-4}
+        \implement{Implementation}\end{class}
+        
+        \aggregation{Abstraction}{}{}{Implementation}
+    \end{tikzpicture}

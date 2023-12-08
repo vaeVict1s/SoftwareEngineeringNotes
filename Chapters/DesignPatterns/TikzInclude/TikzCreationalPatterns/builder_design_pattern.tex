@@ -1,0 +1,38 @@
+\begin{center}
+    \begin{tikzpicture}[show background grid]
+            
+        \begin{abstractclass}[text width=3cm]{ABCBuilder}{0,0}
+            \operationtt{+ reset()}
+            \operationtt{+ buildStepA()}
+            %~ \operationtt{+ buildStepB()}
+            \operationtt{+ buildStepZ()}
+        \end{abstractclass}
+        \begin{class}[text width=4.5cm]{BuilderA}{-3,-4.5}
+            \implement{ABCBuilder}
+            \attributett{result: ProductA}
+            \operationtt{+ reset()}
+            \operationtt{+ buildStepA()}
+            %~ \operationtt{+ buildStepB()}
+            \operationtt{+ buildStepZ()}
+            \operationtt{+ getResult(): ProductA}
+        \end{class}
+        \begin{class}[text width=4.5cm]{BuilderB}{3,-4.5}
+            \implement{ABCBuilder}
+            \attributett{result: ProductB}
+            \operationtt{+ reset()}
+            \operationtt{+ buildStepA()}
+            %~ \operationtt{+ buildStepB()}
+            \operationtt{+ buildStepZ()}
+            \operationtt{+ getResult(): ProductB}
+        \end{class}
+
+
+        \begin{class}[text width=4.5cm]{Director}{5,-0.5}
+            \attributett{- builder: Builder}
+            \operationtt{+ Director(builder)}
+            \operationtt{+ changeBuilder(builder)}
+            \operationtt{+ make(type)}
+        \end{class}
+
+    \end{tikzpicture}
+\end{center}

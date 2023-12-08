@@ -1,0 +1,26 @@
+\begin{center}
+    \begin{tikzpicture}[show background grid]
+
+        \begin{class}[text width=4cm]{Originator}{0,0}
+            \attributett{- state}
+            \operationtt{+ save(): Memento}
+            \operationtt{+ restore(m : Memento)}
+        \end{class}
+
+        \begin{class}[text width=3cm]{Memento}{5.5,0}
+            \attributett{- state}
+            \operationtt{- Memento(state)}
+            \operationtt{- getState()}
+        \end{class}
+        
+        \begin{class}[text width=4cm]{Caretaker}{11,0}
+            \attributett{- originator}
+            \attributett{-history: Memento}
+            \operationtt{+ doSomething()}
+            \operationtt{+ undo()}
+        \end{class}
+
+    \end{tikzpicture}
+    
+
+\end{center}

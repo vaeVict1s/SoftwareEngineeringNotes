@@ -79,10 +79,10 @@ If you define or =delete any default operation,
 define or =delete them all
 (see~\cite{cppcoreguidelines-C21})
 
-\subsubsection{The Most Vexing Parse}
+\subsection{The Most Vexing Parse}
 \label{subsubsec:most-vex-parse}
-\nparagraph{Examples}
-\nparagraph{How to fix it}
+\toclessnparagraph{Examples}
+\toclessnparagraph{How to fix it}
 
 \subsection{Const Correctness}
 \label{subsec:c++const-corr}
@@ -307,7 +307,7 @@ sense outside of the class.
 The disadvantage of \texttt{friend} functions is that they require 
 extra code when dynamic binding is needed. Indeed, the \texttt{friend} 
 function should call a hidden (usually \texttt{protected}) \texttt{virtual} 
-member function, as explained in details in~\ref{sec:virtual-friend-function}.
+member function, as explained in details in~\ref{subsec:virtual-friend-function}.
 \newline
 Friendship \highlightit{is not inherited, transitive or reciprocal}:
 \begin{itemize}
@@ -325,7 +325,7 @@ ones when it is really needed.
 \label{subsubsec:inheritance-basics}
 \href{https://isocpp.org/wiki/faq/basics-of-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Basics}} 
 
-\nparagraph{\texttt{static} initialization}
+\toclessnparagraph{\texttt{static} initialization}
 
 \subsubsection{Inheritance - Virtual member function}
 \href{https://isocpp.org/wiki/faq/virtual-functions}{ISOCpp FAQ about Inheritance - \textbf{\texttt{virtual} functions}}.
@@ -341,7 +341,7 @@ is that many classes are not designed to be used as a base class.
 Moreover, the \texttt{virtual} function call mechanism needs requires 
 an overhead of memory, typically one word per object.
 
-\nparagraph{Dynamic Binding and Static Typing}
+\toclessnparagraph{Dynamic Binding and Static Typing}
 A pointer to an object may actually point to a class that is derived 
 from the class of the pointer. Thus there are two different types 
 to consider: the (static) type of the pointer and the (dynamic) type 
@@ -359,7 +359,7 @@ mechanism, which checks the correctness of the function call at the last
 possible moment, i.e. at run time and based on the dynamic type of 
 the object pointed to.
 
-\nparagraph{Member Function call: \texttt{virtual} vs. non-\texttt{virtual}}
+\toclessnparagraph{Member Function call: \texttt{virtual} vs. non-\texttt{virtual}}
 The practical difference is that non-\texttt{virtual} member functinos 
 are resolved statically, i.e. the compiler checks the 
 \highlightit{type of the pointer or reference to the object} and selects 
@@ -368,7 +368,7 @@ the correct member function statically at compile time.
 On the other side, a \texttt{virtual} member function call is resolved 
 dynamically.
 
-\nparagraph{\texttt{virtual} Member Function Call - Overhead Estimation}
+\toclessnparagraph{\texttt{virtual} Member Function Call - Overhead Estimation}
 As explained, a non-\texttt{virtual} member function is resolved 
 statically based on the type of the pointer or reference to the object.
 \newline
@@ -512,7 +512,7 @@ Therefore, it is possible to state that:
           mechanism is not dependent on how deep the inheritance gets.
 \end{itemize}
 
-\nparagraph{Calling a Base Class \texttt{virtual} member function}
+\toclessnparagraph{Calling a Base Class \texttt{virtual} member function}
 When a \texttt{virtual} function is called by its \highlightit{fully-qualified name}, 
 the compiler skip the \texttt{virtual} call mechanism and uses the same 
 mechanism used for non-\texttt{virtua} functions. Therefore, the 
@@ -528,7 +528,7 @@ void Der::f()
 }
 \end{lstlisting}
 
-\nparagraph{\texttt{virtual} destructor}
+\toclessnparagraph{\texttt{virtual} destructor}
 A \texttt{virtual} destructor is required any time someone 
 \texttt{delete}s a derived-class object through a base-class pointer. 
 In this case, indeed, the destructor invoked matches the type of the 
@@ -550,7 +550,7 @@ is a \texttt{virtual} method in the class. Indeed
     \item it costs nothing since the 
 \end{itemize}
 
-\nparagraph{\texttt{virtual} constructor}
+\toclessnparagraph{\texttt{virtual} constructor}
 \label{npar:virtual-ctor}
 An idiom that allows to achieve a behavior that C++ does not really 
 support.
@@ -563,7 +563,7 @@ support.
 \subsubsection{Inheritance - Proper Inheritance and Substitutability}
 \label{subsubsec:proper-inheritance}
 \href{https://isocpp.org/wiki/faq/proper-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Proper Inheritance and Substainability}}
-\nparagraph{Converting \texttt{Derived** $\rightarrow$ Base**}}
+\toclessnparagraph{Converting \texttt{Derived** $\rightarrow$ Base**}}
 Differently from the conversion \texttt{Derived* $\rightarrow$ Base*}, 
 the conversion mentioned in the title does not compile, because it 
 would be dangerous.
@@ -576,13 +576,13 @@ to make \highlighttt{Base*} point to an object of a
 \newline
 This prohibition has similarities with~\ref{subsubsec:error-converting}.
 
-\nparagraph{container of \highlighttt{Thing} \texttt{==} kind-of container of \highlighttt{Everything}?}
+\toclessnparagraph{container of \highlighttt{Thing} \texttt{==} kind-of container of \highlighttt{Everything}?}
 As a consequence of~\ref{subsubsec:proper-inheritance}, a container 
 of a certain \highlighttt{class Thing} objects is not a container of 
 \highlighttt{class Anything} objects, even if \highlighttt{Thing} is a 
 kind of \highlighttt{Anything}.
 
-\nparagraph{Is an array of \texttt{Derived} a kind-of array of \texttt{Base}?}
+\toclessnparagraph{Is an array of \texttt{Derived} a kind-of array of \texttt{Base}?}
 In the same perspective of the previous two paragraphs, the answer is negative 
 and easy to explain: a \texttt{Derived} object is larger than a 
 \texttt{Base} object and it would mess up the pointer aritmetics in case 
@@ -591,6 +591,7 @@ it was possible to store both the kinds of objects in the same array.
 
 \subsubsection{Inheritance - Abstract Base Classes (ABCs)}
 \href{https://isocpp.org/wiki/faq/abcs}{ISOCpp FAQ about \textbf{Inheritance - Abstract Base Classes}}
+\newline
 At the design level, an \highlighttt{ABC} corresponds to an abstract 
 concept. At the programming language level, an \highlighttt{ABC} is a 
 class containing one or more pure \highlighttt{virtual} functions, as 
@@ -606,12 +607,17 @@ public:
 Even though it is possible to provide a definition of a pure 
 \highlighttt{virtual} function, it could be confusing.
 
-\nparagraph{Copy Constructor and Assignment Operator for a class containing a pointer\\to a (abstract) base class}
+\toclessnparagraph{Copy Constructor and Assignment Operator for a class containing a pointer\\to a (abstract) base class}
 If a class owns \ref{npar:virtual-ctor}
 
 
 \subsubsection{Inheritance - What your mother never told you}
 \href{https://isocpp.org/wiki/faq/strange-inheritance}{ISOCpp FAQ about \textbf{Inheritance - What your mother never told you}}
+
+\toclessnparagraph{\texttt{final} classes and \texttt{virtual} methods}
+
+\toclessnparagraph{Calling \texttt{virtual} function from non-\texttt{virtual} functions of base class}
+
 
 \subsubsection{Inheritance - \texttt{private} and \texttt{protected} inheritance}
 \href{https://isocpp.org/wiki/faq/private-inheritance}{ISOCpp FAQ about \textbf{Inheritance - \texttt{private} and \texttt{protected} inheritance}}
@@ -620,7 +626,7 @@ Private and protected inheritance are expressed using respectively the
 keyword \highlighttt{private} and \highlighttt{protected} in place of 
 \highlighttt{public} in the definition of the derived class.
 \newline
-\highlighttt{private} inheritance is a syntactiv variant of the concepts 
+\highlighttt{private} inheritance is a syntactic variant of the concepts 
 of composition or aggregation. For example, the "\highlighttt{Car} 
 \textbf{has-a} \highlighttt{Engine}" relationship can be implemented 
 both using single composition and \highlighttt{private} inheritance. 
@@ -635,31 +641,490 @@ class Car : private Engine
 }
 \end{lstlisting} 
 
-\nparagraph{Which should I prefer: composition or private inheritance?}
-\nparagraph{Should I pointer-cast from a private derived class to its base class?}
+\highlighttt{private} inheritance has both similarities and differences 
+when compared to composition.
+Some of the similarities are
+\begin{itemize}
+    \item a single \highlighttt{Engine} is present in both cases;
+    \item in neither case a conversion \highlighttt{Car* $\rightarrow$ Engine*} 
+    can be done by users;
+    \item \highlighttt{Car} has a \highlighttt{start()} method that 
+    calls \highlighttt{Engine}'s \highlighttt{start} method.
+\end{itemize}
+
+The differences are
+\begin{itemize}
+    \item simple-composition is needed in case multiple \highlighttt{Engine} 
+    are contained in a \highlighttt{Car};
+    \item \highlighttt{private} inheritance can lead to unnecessary 
+    highlightbf{multiple inheritance}
+    \item \highlighttt{private} inheritance allows member of \highlighttt{Car} 
+    to convert \highlighttt{Car* $\rightarrow$ Engine*}
+    \item \highlighttt{private} inheritance allows access to 
+    \highlighttt{protected} members of the base class
+    \item \highlighttt{private} inheritance allows \highlighttt{Car} to 
+    override \highlighttt{Engine}'s \highlighttt{virtual} functions
+    \item \highlighttt{private} inheritance make it simpler to implement 
+    a \highlighttt{Car}'s \highlighttt{start()} method that calls the 
+    \highlighttt{Engine}'s \highlighttt{start()} method.
+\end{itemize}
+
+\toclessnparagraph{Which should I prefer: composition or private inheritance?}
+Composition should be generally preferred to \highlighttt{private} inheritance. 
+The latter gives access to the internals and there could be many class 
+to expose. This aspect could make the program harder to maintain and 
+easy to break when something in the code changes. 
+\newline
+A scenario in which \highlighttt{private} inheritance is \textit{preferred} is 
+when a \highlighttt{class Foo} uses code in \highlighttt{Class Bar} 
+and the code in the latter class invokes member functions in the former 
+class. The solution is to let \highlighttt{class Foo} call 
+non-\texttt{virtual} in \highlighttt{class Bar}, and \highlighttt{class Bar} 
+calls its own (pure) \highlighttt{virtual}s, which are overridden by 
+\highlighttt{class Foo}.
+
+\toclessnparagraph{Should I pointer-cast from a private derived class to its base class?}
+It is generally not a good practice.
+\newline
+The conversion \highlighttt{PrivatelyDer* $\rightarrow$ Base*} (and 
+likewise for the references) is safe and no cast is needed or 
+recommended. However, users of \highlighttt{PrivatlyDer} should avoid 
+this conversion, since a private decision is subject to change without 
+notice.
+
+\toclessnparagraph{How is \texttt{protected} inheritance related to \texttt{private} inheritance?}
+Similarly, \highlighttt{protected} inheritance allows to override 
+\highlighttt{virtual} functions in the base class and does not claim the 
+derived is a kind-of-base class.
+\newline
+Dissimilarly, \highlighttt{protected} inheritance allows derived classes 
+of derived classes to know about the inheritance relationship. The 
+\texttt{benefit} is the capability of the 
+\highlightit{protected derived class} to exploit the relationship to 
+the base class. The \textit{cost} is the fact that changes the relationship 
+in the protected derived class can potentially break further derived 
+classes.
+
+\toclessnparagraph{Access rules with \texttt{private} and \texttt{protected} inheritance}
+Considering the following code
+\begin{lstlisting}[language=C++]
+class B                    { /*...*/ };
+class D_priv : private   B { /*...*/ };
+class D_prot : protected B { /*...*/ };
+class D_publ : public    B { /*...*/ };
+class UserClass            { B b; /*...*/ };
+\end{lstlisting}
+\begin{itemize}
+    \item none of the derived classes can access anything \texttt{private} in \texttt{B};
+    
+    \item in \highlighttt{D\char`_priv}, the \highlighttt{public} and 
+    \highlighttt{protected} of \highlighttt{B} parts are \highlighttt{private}
+    
+    \item in \highlighttt{D\char`_prot} the \texttt{public} and 
+    \texttt{protected} parts of \highlighttt{B} are protected;
+    
+    \item in \highlighttt{D\char`_publ} the \highlighttt{public} parts 
+    of \highlighttt{B} are public and the \highlighttt{protected} parts 
+    are protected (\highlighttt{D\char`_publ} is-a-kind-of-a \highlighttt{B});
+    
+    \item in \highlighttt{class UserClass} can accesso only the 
+    \highlighttt{public} parts of \highlighttt{B}.
+\end{itemize}
+The correct way to make a \highlighttt{public} member 
+\highlighttt{f(int, float)} of \highlighttt{B} 
+public in \highlighttt{D\char`_prot} or in \highlighttt{D\char`_priv} 
+makes use of the \highlightbf{scope operator} as the in the following 
+code
+\begin{lstlisting}[language=C++]
+class D_prot : protected B
+{
+public:
+    using B::f;
+}
+\end{lstlisting}
 
 
 \subsubsection{Inheritance - Multiple and Virtual Inheritance}
 \href{https://isocpp.org/wiki/faq/multiple-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Multiple and Virtual Inheritance}}
+\toclessnparagraph{Do we really need multiple inheritance?}
+Every modern language with \texttt{static} type checking and inheritance 
+provides multiple inheritance. In C++, an \textit{ABC} serves usually as 
+an interface and class can need many. Other language simply have a 
+separate name for pure abstract classes interfaces. Using multiple 
+inheritance is not really common but it is better than using 
+workarounds.
 
-\subsection{C++11 New Features}
-\subsubsection{Value Categories}
+\toclessnparagraph{Disciplines for using multiple inheritance}
+\begin{itemize}
+    \item Inheritance should be used if it removes 
+    \highlighttt{if}/\highlighttt{switch} statements. Indeed, while 
+    composition is meant for code reuse, inheritance's primary purpose 
+    is dynamic binding and the flexibility which comes with it.
+    \item \highlightit{pure ABC}s play a crucial role in the context of 
+    \highlighttt{multiple inheritance}, since classes with as little 
+    data as possible and almost all pure \texttt{virtual} methods help 
+    avoiding inheritance for code reuse and using it for interface 
+    sustainability' 
+    \item The \textbf{bridge pattern} or \textbf{nested generalization} 
+    are possible alternatives and a wise designer checks out all the 
+    ways before choosing the best. 
+\end{itemize}
+
+\toclessnparagraph{Example for the guidelines}
+\label{parag:mi-guideline-example}
+Imagine a context in which there are multiple variants of a similar 
+concepts, for example land, water, air and space vehicles, and different 
+power sources, for example gas, wind, nuclear power and so on.
+\newline
+Before tieing up everything using multiple inheritance, there are two 
+aspects to take into account choosing a good strategy:
+\begin{itemize}
+    \item users need to call methods on a \highlighttt{Vehicle}-reference 
+    and expect the implementation of those methods to be specific to 
+    a concrete vehicle, like \highlighttt{LandVehicle};
+    
+    \item users need a \highlighttt{Vehicle}-reference that refers to a 
+    concrete vehicle, for example \highlighttt{GasPoweredVehicle}, and 
+    want to call methods on that \highlighttt{Vehicle}-reference 
+    expecting the implementation to get overridden by 
+    \highlighttt{GasPoweredVehicle}.
+    
+\end{itemize}
+In case both the conditions stand, multiple inheritance could be the 
+correct choice. Better alternatives could still be available depending 
+on a few more decision criteria.
+
+In case there are $\textbf{N}$ geographies (land, water, air, space, e.c.) 
+and $\textbf{M}$ power sources, there are at least 3 options.
+
+\begin{itemize}
+    \item \textbf{Bridge Pattern} \newline
+    \highlighttt{Vehicle} and \highlighttt{Engine} are two pure 
+    \highlighttt{ABC}s, concrete vehicles and engines are derived from. 
+    \highlighttt{Vehicle} interface has an \highlighttt{Engine*} and 
+    everything is matched at run-time.
+    \newline
+    This way the code grows \textit{gracefully}, because there are only 
+    $\textbf{N+M}$ derived classes to implement. There are several 
+    desadvantages as well. A first one is due to having at most 
+    $\textbf{N+M}$ overrides and therefore the same number of concrete 
+    algorithms and adding more could be very difficult.
+    \newline
+    \textbf{Bridge Pattern} is not able to solve nonsensical choices, 
+    as a pedal powered space vehicles and to solve this issue extra 
+    checks are needed as well.
+    \newline
+    Another issue is the absence of an interface for all the gas powered 
+    vehicles, which are considered just a kind of \highlighttt{Vehicle}. 
+    On the other side, all gas powered vehicles share their code in 
+    derived class \highlighttt{GasPoweredEngine}.
+    
+    \item \textbf{Nested Generalization} \newline
+    One of the hierarchies is choosen as primary, and suppose to choose 
+    the geography as primary in the current example.
+    \newline
+    Concrete classes as \highlighttt{LandVehicle} and  
+    \highlighttt{WaterVehicle} are derived from \highlighttt{Vehicle} 
+    and each would have further derived classes, one per power source. 
+    For example, \highlighttt{LandVehicle} would be the base class for 
+    \highlighttt{GasPoweredLandVehicle}, \\
+    \highlighttt{NuclearPoweredVehicle} and so on.
+    \newline
+    This way, the codebase does not grow gracefully because $\textbf{NxM}$ 
+    different derived classes need to be implemented, the advantage is 
+    the possibility to have the same number of different algorithms.
+    \newline 
+    This approach provides with a fine granular control removing the 
+    nonsensical combination because the combinations are decided in the 
+    design and should be reasonable.
+    \newline
+    Analougusly to \textit{Bridge Pattern}, there is not a common base 
+    class for the specific vehicles, and finally it is not obvious how 
+    to share code between different vehicles with same power source.
+
+    \item \textbf{Multiple Inheritance} \newline
+    There are two different hierarchies as in the \textit{Bridge Pattern}, 
+    the \highlighttt{Engine*} is no longer a data member of the vehicle 
+    classes though, and in its place roughly $\textbf{NxM}$ derived classes 
+    are implemented below both the hierarchy of the geographies and the 
+    hierarchy of egines.
+    \newline
+    In this context, the concept of \texttt{Engine} changes and vehicle 
+    classes should be renamed, e.g. \highlighttt{GasPoweredEngine} would 
+    be renamed to \highlighttt{GasPoweredVehicle}. Moreover,
+    \highlighttt{GasPoweredLandVehicle} multiply inherits from 
+    \highlighttt{GasPoweredVehicle} and \highlighttt{LandVehicle}. At 
+    the cost of not having a graceful growth, the gain is a fine 
+    granular control simply because nonsesincal combinations like 
+    \highlighttt{PedalPoweredSpaceVehicle} are not created for the user. 
+    \newline 
+    In this model, it is also possible for any gas powered vehicle to 
+    share a common interface. Unlike the \textit{Bridge Pattern}, the 
+    derived class can override the shared code to replace parts that 
+    are not ideal for the new class.
+\end{itemize}
+
+\toclessnparagraph{Visualization of tradeoffs}
+Given $\textbf{N}$ and $\textbf{M}$, the tradoffs of the approaches 
+described in~\ref{parag:mi-guideline-example} 
+are summarized in table~\ref{tabular:tradeoffs}
+\begin{table}[h!t]
+    \begin{tabular}{|l|c|c|c|c|c|c|}
+    \hline
+    \multirow{2}{*}{}  & \textbf{Grow} & \textbf{Low Code} &\textbf{Fine-Grained} &\textbf{Static Detect} &\textbf{Polimorphic } &\textbf{Share} \\
+                         & \textbf{Gracefully} & \textbf{Bulk} &\textbf{Control} &\textbf{Bad Combos} &\textbf{on both sides} &\textbf{Code} \\
+    \hline 
+    Bridge & \cellcolor{codegreen} & \cellcolor{codegreen}& & & & \cellcolor{codegreen}\\
+    \hline                  
+    Nested Gen. & & & \cellcolor{codegreen} & \cellcolor{codegreen}  & & \\
+    \hline          
+    Multiple In.  & & & \cellcolor{codegreen} & \cellcolor{codegreen} & \cellcolor{codegreen} & \cellcolor{codegreen} \\                  
+    \hline
+    \end{tabular}
+    \caption{Bridge Pattern, Nested Generalization and Multiple Inheritance's tradeoffs.}
+    \label{tabular:tradeoffs}
+\end{table}
+
+The meaning of the colums are the following
+\begin{itemize}
+    \item \textbf{Grow Gracefully} \newline
+    For the example of the previous paragraph, the growth is due to 
+    adding more geographies or power sources and in this case it is 
+    linear.
+    
+    \item \textbf{Low Code Bulk} \newline
+    
+
+    \item \textbf{Fine Grained Control} \newline
+    It takes into account the option of having a different algorithm 
+    for any of the different $\textbf{NxM}$ possibilities or being stuck 
+    with a single solution for all the concrete classes of vehicles.
+
+    \item \textbf{Static Detect Bad Combos} \newline
+    
+
+    \item \textbf{Polymorphic on Both Sides} \newline
+    
+
+    \item \textbf{Share Common Code} \newline
+    
+\end{itemize}
+
+
+
+
+\toclessnparagraph{Second Example for the guidlines}
+This example is more symmetric than the previous one, resulting in 
+being better managed in using a multiple-inheritance solution.
+\newline
+Suppose to start with two categories of vehicles, for example 
+\highlighttt{LandVehicle} and \highlighttt{WaterVehicle}, and later 
+an \highlighttt{AmphibiousVehicle} is needed as well.
+\newline
+Given this coditions
+\begin{itemize}
+    \item it is really needed to have an amphibious vehicle, instead of 
+    using the other classes with a bit of changes;
+    
+    \item users need a \highlighttt{LandVehicle} reference that refers 
+    to an \highlighttt{AmphibiousVehicle} and need to call methods on 
+    the reference expecting the actual implementation is specific 
+    to the referenced object;
+    
+    \item same as the previous point, with \highlighttt{WaterVehicle}.
+
+\end{itemize}
+in this case the \textit{multiple inheritance} would be the best choice. 
+Answering the question seen in~\ref{parag:mi-guideline-example} could 
+help being more confident with this choice.
+
+\newpage
+\toclessnparagraph{The Dreaded Diamond}
+\noindent{}
+\begin{wrapfigure}{L}{0.4\textwidth}% adapt widths of minipages to your needs
+\centering{}
+    \begin{tikzpicture}%[>=triangle 45,font=\sffamily]
+        \node (X) at (0,1.5) [rectangle,draw] {\textbf{Base}};
+        \node (Y) at (-1.5,0) [rectangle,draw] {\textbf{Der1}};
+        \node (Z) at (1.5,0) [rectangle,draw] {\textbf{Der2}};
+        \node (U) at (0,-1.5) [rectangle,draw] {\textbf{Join}};
+        \draw [semithick,dashed] (X) -- (Y);
+        \draw [semithick,dashed] (X) -- (Z);
+        \draw [semithick,dashed] (Y) -- (U);
+        \draw [semithick,dashed] (Z) -- (U);
+    \end{tikzpicture}
+    \caption{A Dreaded Diamond.}
+    \label{fig:dreaded-diamond}
+\end{wrapfigure}%
+
+A \textit{dreaded diamond} describes a class structure in which a 
+particular class appears more than once in an inheritance hierarcy 
+and looks like the diagram in figure~\ref{fig:dreaded-diamond}.
+\newline
+Actually, C++ provides techniques to deal with the dreads of this 
+triangle and this situation is not really dreaded but just something to 
+be aware of.
+\newline
+The issue is due to \highlighttt{Base} being inherited 
+twice with the consequence that any data member declared in 
+\texttt{Base} appears twice within a \highlighttt{Join} object.
+\newline
+This duality creates ambiguities: when \highlighttt{Join} 
+change a \highlighttt{Base}'s data member, it is not clear which derived 
+class to go through for the change; likewise, a conversion 
+\highlighttt{Join* $\rightarrow$ Base*} is ambigous.
+\newline
+C++ lets resolve the ambiguity with the \highlightit{scope operator}, 
+there is a better solution though.
+\newpage
+\toclessnparagraph{\texttt{virtual} Inheritance}
+
+\begin{wrapfigure}{L}{0.4\textwidth}% adapt widths of minipages to your needs
+\begin{center}
+    \begin{tikzpicture}%[>=triangle 45,font=\sffamily]
+        \node (X) at (0,1.5) [rectangle,draw] {\textbf{Base}};
+        \node (Y) at (-1.5,0) [rectangle,draw] {\textbf{Der1}};
+        \node (Z) at (1.5,0) [rectangle,draw] {\textbf{Der2}};
+        \node (U) at (0,-1.5) [rectangle,draw] {\textbf{Join}};
+
+        \draw [semithick,dashed] (X) -- (Y);
+        \draw [semithick,dashed] (X) -- (Z);
+        \draw [semithick,dashed] (Y) -- (U);
+        \draw [semithick,dashed] (Z) -- (U);
+        
+        \node at (2,0.5) {\highlighttt{virtual}};
+        \node at (-2,0.5) {\highlighttt{virtual}};
+=    \end{tikzpicture}
+    \caption{A Nicer Diamond.}
+    \label{fig:undreaded-diamond}
+\end{center}
+\end{wrapfigure}%
+%~ \vspace{2cm}
+
+To avoid duplicates in the \highlighttt{Join class}, every class that 
+derives from \highlighttt{Base} needs to \highlighttt{virtual}-inherit. 
+This way, an instance of \highlighttt{Join} will contain only one 
+\highlighttt{Base} subobject and this solution is better than using 
+fully qualified names.
+
+\clearpage
+\toclessnparagraph{delegate to a sister class}
+\highlighttt{virtual} inheritance helps achieving delegation to a 
+sister class.
+\begin{lstlisting}[language=C++]
+class Base
+{
+public:
+    virtual void foo() = 0;
+    virtual void bar() = 0;
+};
+
+class Der1 : public virtual Base
+{
+public:
+    virtual void foo();
+};
+void Der1::foo()
+{ bar(); }
+
+class Der2 : public virtual Base
+{
+public:
+    virtual void bar();
+};
+
+class Join : public Der1, public Der2
+{
+public:
+    // ...
+};
+\end{lstlisting}
+\highlighttt{Join} objects contain the \highlighttt{Der1}'s overridden 
+\highlighttt{foo()} and the \highlighttt{Der2}'s overridden 
+\highlighttt{bar()}. For this reason, when \highlighttt{Der1::foo()} 
+calls \highlighttt{this->bar()} it ends up calling 
+\highlighttt{Der2::bar()}.
+
+\toclessnparagraph{Considerations needed when}
+\vspace{-1cm}
+\toclessnsubparagraph{\quad $\bullet$ using \texttt{virtual} inheritance}
+Usually, \highlighttt{virtual} base classes and the ones that directly 
+inherits from them are pure abstract classes, and contain very little 
+if any data.
+
+\toclessnsubparagraph{\quad $\bullet$ inheriting from a class that uses \texttt{virtual} inheritance}
+The initialization list of the most-derived-class's constructor directly 
+invokes the virtual base class's constructor.
+\newline
+C++ has a set of rules to make sure the \highlighttt{virtual} base 
+class's constructor and destructor get called once per instance
+\begin{itemize}
+    \item \highlighttt{virtual} base classes are constructed befor all 
+    non-highlighttt{virtual} base classes.
+    \item constructors for \highlighttt{virtual} base classes anywhere 
+    in you class's inheritance hierarhy are called by the most derived 
+    class's constructor.
+\end{itemize}
+A consequence is the need to pass whatever parameters are required to call 
+the \highlighttt{virtual} base class's constructor. In case of multiple 
+\highlighttt{virtual} base classes, the most-derived class's constructor 
+needs more parameters than other contexts require.
+\newline
+The practice of leaving the \highlighttt{virtual} base class without any 
+data to initialize implies that the constructor probably takes no 
+parameters.
+
+\toclessnsubparagraph{\quad $\bullet$ using a class that uses \texttt{virtual} inheritance}
+\highlighttt{dynamic\char`_cast} is preferable to C-style downcasts.
+ 
+\toclessnparagraph{Order of constructors in a multiple and/or \texttt{virtual} inheritance}
+First constructors to be executed are the virtual base classes' ones, 
+in the order of appearance of base class names in the declaration of 
+the derived class.
+\newline
+After the previous step, the construction order is from base class to 
+derived class. Indeed, the compiler at first makes an hidden call to 
+the non-virtual base classes' constructor in the derived class's 
+constructor.
+\newline
+The previous rule is applied recursively: if \highlighttt{B1} inherits 
+from \highlighttt{B1a} and \highlighttt{B1b}, and \highlighttt{B2}
+inherits from \highlighttt{B2a} and \highlighttt{B2b}, the final order 
+of initialization is: \newline
+\highlighttt{B1a $\rightarrow$ B1b $\rightarrow$ B1 $\rightarrow$ B2a $\rightarrow$ B2b $\rightarrow$ B2 $\rightarrow$ D}.
+\newline
+The last order is determined by the order that the base classes appear 
+in the declaration of the class.
+
+\toclessnparagraph{Order of destructors in a multiple and/or \texttt{virtual} inheritance}
+For what concerns the non-virtually inheritance, the destructor order 
+is the opposite of the constructor order:
+\newline
+\highlighttt{D $\rightarrow$ B2 $\rightarrow$ B2b $\rightarrow$ B2a $\rightarrow$ B1 $\rightarrow$ B1b $\rightarrow$ B1a}
+\newline
+Afterwards, the destructor of the virtual base classes that appear in 
+the hierarchy are called, taking into account a class only when it uniquely 
+appear for the first time.
+\newpage
+
+\section{C++11 New Features}
+\subsection{Value Categories}
 \label{subsubsec:value-categories}
 \href{https://en.cppreference.com/w/cpp/language/value_category}{Cppreference documentation about \textbf{value categories}}. 
 \newline    
 Due to the expressiveness of the C++ language, the terms \highlightbf{lvalue} 
 and \highlightbf{rvalue} references evolved in a more complex set.
 
-\nparagraph{glvalues}
+\toclessnparagraph{glvalues}
 \highlight{\textbf{G}eneralized} lvalue is used to refer to something that could be 
 either a \highlightbf{lvalue} or \highlightbf{xvalue}.
 
-\nparagraph{rvalues}
+\toclessnparagraph{rvalues}
 This term is inherited from C, in which \highlightbf{rvalues} can be on the 
 \highlight{\textbf{r}ight} side of an assignment. In C++ this term can refer to 
 things that are either \highlightbf{xvalues} and \highlightbf{prvalues}.
 
-\nparagraph{lvalues}
+\toclessnparagraph{lvalues}
 This term is also inherited from C, in which \highlightbf{lvalues} can be 
 on the \highlight{\textbf{l}eft} side of an assignment. Therefore, the simplest one 
 is the name of a variable in a declaration.
@@ -703,7 +1168,7 @@ void Foo(A&& bar)
 }
 \end{lstlisting}
 
-\nparagraph{xvalues}
+\toclessnparagraph{xvalues}
 This term indicates \highlight{e\textbf{X}piring} value: an unnamed object that 
 will be destroyed soon. \highlightbf{xvalues} can be treated either as 
 \highlightit{glvalues} or \highlightit{rvalues}, based on the context.
@@ -725,7 +1190,7 @@ constexpr remove_reference_t<T>&& move(T&& t) noexcept;
 The type deduction rules deduce \textbf{T} to be \texttt{A\&} 
 because \texttt{v1} is an \textbf{lvalue}.
 
-\nparagraph{prvalues}
+\toclessnparagraph{prvalues}
 \highlight{\textbf{P}ure} \highlightit{rvalue} is an \highlightit{rvalue} 
 which is not an \highlightit{xvalue}
 \newline
@@ -746,7 +1211,8 @@ temporary of type
 \texttt{std::string}, which can \highlight{bind to the rvalue 
 reference} used for the function parameter since the temporary is a 
 \highlightit{prvalue}
-\nparagraph{Reference Binding}
+
+\subsection{Reference Binding}
 \href{https://en.cppreference.com/w/cpp/language/reference}{cppreference documentation} 
 about reference declaration.
 \newline
@@ -754,7 +1220,7 @@ The \highlightit{main difference} between \highlightit{lavalues} and \highlighti
 the way they bind to references. The differences in type deduction rules 
 can have a big impact too.
 
-\nsubparagraph{lvalue references}
+\subsection{lvalue references}
 These references are declared with a single ampersand $\&$.
 \newline
 A \highlightbf{non-const lvalue reference will only bind to non-const 
@@ -814,7 +1280,7 @@ less used but behave as expected: volatile \texttt{T\&} bind to a volatile or
 non-volatile, non-const lvalue of type T or a class derived from T. 
 However, volatile const lvalue references do not bind to rvalues.
 
-\nsubparagraph{rvalue references}
+\subsection{rvalue references}
 An \highlightit{rvalue reference} can be used to extend the lifetime of 
 temporary objects, making the referenced object modifiable through 
 them. The reference must be const in order to bind to a const object, 
@@ -844,7 +1310,7 @@ way const lvalue references do, therefore temporaries associated with
 and \texttt{rr10} remain valid until the corresponding references are 
 destroyed. 
 
-\nsubparagraph{Reference Collapsing}
+\subsection{Reference Collapsing}
 In C++ it is possible to form reference to reference in 
 \highlightit{templates} and \highlighttt{typedef} expressions. In this context, 
 the refefrence collapsing rule apply: rvalue reference to rvalue 
@@ -861,7 +1327,7 @@ rref&  r3 = n; // type of r3 is int&
 rref&& r4 = 1; // type of r4 is int&&
 \end{lstlisting}
 
-\nsubparagraph{Implicit conversion}
+\toclessnparagraph{Implicit conversion}
 A reference-to-A can be initialized with any D object which has an 
 inplicit conversion operator that returns \texttt{A\&}. In this case 
 the reference is bound to the result of the conversion operator.
@@ -870,7 +1336,7 @@ A const lvalue-reference-to-E will bind only to objects implicitly
 convertible to E. The reference is bound to the temporary resulting 
 from the conversion.
 
-\nsubparagraph{General properties}
+\toclessnparagraph{General properties}
 In general, \highlightit{rvalues} can't be modified and their address can't 
 be taken.
 \newline
@@ -886,13 +1352,13 @@ When the type of a variable or function template parameter is deduce
 from its initializer, whether the initializer is an lvalue or rvalue 
 can affect the deduced type.
 
-\subsubsection{Move Semantic}
+\subsection{Move Semantic}
 Move semantics is a new way of moving resources around in an optimal way, 
 since it helps \highlightit{avoiding unnecessary copies} of temporary objects. 
 It is based on rvalue references and plays an \highlightit{important role in 
 exception safety} for C++. 
 
-\subsubsection{Perfect Forwarding}
+\subsection{Perfect Forwarding}
 \href{https://en.cppreference.com/w/cpp/utility/forward}{Cppreference documentation about \textbf{forward} utility}. 
 \newline
 \href{https://en.cppreference.com/w/cpp/language/reference#Forwarding_references}{Cppreference about \textbf{forwarding references}}.
@@ -919,7 +1385,7 @@ void wrapper(T&& arg)
 }
 \end{lstlisting}
 
-\subsubsection{\texttt{auto}}
+\subsection{\texttt{auto}}
 \label{subsubsec:c++auto}
 \href{https://en.cppreference.com/w/cpp/language/auto}{Cppreference documentation about \texttt{\textbf{auto}}}.
 \newline
@@ -979,8 +1445,8 @@ auto x = a;               // type is int*
                           %~ // deduced from the type of p
     %~ \end{lstlisting}
 
-    \highlightit{Modifiers} which may accompany \texttt{auto} will partecipate in the 
-    type deduction. For example, in the code
+\highlightit{Modifiers} which may accompany \texttt{auto} will partecipate in the 
+type deduction. For example, in the code
     \begin{lstlisting}[language=C++]
 const auto& i = expr;
 template<class U> void f(constU& u);
@@ -1054,7 +1520,7 @@ public:
     
 \end{itemize}
 
-\subsubsection{\texttt{decltype}}
+\subsection{\texttt{decltype}}
 \highlighttt{decltype} inspects the declared type of an entity or the 
 type and value category of an expression. 
 
@@ -1063,14 +1529,14 @@ type and value category of an expression.
 See~\cite{cppreference-decltype}
 
 
-\subsubsection{Initializer list}
+\subsection{Initializer list}
 \href{https://en.cppreference.com/w/cpp/utility/initializer_list}{Cppreference documentation about Initializer list}
 \newline
 An object of type \highlighttt{std::initializer\char`_list<T>} is a 
 lightweight proxy object that provides access to an array of objects of 
 type \highlighttt{const T}. 
 
-\subsubsection{Uniform initalization syntax and semantics}
+\subsection{Uniform initalization syntax and semantics}
 C++98 provides the users with several ways of initializing an object. 
 These ways depend on the type and the initialization context and have 
 different ways of working.
@@ -1130,7 +1596,7 @@ return {a};       // function return value (function returning X)
 \highlight{\texttt{\{\}}-initializer} is also useful to solve the 
 \highlight{most vexing parse} problem, explained in~\ref{subsubsec:most-vex-parse}.
 
-\subsubsection{Range \texttt{for}}
+\subsection{Range \texttt{for}}
 A \highlight{\texttt{range-for} statement} applies to all standard 
 containers and string as well, providing a less-typing way to 
 \texttt{for}-loop over a \textit{range} of elements.
@@ -1140,10 +1606,12 @@ An example of usage in the following code
     
 \end{lstlisting}
 
-\subsubsection{\texttt{noexcept}} 
+\subsection{\texttt{noexcept}} 
 \href{https://en.cppreference.com/w/cpp/language/noexcept}{Cppreference about \texttt{noexcept}}
 
-\subsubsection{\texttt{nullptr}}
+\subsection{\texttt{nullptr}}
+\href{https://en.cppreference.com/w/cpp/language/nullptr}{Cppreference documentation about \textbf{nullptr}}
+\newline
 The keyword \highlighttt{nullptr} denotes the pointer literal. It is a 
 \highlighttt{prvalue} of type \highlighttt{std::nullptr\char`_t}. 
 There exist implicit conversions from \texttt{nullptr} to null pointer 
@@ -1152,7 +1620,7 @@ Similar conversions exist for any null pointer constant,
 which includes values of type \highlighttt{std::nullptr\char`_t} as well 
 as the macro NULL. 
 
-\subsubsection{constexpr}
+\subsection{constexpr}
 \href{https://en.cppreference.com/w/cpp/language/constexpr}{Cppreference about \texttt{constexpr}}
 \newline
 The constexpr specifier declares that it is possible to evaluate 
@@ -1161,7 +1629,8 @@ and functions can then be used where only compile time constant
 expressions are allowed (provided that appropriate function arguments 
 are given). 
 
-\subsubsection{Lambda expressions}
+\subsection{Lambda expressions}
+\href{https://en.cppreference.com/w/cpp/language/lambda}{Cppreference about \textbf{lambda expressions}}
 A \highlight{lambda expression} is a closure, i.e. an unnamed 
 \begin{table}[h!t]
     \begin{tabular}{l|l}

@@ -1,0 +1,28 @@
+\begin{center}
+    
+    \begin{tikzpicture}[show background grid]
+        
+        \begin{class}[text width=4.5cm]{Context}{0,0}
+            \attributett{- strategy}
+            \operationtt{- setStrategy(strategy)}
+            \operationtt{- doSomething()}
+        \end{class}
+        
+        \begin{abstractclass}[text width=3cm]{ABCStrategy}{7,0}
+            \operationtt{+ execute(data)}
+        \end{abstractclass}
+        \begin{class}[text width=3cm]{StrategyA}{5,-3}
+            \implement{ABCStrategy}
+            \operationtt{+ execute(data)}
+        \end{class}
+        \begin{class}[text width=3cm]{StrategyB}{9,-3}
+            \implement{ABCStrategy}
+            \operationtt{+ execute(data)}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{0,-3.2}
+        \end{class}
+    
+    \end{tikzpicture}
+    
+\end{center}
