@@ -4,7 +4,7 @@
 The \href{https://en.cppreference.com/w/cpp/container}{Containers library} is a generic collection 
 of class templates and algorithms that allow programmers to easily implement 
 common data structures like queues, lists and stacks.
-\newline{}
+\newline
 The container classes are:
 \begin{itemize}
     \item sequence containers
@@ -46,7 +46,8 @@ The container classes are:
 
 \section{Containers' Access Time}
 \begin{table}[h!t]
-    \begin{tabular}{l|c|c|c|c}
+    \begin{tabularx}{\textwidth}{X|c|c|c|c}
+    %~ \begin{tabular}{l|c|c|c|c}
         \multirow{2}{*}{Associative Container} & \multirow{2}{*}{Sorted} & \multirow{2}{*}{Value} & Multiple Identical & \multirow{2}{*}{Access Time} \\
                                                &        &       & Keys & \\
         \hline
@@ -58,7 +59,8 @@ The container classes are:
         \texttt{std::unordered\char`_multiset} & no & no & yes & constant\\
         \texttt{std::multimap} & yes & yes & yes & logarithmic\\
         \texttt{std::unordered\char`_multimap} & no & yes & yes & constant\\
-    \end{tabular}
+    \end{tabularx}
+    %~ \end{tabular}
 \end{table}
 \newpage
 \section{Invalidation of Iterators and References}
@@ -108,18 +110,17 @@ The container classes are:
 \subsection{Containers}
 With C++23, the following four Container Adaptors were introduced:
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
     %~ \textbf{C++98} & \texttt{std::map}, \texttt{std::set}, \texttt{std::multimap}, \texttt{std::multiset} \\
     %~ \hline
     %~ \multirow{2}{*}{\textbf{C++11}} 
     %~ & \texttt{std::unordered\char`_map}, \texttt{std::unordered\char`_set} \\
     %~ & \texttt{std::unordered\char`_multimap}, \texttt{std::unordered\char`_multiset} \\
     \hline
-    \multirow{2}{*}{\textbf{C++23}} 
-    & \texttt{std::flat\char`_map}, \texttt{std::flat\char`_multimap},\\
-    & \texttt{std::flat\char`_set}, \texttt{std::flat\char`_multiset} \\
+    {\textbf{C++23}} & \texttt{flat\char`_map}, \quad \texttt{flat\char`_multimap}, 
+                       \quad \texttt{flat\char`_set}, \quad \texttt{flat\char`_multiset} \\
     \hline
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \newpage{}

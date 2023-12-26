@@ -1,62 +1,6 @@
-\chapter{Memory Management and Smart Pointers}
-\label{chap:smartpointers}
+\chapter{Smart Pointers}
+\label{chap:smartpoint}
 \vspace{10.5cm}
-
-\section{Memory Management}
-Allocation means to assign, allot, distribute or "set apart for 
-a particular purpose". Programs manage their memory paritioning or 
-dividing it into different units performing specific tasks.
-\newline
-In C++, there are two ways to create objects and this aspect reflects on 
-the existence of two different units used to allocate the memory,
-the \textbf{stack} and \textbf{heap}, which manage the program's 
-used/unused memory in two different ways. 
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.5]{OOPandUML/functional_memory_organization}
-        \label{fig:functional_memory_organization}
-        \caption{Functional memory organization of a running program}
-    \end{center}
-\end{figure}
-
-\toclessnparagraph{Text}
-This area contains machine instructions (i.e. the executable 
-code). \textbf{Global} and \textbf{static} variables are typically 
-allocated at program startup. \textbf{Stack} contains all the automatic 
-variables. \textbf{Heap} is meant to allocate the memory for the dynamic 
-variables through the \textbf{\texttt{new}} and \textbf{\texttt{delete}} 
-operators. The space in between is allocated by the operating system but 
-not used, and is meant to let both the heap and stack grow.
-
-\toclessnparagraph{Stack}
-This is a simple LIFO (last in, first out) data structure which must 
-support at least the \textbf{push} and \textbf{pop} operations. Even 
-though a stack only allows accesses at the top, it is easy to implement 
-and fast to execute push and pop operations.
-
-\toclessnparagraph{Heap}
-This is a more flexible data structure, which allows programs to 
-allocate or deallocate memory anywhere and in any convenient order. This 
-might cause hole in the heap, i.e. unallocated memory surrounded by 
-allocated memory.
-\newline
-The only restriction for the heap is that memory can be allocated in 
-a contiguous block of memory large enough to satisfy the request with a 
-single chunk of memory. This restriction has two effects: it requires 
-the operating system to scan the heap until a contiguous block is found, 
-and to coalesce adjacent blocks of memory returned by the program.
-\newline
-Side effect is that the operation on the heap are slower than the 
-operations on the stack.
-
-\subsection{Memory Allocation and Deallocation in C++}
-\subsubsection{\texttt{new}}
-\subsubsection{\texttt{delete}}
-
-\subsection{Memory Allocation and Deallocation in C}
-\subsubsection{\texttt{malloc}}
-\subsubsection{\texttt{free}}
 
 \section{Smart Pointers in C++}
 \href{https://en.cppreference.com/w/cpp/memory}{Cppreference documentation about \textbf{smart pointers}}. 
