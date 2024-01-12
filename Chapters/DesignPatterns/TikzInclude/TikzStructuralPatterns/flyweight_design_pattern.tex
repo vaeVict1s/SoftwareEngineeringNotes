@@ -1,24 +1,24 @@
 \begin{center}
     
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
 
     \begin{class}[text width=5.5cm]{FlyweightFactry}{0,0}
         \attributett{- cache: Flyweight[]}
         \operationtt{+ getFlyweight(extrinsicState)}
     \end{class}
 
-    \begin{abstractclass}[text width=5.5cm]{ABCFlyweight}{0,-3.5}
+    \begin{interface}[text width=5.5cm]{Flyweight}{0,-3.5}
         \attributett{- cache: Flyweight[]}
         \operationtt{+ getFlyWeight(extrinsicState)}
         \operationtt{+ operation(extrinsicState)}
-    \end{abstractclass}
+    \end{interface}
     \begin{class}[text width=5cm]{SharedFlyweight}{-3,-8.5}
-        \implement{ABCFlyweight}
+        \implement{Flyweight}
         \attributett{- intinsicState}
         \operationtt{+ operation(extrinsicState)}
     \end{class}
     \begin{class}[text width=5cm]{UnsharedFlyweight}{3,-8.5}
-        \implement{ABCFlyweight}  
+        \implement{Flyweight}  
         \operationtt{+ operation(extrinsicState)}      
     \end{class}
 

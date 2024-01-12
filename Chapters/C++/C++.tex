@@ -94,7 +94,8 @@ prevent \texttt{const} objects from being mutated.
 \subsubsection{const and pointer combinations}
 Reading it right-to-left
 \begin{table}[h!t]
-    \begin{tabular}{l|r}
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
         \texttt{const X* p} & p is a pointer to an X that is constant.\\
         \hline
         \texttt{X const* p} & equivalent to \texttt{const X* p}.\\
@@ -104,7 +105,8 @@ Reading it right-to-left
         \hline
         \texttt{const X* const p} &  p is a \texttt{const} pointer to an 
                                      X that is \texttt{const}.\\
-    \end{tabular}
+        \hline
+    \end{tabularx}
 \end{table}
 
 The second combination is equivalent to the first one: the 
@@ -116,7 +118,8 @@ Moreover, it is also more consistent with pointer declarations.
 \subsubsection{const and reference combinations}
 Reading it right-to-left
 \begin{table}[h!t]
-    \begin{tabular}{l|r}
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
         \texttt{const X\& r} & r aliases an X object, which can not be changed via r \\
         \hline
         \texttt{X const\& r} & equivalent to \texttt{const X\& r} \\
@@ -124,7 +127,8 @@ Reading it right-to-left
         \texttt{X\& const r} & nonsense functionally equivalent to \texttt{X\& r}\\
         \hline
         \texttt{const X\& const r} & nonsense functionally equivalent to \texttt{const X\& r}\\       
-    \end{tabular}
+        \hline
+    \end{tabularx}
 \end{table}
 The equivalence between the second and the first combination is due 
 to the same reason valid for the pointers.
@@ -318,7 +322,7 @@ Friendship \highlightit{is not inherited, transitive or reciprocal}:
     but the opposite is not true. 
 \end{itemize}
 
-Usually, it is better to rely on member function fi possible and \texttt{friend} 
+Usually, it is better to rely on member function if possible and \texttt{friend} 
 ones when it is really needed.
 
 \subsubsection{Inheritance - Basics}
@@ -1629,11 +1633,14 @@ and functions can then be used where only compile time constant
 expressions are allowed (provided that appropriate function arguments 
 are given). 
 
+\newpage
+
 \subsection{Lambda expressions}
 \href{https://en.cppreference.com/w/cpp/language/lambda}{Cppreference about \textbf{lambda expressions}}
+\newline
 A \highlight{lambda expression} is a closure, i.e. an unnamed 
 \begin{table}[h!t]
-    \begin{tabular}{l|l}
+    \begin{tabularx}{\textwidth}{l|X}
     \multirow{11}{*}{captures} & a comma-separated list of zero or more captures, optionally beginning \\
                               & with a capture-default \\
                               & A lambda expression can use a variable without capturing it if the variable \\
@@ -1677,5 +1684,13 @@ A \highlight{lambda expression} is a closure, i.e. an unnamed
     \hline
     
     %~ \multirow{}{}{} & \\
-    \end{tabular}
+    \end{tabularx}
 \end{table}
+\vfill
+
+\section{C++20 New Features}
+https://www.geeksforgeeks.org/features-of-c-20/
+https://en.cppreference.com/w/cpp/20
+\subsection{Concepts}
+\subsection{Coroutines}
+\subsection{Modules}

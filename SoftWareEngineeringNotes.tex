@@ -65,6 +65,7 @@
 		right=33mm,
 		top=20mm}
     \usepackage{ifthen}
+    %~ \usepackage{notes2bib}
     
 % ========= Path to images ============
 %   - Direct the computer on the path 
@@ -97,7 +98,7 @@
 % \markboth{}{} prints the first word on the page in the top left header and the last word in the top right
 \newcommand{\dictentry}[2]{\markboth{#1}{#1}\textbf{#1} \ $\bullet$\ {#2}}  
 
-% ===== Class Diagrams ====
+% ======== Class Diagrams ====
 \newcommand{\operationtt}[1]{\operation{\footnotesize{\texttt{#1}}}}
 \newcommand{\attributett}[1]{\attribute{\footnotesize{\texttt{#1}}}}
 
@@ -255,6 +256,18 @@
 }
 
 \lstset{style=mystyle}
+
+% ======= Bibliography comments =======
+
+%~ \newenvironment{bibcomment}{%
+  %~ \item[]%
+  %~ \begingroup%
+  %~ \par%
+  %~ \parshape0%
+%~ }{%
+  %~ \par%
+  %~ \endgroup%
+%~ }
 
 % ========= Example Boxes =============
 \tcbset{
@@ -504,6 +517,7 @@
 	\centering % Center everything on the title page
 	\scshape % Use small caps for all text on the title page
 	\vspace*{1.5\baselineskip} % White space at the top of the page
+    
 % ===================
 %	Title Section 	
 % ===================
@@ -562,46 +576,36 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %~ \normallayout
 \input{./Chapters/Algorithms/algorithms.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SolidPrinciples/solid_principles.tex}
-%~ \newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Chapters/UMLandOOP/UML_and_OOP.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/DesignPatterns/design_patterns.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Idioms/idioms.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Containers/containers.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/MemoryManagement/memory_management.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SmartPointers/smart_pointers.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/C++/C++.tex}
-%~ \newpage
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/OOPandUML/OOP_and_UML.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Concurrency/concurrency.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/Python/Python.tex}
-%~ \newpage
+\input{./Chapters/Python/python.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Testing/testing.tex}
-%~ \newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Chapters/EmbeddedSystem/embedded_system.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Chapters/AI/ai.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Dictionary/dictionary.tex}
-%~ \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%~ \input{./Chapters/AuthorContacts/author_contacts.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/Bibliography/bibliography.tex} \newpage
-%~ \printbibliography
+\input{./Chapters/Bibliography/bibliography.tex}
+%~ \printbibliography{}
+
 \end{document}

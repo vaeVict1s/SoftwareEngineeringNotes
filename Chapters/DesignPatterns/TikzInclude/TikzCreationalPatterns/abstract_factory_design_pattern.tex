@@ -1,51 +1,65 @@
 \scalebox{0.8}
 {
-    \begin{tikzpicture}[show background grid]
-            
-        \begin{abstractclass}[text width=6cm]{ABCFactory}{0,0}
-            \attributett{...}
-            \operationtt{+ createProductA(): ProductA}
-            \operationtt{+ createProductB(): ProductB}
-        \end{abstractclass}
-        \begin{class}[text width=6cm]{Factory1}{0,3}
-            \implement{ABCFactory}
-            \attributett{...}
-            \operationtt{+ createProductA(): ProductA}
-            \operationtt{+ createProductB(): ProductB}
-        \end{class}
-        \begin{class}[text width=6cm]{Factory2}{0,-3.5}
-            \implement{ABCFactory}
-            \attributett{...}
-            \operationtt{+ createProductA(): ProductA}
-            \operationtt{+ createProductB(): ProductB}
-        \end{class}
-
-        \begin{abstractclass}[text width=3cm]{ABCProductA}{-9.5,-0.5}
-        \end{abstractclass}
-        \begin{class}[text width=3cm]{ProductA1}{-9.5,1.5}
-            \implement{ABCProductA}
-        \end{class}
-        \begin{class}[text width=3cm]{ProductA2}{-9.5,-3}
-            \implement{ABCProductA}
-        \end{class}
-
-        \begin{abstractclass}[text width=3cm]{ABCProductB}{-5.5,-0.5}
-        \end{abstractclass}
-        \begin{class}[text width=3cm]{ProductB1}{-5.5,1.5}
-            \implement{ABCProductB}
-        \end{class}
-        \begin{class}[text width=3cm]{ProductB2}{-5.5,-3}
-            \implement{ABCProductB}
-        \end{class}
-
-        \begin{class}[text width=4.5cm]{Client}{6.5,-0.3}
+    \begin{tikzpicture}%[show background grid]
+         
+        % Client
+        \begin{class}[text width=4.5cm]{Client}{0,3}
             \attributett{- factory: ABCFactory}
             \operationtt{+ Client(f: ABCFactory)}
             \operationtt{+ someOperation()}
         \end{class}
         
-        \draw [ umlcd style dashed line , - >] ( Client) -- 
-        %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
-        ( ABCFactory) ;
+        % ABCFactory
+        \begin{interface}[text width=5.5cm]{ABCFactory}{0,0}
+            \attributett{...}
+            \operationtt{+ createProductA(): ProductA}
+            \operationtt{+ createProductB(): ProductB}
+        \end{interface}
+        
+        % Factory
+        \begin{class}[text width=5.5cm]{Factory1}{0,-3.6}
+            \implement{ABCFactory}
+            \attributett{...}
+            \operationtt{+ createProductA(): ProductA}
+            \operationtt{+ createProductB(): ProductB}
+        \end{class}
+        
+        % ABCProductA
+        \begin{interface}[text width=3cm]{ABCProductA}{7.5,0.5}
+        \end{interface}
+        % ProductA1
+        \begin{class}[text width=3cm]{ProductA1}{7.5,-2.5}
+            \implement{ABCProductA}
+        \end{class}
+
+        % ABCProductB
+        \begin{interface}[text width=3cm]{ABCProductB}{11.5,0.5}
+        \end{interface}
+        % ProductB1
+        \begin{class}[text width=3cm]{ProductB1}{11.5,-2.5}
+            \implement{ABCProductB}
+        \end{class}        
+
+        \unidirectionalAssociation{Client}{}{}{ABCFactory} 
+
+        \draw [ umlcd style dashed line , - >] ( Factory1.east) 
+        -- ++(2,0) node [ above , sloped , black ]{$ < <$ create $ > >$} 
+        -- ++(2,0) -|
+        ( ProductA1) ;
+        \draw [ umlcd style dashed line , - >] ( Factory1.east) ++ (0,-0.5) 
+        -- ++(2,0) node [ above , sloped , black ]{$ < <$ create $ > >$} 
+        -- ++(2,0) -|
+        ( ProductB1) ;
+
+
+
     \end{tikzpicture}
 }
+
+%~ \draw [ umlcd style dashed line , - >] ( ConcreteFactory2.south ) ++
+%~ (1 ,0) -- ++(0 , -1) -- node [ above , sloped ,
+%~ black ]{$ < <$ instantiate $ > >$} ++(20 ,0) -| ( ProductA2) ;
+
+%~ \draw [ umlcd style dashed line , - >] ( ConcreteFactory2.south ) ++
+%~ ( -1 ,0) -- ++(0 , -7) -- node [ above , sloped ,
+%~ black ]{$ < <$ instantiate $ > >$} ++(20 ,0) -| ( ProductB2) ;

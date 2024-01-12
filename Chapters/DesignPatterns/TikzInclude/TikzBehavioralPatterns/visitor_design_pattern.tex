@@ -1,37 +1,37 @@
 \begin{center}
 \scalebox{0.9}
 {    
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
         
-        \begin{abstractclass}[text width=3.8cm]{ABCVisitor}{0,0}
+        \begin{interface}[text width=3.8cm]{Visitor}{0,0}
             \operationtt{+ visit(e: ElementA)}
             \operationtt{+ visit(e: ElementB)}
-        \end{abstractclass}
+        \end{interface}
         \begin{class}[text width=3.8cm]{VisitorA}{-2.5,-4}
-            \implement{ABCVisitor}
+            \implement{Visitor}
             \operationtt{+ visit(e: ElementA)}
             \operationtt{+ visit(e: ElementB)}
         \end{class}
         \begin{class}[text width=3.8cm]{VisitorB}{2.5,-4}
-            \implement{ABCVisitor}
+            \implement{Visitor}
             \operationtt{+ visit(e: ElementA)}
             \operationtt{+ visit(e: ElementB)}        
         \end{class}
         
-        \begin{abstractclass}[text width=4.5cm]{ABCElement}{10,0}
-            \operationtt{+ accept(v: ABCVisitor)}
-        \end{abstractclass}
+        \begin{interface}[text width=4.5cm]{Element}{10,0}
+            \operationtt{+ accept(v: Visitor)}
+        \end{interface}
         \begin{class}[text width=4.5cm]{ElementA}{7.5,-3}
-            \implement{ABCElement}
+            \implement{Element}
             \attributett{...}
             \operationtt{+ featureA()}
-            \operationtt{+ accept(v: ABCVisitor)}
+            \operationtt{+ accept(v: Visitor)}
         \end{class}
         \begin{class}[text width=4.5cm]{ElementB}{12.5,-3}
-            \implement{ABCElement}
+            \implement{Element}
             \attributett{...}
             \operationtt{+ featureB()}
-            \operationtt{+ accept(v: ABCVisitor)}
+            \operationtt{+ accept(v: Visitor)}
         \end{class}
 
         \begin{class}[text width=3cm]{Client}{5,-7}

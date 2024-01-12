@@ -1,19 +1,19 @@
 \begin{center}
     
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
         
-        \begin{abstractclass}[text width=4cm]{ABCServiceInterface}{0,0}
+        \begin{interface}[text width=4cm]{ServiceInterface}{0,0}
             \operationtt{+ operation()}
-        \end{abstractclass}
+        \end{interface}
         \begin{class}[text width=4cm]{Proxy}{-2.5,-4}
-            \implement{ABCServiceInterface}
+            \implement{ServiceInterface}
             \attributett{- realService: Service}
             \operationtt{+ Proxy(s: Service)}
             \operationtt{+ checkAccess()}
             \operationtt{+ operation()}
         \end{class}
         \begin{class}[text width=3cm]{Service}{2.5,-4}
-            \implement{ABCServiceInterface}
+            \implement{ServiceInterface}
             \attributett{...}
             \operationtt{+ operation()}
         \end{class}

@@ -1,6 +1,6 @@
 \begin{center}
     
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
         
         \begin{class}[text width=4.5cm]{Context}{0,0}
             \attributett{- strategy}
@@ -8,15 +8,15 @@
             \operationtt{- doSomething()}
         \end{class}
         
-        \begin{abstractclass}[text width=3cm]{ABCStrategy}{7,0}
+        \begin{interface}[text width=3cm]{Strategy}{7,0}
             \operationtt{+ execute(data)}
-        \end{abstractclass}
+        \end{interface}
         \begin{class}[text width=3cm]{StrategyA}{5,-3}
-            \implement{ABCStrategy}
+            \implement{Strategy}
             \operationtt{+ execute(data)}
         \end{class}
         \begin{class}[text width=3cm]{StrategyB}{9,-3}
-            \implement{ABCStrategy}
+            \implement{Strategy}
             \operationtt{+ execute(data)}
         \end{class}
         

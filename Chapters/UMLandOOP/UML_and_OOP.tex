@@ -1,0 +1,229 @@
+\chapter{UML and OOP}
+\label{chap:c++newfeatures}
+\vspace{10.5cm}
+
+%%% UML 
+\section{UML}
+    %% Class Diagram
+    \subsection{Class Diagram}
+    In Unified Modeling Language, a class diagram \highlightit{describes 
+    the static structure of a system} by showing the system's classes, 
+    their attributes, operations (methods) and the relationship among 
+    them.
+    \newline
+    A class diagram is the \highlightit{conceptual modeling of the 
+    structure of the software application}.
+    \newline
+    In case of detailed modeling, 
+    the class diagram can be \highlightit{translated into programming code}.
+    %%% Visibility
+    \subsubsection{Visibility}
+    \vspace{-0.5cm}
+    \begin{table}[ht]
+        \begin{tabular}{l l}
+            $+$ \quad \quad & public\\
+            $-$ & private\\
+            \texttt{\#} & protected\\
+            \textasciitilde & package\\
+        \end{tabular}
+    \end{table}
+    This notation is placed before methods and attributes names, 
+    to indicate their visibility. 
+    
+    %%% Scope
+    \subsubsection{Scope}
+    UML defines \highlightit{instance and class scopes for members}.
+    \newline
+    The latter is represented by \underline{underlined names}.
+    \begin{itemize}
+        \item \highlightbf{instance members} are scoped to a specific instance
+        \item \highlightbf{class members} are the one commonly recognized as 
+        \highlighttt{static}
+    \end{itemize}
+    %%% Arrows
+    \subsubsection{Arrows}
+    The relationship defined in UML are represented by the following 
+    logical connectors
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.5]{OOPandUML/uml_arrow_cheatsheet}
+        \caption{UML logical connectors}
+        \label{fig:uml-arrows}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Association}\\ 
+              a \highlightit{relationship bewteen classes 
+              of objects} that allows one object instance to cause another 
+              \highlightit{to perform an action on its behalf}.
+              \newline
+              This relationship is structural and does not represent 
+              any behavioural trait.
+              \newline
+              Code implementation usually requires the requsting object 
+              to invoke a method or member function using a 
+              \highlightit{reference or a pointer to the controlled 
+              object}.
+              \newline
+              Association can be \highlightit{bidirectional, 
+              unidirectional, aggregation and reflexive}.
+              \newline
+              Objects related via the association are considered to act 
+              in a role with respect to the association.
+              \newline
+              The ends of the association can have all the 
+              characteristics of a property: 
+              \newline
+              \highlightit{multiplicity, name, 
+              visibility and a specification} explaining whether the 
+              association is ordered and / or unique.
+              
+        \item \textbf{Dependency}\\ 
+              a relationship showing that \highlightit{an element requires 
+              other model elements} for their specification or implementation. 
+              \newline
+              The dashed lines from the dependent/client to 
+              the independent/supplier element specifies 
+              \highlightit{the direction of a relationship and not of a process}.
+              
+        \item \textbf{Aggregation}\\
+              a variant of \highlightit{has a association relationship 
+              and more specific than the latter}. 
+              It represents a part-whole or a part-of relationship. 
+              As a type of association, an aggregation can be named and 
+              have the same adornments an association can.
+              \newline
+              An aggregation \highlightit{can occur when a class is a 
+              collection or a container of other classes}, but 
+              \highlightit{the content of the container continues 
+              to exist when the container is destroyed}.
+              \newline
+              In UML notation, the \highlightit{hollow diamond shape is 
+              drawn on the containing class end} of the connecting line. 
+              \newline
+              An example of aggregarion is a Pond which has zero or more 
+              Ducks and Duck which has at most one Pond.
+              \newline
+              \highlightit{A duck can exist separately from a pond}.
+              
+        \item \textbf{Composition}\\ 
+              refers to \highlightit{combining objects within 
+              compound objects, ensuring the encapsulation} of each 
+              object by \highlightit{using the well-defined interface without 
+              exposing the internals}. Differently, data structures do 
+              not enforce encapsulation.
+              \newline
+              Composition can be regarded as a \highlightit{relationship 
+              between types}: an object of composite type \highlightit{has} objects 
+              of other types
+              \newline
+              \highlightit{Composition must be distinguished from subtyping}, 
+              which is the process of adding detail to a general data type 
+              to create a more specific one.
+              \newline
+              In UML notation, the \highlightit{filled diamond shape is 
+              drawn on the containing class end} of the connecting line. An example of 
+              composition is a University which has one or more 
+              Departments, which belong exactly to one Univerity.
+              \newline
+              \highlightit{A Department can not exist as a separate entity} 
+              detached from a specific University.
+    \end{itemize}
+    %%% Composition versus Aggregation
+    %~ \nparagraph{Composition versus Aggregation}
+    %~ \begin{itemize}
+        %~ \item Composition relationship
+        %~ \item Aggregation relationship
+    %~ \end{itemize}
+    %%% Class level relationship
+    \subsubsection{Class-level relationships}
+    \begin{itemize}
+        \item \textbf{Generalization/Inheritance}
+              \newline
+              a relationship between two classes, in which the \highlightit{subclass} is 
+              considered to be a specialization from the \highlightit{super type}. 
+              \newline
+              \highlightit{Any instance of the subtype is also an instance 
+              of the superclass}. 
+              As an example, \\
+              \highlightit{humans are a subclass of simian which is a subclass of mammal}.
+              \newline
+              Generalization is also known as \highlightbf{inheritance} or a 
+              \highlightit{is a} relationship. 
+              \newline
+              The base class is also known as parent, superclass, 
+              base class or base type.
+              \newline
+              The subtype is also known as child, subclass, 
+              derived class, derived type, inheriting class or 
+              inheriting type.
+        \item \textbf{Realization/Implementation}
+              \newline
+              a relationship between two model elements, in which
+              the \highlightit{client} realizes (implements or executes) the behavior 
+              that the \highlightit{supplier} specifies.
+    \end{itemize}
+    %%% General relationship
+    \subsubsection{General relationship}
+    \begin{itemize}
+        \item \textbf{Dependency}\\
+              a weaker form of bond that indicates that one class depends 
+              on another because it uses it at some point in time. 
+              Sometimes this relationship might be implemented as member 
+              function arguments.
+        \item \textbf{Multiplicity}\\
+              an optional notation which can be 
+              useful to add details to the association relationship. At 
+              each end of the line, one of the following notation can be 
+              used to indicate the range of number of objexts that 
+              partecipate in the association from the perspective of the 
+              other end.
+             \begin{table}[ht]
+                 \begin{center}
+                     \begin{tabular}{l l}
+                         $0$ & No instances\\
+                         $0..1$ \quad & No instances, or one instance\\
+                         $1$ & Exactly one instance\\
+                         $1..1$ & Exactly one instance\\
+                         $0..*$ & Zero or more instances\\
+                         $*$ & Zero or more instances\\
+                         $1..*$ & One or more instances\\
+                     \end{tabular}
+                 \end{center}
+             \end{table}
+    \end{itemize}
+
+    \subsubsection{Class and Sequence diagram Cheatsheet}
+    Following \highlightit{a summary of the information for class and sequance UML 
+    diagrams}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.7]{OOPandUML/uml_class_sequence_diag_cheatsheet}
+        \caption{Class and Sequence diagrams cheatsheet}
+        \label{fig:class-seq-diag-cheatsheet}
+    \end{figure}
+
+    \subsection{Sequence Diagram}
+    
+%%% OOP.
+\section{Object Oriented Programming}
+    \subsection{Polymorphism}
+    In C++ there are different kinds of polymorphism, summarized it 
+    the figure~\ref{fig:cpp-poly}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.5]{OOPandUML/cpp_polymorphism}
+        \caption{Polimorphism in C++}
+        \label{fig:cpp-poly}
+    \end{figure}
+    \subsubsection*{Compile time polymorphism}
+    \highlightit{Overloaded functions} are invoked by matching the type 
+    and number of arguments at compile time, because the compiler already has all the 
+    information needed. This is know by the name of 
+    \highlightit{static binding} or \highlightit{early binding}.
+    \subsubsection*{Run time polymorphism}
+
+\subsection{Interface vs Abstract class}
+\begin{itemize}
+    \item Interface can contain only body-less abstract 
+    \item Abstract Class
+\end{itemize}

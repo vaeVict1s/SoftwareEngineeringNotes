@@ -1,17 +1,8 @@
-%~ \sectionA{Algorithms}
 \chapter{Algorithms}
 \label{chap:algorithms}
 \vspace{10.5cm}
+
 \section{Time Complexity}
-\subsection{Theta notation}
-\begin{equation}
-    \label{eqn:thetanotation}
-    f(n) = \Theta(g(n)) \quad \text{if} \quad 0 \le c_1 g(n) \le f(n) \le c_2 g(n) \forall n \ge n_0     
-\end{equation}
- 
-For all values $n >= n_0$, $f(n)$ is equal to $g(n)$ within a constant factor.
-\newline
-$g(n)$ is an asimptotically tight bound for $f(n)$.
 
 \subsection{Big O notation}
 \begin{equation}
@@ -21,7 +12,7 @@ $g(n)$ is an asimptotically tight bound for $f(n)$.
 
 For all values $n >= n_0$, $f(n)$ is on or below $c g(n)$.
 \newline
-A constant multiple of $g(n)$ is an asimptotic upper bound for $f(n)$.
+A constant multiple of $g(n)$ is an \highlightit{asimptotic upper bound} for $f(n)$.
 
 \subsection{Omega notation}
 \begin{equation}
@@ -31,12 +22,25 @@ A constant multiple of $g(n)$ is an asimptotic upper bound for $f(n)$.
 
 For all values $n>=n_0$, $f(n)$ is on or abow $c g(n)$.
 \newline
-A constant multiple of $g(n)$ is an asimptotic lower bound for $f(n)$.
+A constant multiple of $g(n)$ is an \highlightit{asimptotic lower bound} for $f(n)$.
+
+\newpage
+\subsection{Theta notation}
+\begin{equation}
+    \label{eqn:thetanotation}
+    f(n) = \Theta(g(n)) \quad \text{if} \quad 0 \le c_1 g(n) \le f(n) \le c_2 g(n) \forall n \ge n_0     
+\end{equation}
+ 
+For all values $n >= n_0$, $f(n)$ is equal to $g(n)$ within a constant factor.
+\newline
+$g(n)$ is an \highlightit{asimptotically tight bound} for $f(n)$.
 
 \subsection{Meaning of previous notations - Insertion sort case}
-\textbf{O-notation} describes an upper bound.
-When we use it to bound the worst-case running time of an algorithm, 
-we have a bound on the running time of the algorithm on every input. 
+\textbf{Big O notation}
+\newline
+describes an \highlightit{upper bound}.
+When we use it to \highlightit{bound the worst-case running time} of an 
+algorithm, we have a bound on the running time of the algorithm on \highlightit{every input}. 
 Thus, the $O(n^2)$ bound on worst-case running time of insertion sort 
 also applies to its running time on every input.
 \newline
@@ -57,11 +61,12 @@ no matter what particular input of size n is chosen,
 the running time on that input is bounded from above by the value $f(n)$.
 Equivalently, we mean that the worst-case running time is $O(n^2)$.
 
-
-\textbf{Omega notation} describes a lower bound.
+\textbf{Omega notation} 
+\newline
+describes a \highlightit{lower bound}.
 When we say that the running time (no modifier) of an algorithm is $\Omega(g(n))$, 
 we mean that 
-no matter what particular input of size n is chosen for each value of n, 
+\highlightit{no matter what particular input of size n is chosen} for each value of n, 
 the running time on that input is at least a constant times $g(n)$, for sufficiently large $n$.
 Equivalently, 
 we are giving a lower bound on the best-case running time of an algorithm.
@@ -83,7 +88,18 @@ insertion sort runs in $\Theta(n)$ time
 It is not contradictory, however, 
 to say that the worst-case running time of insertion sort is $\Omega(n^2)$, 
 since there exists an input that causes the algorithm to take $\Omega(n^2)$ time.
- 
+
+\newpage
+\subsection{Running times of well known algorithms}
+
+\begin{table}[h]
+    \begin{tabularx}{\textwidth}{l|l|l|X}
+        \hline{}
+         & & & \\
+        \hline    
+    \end{tabularx}
+\end{table}
+
 
 \subsection{Methods for solving the recurrence}
 There are three methods for solving recurrences:

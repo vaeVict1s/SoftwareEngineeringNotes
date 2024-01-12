@@ -1,14 +1,16 @@
 \centering    
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
     
-        \begin{abstractclass}[text width=3cm]{ABCComponent}{0,0}
+        \begin{interface}[text width=3cm]{Component}{0,0}
             \operationtt{+ execute()}
-        \end{abstractclass}
+        \end{interface}
         \begin{class}[text width=3cm]{Leaf}{0,-3.5}
+        \implement{Component}
             \attributett{...}
             \operationtt{+ execute()}
         \end{class}
         \begin{class}[text width=5.5cm]{Composite}{6,-3.5}
+            \implement{Component}
             \attributett{- children: Component[]}
             \operationtt{+ add(c: Component)}
             \operationtt{+ remove(c: Component)}
@@ -18,5 +20,6 @@
 
         \begin{class}[text width=3cm]{Client}{0,2}
         \end{class}
-            
+        
+        
     \end{tikzpicture}

@@ -1,9 +1,9 @@
 \begin{center}
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
         
-        \begin{abstractclass}[text width=4.5cm]{ABCPrototype}{0,0}
+        \begin{interface}[text width=4.5cm]{ABCPrototype}{0,0}
             \operationtt{+ clone(): Prototype}
-        \end{abstractclass}
+        \end{interface}
         \begin{class}[text width=5.5cm]{Prototype}{0,-3}
             \implement{ABCPrototype}
             \attributett{- field1}
@@ -19,6 +19,8 @@
         \end{class}
         
         \begin{class}[text width=2cm]{Client}{-5,-0.3}
+        
+        %~ \unidirectionalAssociation{Client}{}{}{ABCPrototype} 
                     
         \end{class}
     \end{tikzpicture}

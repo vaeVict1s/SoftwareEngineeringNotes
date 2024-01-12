@@ -8,7 +8,7 @@ condition variables, and futures.
 \section{Threads}
 %~ \vspace{-8truemm} %% needed in case of a nparagraph
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/thread}{thread}
         & manages a separate thread \\
@@ -16,13 +16,13 @@ condition variables, and futures.
         \href{https://en.cppreference.com/w/cpp/thread/jthread}{jthread} 
         & thread with support for auto-joining and cancellation \\
         \cline{1-2}   
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 %%% Paragraph
 \subsection{Functions managing the current thread}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/yield}{yield} 
         & suggests that the implementation reschedule execution of threads \\
@@ -36,7 +36,7 @@ condition variables, and futures.
         \href{https://en.cppreference.com/w/cpp/thread/sleep_until}{sleep\char`_until} 
         & stops the execution of the current thread until a specified time point \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 %%% Subsection
 
@@ -48,12 +48,12 @@ indivisible with regards to any other atomic operation that involves
 the same object. 
 Atomic objects are 
 \href{https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races}{free of data races}. 
-\newpage
+%~ \newpage
 %%% Paragraph
 \subsection{Atomic types}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/atomic/atomic}{atomic}} 
         & atomic class template and specializations for \\
@@ -62,7 +62,7 @@ Atomic objects are
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_ref}{atomic\char`_ref}
         & provides atomic operations on non-atomic objects \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 %%% Paragraph
 \subsection{Operations on atomic types}
@@ -139,10 +139,11 @@ Atomic objects are
     \end{adjustbox}
 \end{table}
 
+\newpage
 \subsection{Flag type and operations}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag}{atomic\char`_flag} 
               & the lock-free boolean atomic type \\
@@ -173,17 +174,17 @@ Atomic objects are
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag_notify_all}{atomic\char`_flag\char`_notify\char`_all} 
         & notifies all threads blocked in atomic\char`_flag\char`_wait \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
-\newpage
 \subsection{Initialization}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_init}{atomic\char`_init} 
-        & non-atomic initialization of a default-constructed atomic object \\
+        & non-atomic initialization of a default-constructed atomic \\
+        & object \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/ATOMIC_VAR_INIT}{ATOMIC\char`_VAR\char`_INIT} 
         & constant initialization of an atomic variable of static storage duration \\
@@ -191,13 +192,13 @@ Atomic objects are
         \href{https://en.cppreference.com/w/cpp/atomic/ATOMIC_FLAG_INIT}{ATOMIC\char`_FLAG\char`_INIT} 
         & initializes an \texttt{std::atomic\char`_flag} to false\\
         \cline{1-2}
-   \end{tabular}
+   \end{tabularx}
 \end{table}
 
 \subsection{Memory synchronization ordering}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
          \cline{1-2}
          \href{https://en.cppreference.com/w/cpp/atomic/memory_order}{memory\char`_order} 
          & defines memory ordering constraints for the given atomic operation \\
@@ -211,16 +212,17 @@ Atomic objects are
          \href{https://en.cppreference.com/w/cpp/atomic/atomic_signal_fence}{atomic\char`_signal\char`_fence} 
          & fence between a thread and a signal handler executed in the same thread \\
          \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
+\newpage
 \subsection{Mutual exclusion}
 Mutual exclusion algorithms prevent multiple threads from simultaneously accessing shared resources. 
 This prevents data races and provides support for synchronization between threads. 
 \newline
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/mutex}{mutex} 
         & provides basic mutual exclusion facility \\
@@ -244,13 +246,13 @@ This prevents data races and provides support for synchronization between thread
         & provides shared mutual exclusion facility and implements \\
         & locking with a timeout \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \subsection{Generic mutex management}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/lock_guard}{lock\char`_guard} 
         & implements a strictly scope-based mutex ownership wrapper \\
@@ -278,13 +280,13 @@ This prevents data races and provides support for synchronization between thread
                         & tag constants used to specify locking strategy  \\
                         &  \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 \newpage
 \subsection{Generic locking management}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/try_lock}{try\char`_lock} 
         & attempts to obtain ownership of mutexes via repeated calls to \texttt{try\char`_lock} \\
@@ -292,13 +294,13 @@ This prevents data races and provides support for synchronization between thread
         \href{https://en.cppreference.com/w/cpp/thread/lock}{lock} 
         & locks specified mutexes, blocks if any are unavailable \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \subsection{Call once}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/once_flag}{once\char`_flag} 
         & helper object to ensure that \texttt{call\char`_once} invokes the function only once \\
@@ -306,13 +308,13 @@ This prevents data races and provides support for synchronization between thread
         \href{https://en.cppreference.com/w/cpp/thread/call_once}{call\char`_once} 
         & invokes a function only once even if called from multiple threads \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \subsection{Condition variables}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
          \cline{1-2}
          \href{https://en.cppreference.com/w/cpp/thread/condition_variable}{condition\char`_variable} 
          & provides a condition variable associated with a \texttt{std::unique\char`_lock} \\
@@ -327,13 +329,13 @@ This prevents data races and provides support for synchronization between thread
          \href{https://en.cppreference.com/w/cpp/thread/cv_status}{cv\char`_status} 
          & lists the possible results of timed waits on condition variables \\
          \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 \newpage
 \subsection{Futures}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/promise}{promise} 
         & stores a value for asynchronous retrieval \\
@@ -358,13 +360,13 @@ This prevents data races and provides support for synchronization between thread
         & specifies the results of timed waits performed on \\
         & \texttt{std::future} and \texttt{std::shared\char`_future} \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \subsection{Future errors}
 \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/future_error}{future\char`_error} 
         & reports an error related to futures or promises \\
@@ -375,7 +377,7 @@ This prevents data races and provides support for synchronization between thread
         \href{https://en.cppreference.com/w/cpp/thread/future_errc}{future\char`_errc} 
         & identifies the future error codes \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 \newpage
 
@@ -396,7 +398,7 @@ beyond atomicity.
 \begin{itemize}
     \item \textbf{\texttt{memory\char`_order\char`_relaxed}} 
     \newline
-    Relaxed operation: there are \textbf{no synchronization or ordering constraints}
+    Relaxed operation: there are \highlightit{no synchronization or ordering constraints}
     imposed on other reads or writes, only this operation's atomicity is 
     guaranteed
     

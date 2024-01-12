@@ -1,14 +1,14 @@
 \begin{center}
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
             
-        \begin{abstractclass}[text width=3cm]{ABCBuilder}{0,0}
+        \begin{interface}[text width=3cm]{Builder}{0,0}
             \operationtt{+ reset()}
             \operationtt{+ buildStepA()}
             %~ \operationtt{+ buildStepB()}
             \operationtt{+ buildStepZ()}
-        \end{abstractclass}
+        \end{interface}
         \begin{class}[text width=4.5cm]{BuilderA}{-3,-4.5}
-            \implement{ABCBuilder}
+            \implement{Builder}
             \attributett{result: ProductA}
             \operationtt{+ reset()}
             \operationtt{+ buildStepA()}
@@ -17,7 +17,7 @@
             \operationtt{+ getResult(): ProductA}
         \end{class}
         \begin{class}[text width=4.5cm]{BuilderB}{3,-4.5}
-            \implement{ABCBuilder}
+            \implement{Builder}
             \attributett{result: ProductB}
             \operationtt{+ reset()}
             \operationtt{+ buildStepA()}

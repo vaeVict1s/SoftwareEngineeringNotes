@@ -1,39 +1,43 @@
 %~ \begin{center}
 \centering
-    \begin{tikzpicture}[show background grid]
-        \begin{class}[text width=5cm]{ABCCreator}{0,0}
+    \begin{tikzpicture}%[show background grid]
+        \begin{class}[text width=5cm]{Creator}{0,0}
             \attributett{...}
             \operationtt{+ someOperation()}
-            \operationtt{+ createProduct(): Product}
+            \operationtt{+ factoryMethod(): Product}
         \end{class}
         
-        \begin{class}[text width=5cm]{CreatorA}{-2.5,-5.5}
-            \inherit{ABCCreator}
+        %~ \begin{class}[text width=5cm]{CreatorA}{-2.5,-5.5}
+        \begin{class}[text width=5cm]{CreatorA}{0,-4}
+            \inherit{Creator}
             \attributett{...}
-            \operationtt{+ createProduct(): Product}
+            \operationtt{+ factoryMethod(): ProductA}
         \end{class}
 
-        \begin{class}[text width=5cm]{CreatorB}{2.5,-5.5}
-            \inherit{ABCCreator}
-            \attributett{...}
-            \operationtt{+ createProduct(): Product}
-        \end{class}
+        %~ \begin{class}[text width=5cm]{CreatorB}{2.5,-5.5}
+            %~ \inherit{Creator}
+            %~ \attributett{...}
+            %~ \operationtt{+ createProduct(): Product}
+        %~ \end{class}
         
-        \begin{abstractclass}[text width=3cm]{ABCProduct}{8,0.5}
-            \operationtt{+ method1()}
-            \operationtt{+ method2()}
-            \operationtt{+ method3()}
-        \end{abstractclass}
+        \begin{interface}[text width=3cm]{Product}{8,0}
+            \operationtt{+ doStuff()}
+        \end{interface}
         
-        \begin{class}[text width=3.3cm]{ProductA}{6,-4}
-        \implement{ABCProduct}\end{class}
+        \begin{class}[text width=3.3cm]{ProductA}{8,-4}
+        \implement{Product}\end{class}
 
-        \begin{class}[text width=3.3cm]{ProductB}{10,-4}
-        \implement{ABCProduct}\end{class}
+        %~ \begin{class}[text width=3.3cm]{ConcreteProductB}{10,-4}
+        %~ \implement{Product}\end{class}
         
-        \draw [ umlcd style dashed line , - >] ( ABCCreator) -- 
+        %~ \unidirectional
+        
+        \draw [ umlcd style dashed line , - >] ( Creator) -- 
         %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
-        ( ABCProduct) ;
+        ( Product) ;
+        \draw [ umlcd style dashed line , - >] ( CreatorA) -- 
+        %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
+        ( ProductA) ;
         %~ \aggregation{Abstraction}{}{}{Implementation}
     \end{tikzpicture}
 %~ \end{center}

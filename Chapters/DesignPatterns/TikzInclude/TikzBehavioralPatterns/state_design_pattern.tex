@@ -1,5 +1,5 @@
 \begin{center}
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
         
         \begin{class}[text width=4.5cm]{Context}{0,0}
             \attributett{- state}
@@ -9,19 +9,19 @@
             \operationtt{+ doThat()}
         \end{class}
         
-        \begin{abstractclass}[text width=3cm]{ABCState}{8,0}
+        \begin{interface}[text width=3cm]{State}{8,0}
             \operationtt{+ doThis()}
             \operationtt{+ doThat()}
-        \end{abstractclass}
+        \end{interface}
         \begin{class}[text width=4cm]{StateA}{5,-4}
-            \implement{ABCState}
+            \implement{State}
             \attributett{- context}
             \operationtt{+ setContext(context)}
             \operationtt{+ doThis()}
             \operationtt{+ doThat()}
         \end{class}
         \begin{class}[text width=4cm]{StateB}{11,-4}
-            \implement{ABCState}
+            \implement{State}
             \attributett{- context}
             \operationtt{+ setContext(context)}
             \operationtt{+ doThis()}

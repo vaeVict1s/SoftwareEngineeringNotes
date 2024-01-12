@@ -67,7 +67,7 @@ in the pImpl idiom.
 \toclessnparagraph{Member types}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         pointer & Must satisfy \href{https://en.cppreference.com/w/cpp/named_req/NullablePointer}{NullablePtr}\\
         \cline{1-2}
@@ -78,13 +78,13 @@ in the pImpl idiom.
         & Deleter, the function object or lvalue reference \\ 
         & to function or to function object, to be called from the destructor \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \toclessnparagraph{Member functions}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/unique_ptr}{constructor}
         & constructs a new \texttt{unique\char`_ptr}\\
@@ -95,13 +95,13 @@ in the pImpl idiom.
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator\%3D}{operator=}
         & assigns the \texttt{unique\char`_ptr} \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \toclessnparagraph{Modifiers}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/release}{release}
         & returns a pointer to the managed object \\
@@ -112,13 +112,13 @@ in the pImpl idiom.
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/swap}{swap}
         & checks if there is an associated managed object \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \toclessnparagraph{Observers}
 %~ \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/get}{get}
         & returns a pointer to the managed object\\
@@ -129,20 +129,20 @@ in the pImpl idiom.
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator_bool}{operator bool}
         & checks if there is an associated managed object\\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \toclessnparagraph{Single-object versioin, \texttt{unique\char`_ptr}}
 %~ \vspace{-8truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator*}{operator*} \\
                                      \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator*}{operator->}}} 
                         & dereferences pointer to the managed object \\
                         &  \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 %%
 \newpage
@@ -177,7 +177,7 @@ in the pImpl idiom.
 \toclessnparagraph{Member functions}
 \vspace{-3truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/shared_ptr}{constructor}
         & constructs a new \texttt{unique\char`_ptr}\\
@@ -188,13 +188,13 @@ in the pImpl idiom.
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator\%3D}{operator=}
         & assigns the \texttt{unique\char`_ptr} \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}    
 
 \toclessnparagraph{Modifiers}
 \vspace{-3truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/reset}{reset}
         & replaces the managed object \\
@@ -202,13 +202,13 @@ in the pImpl idiom.
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/swap}{swap}
         & swaps the managed objects \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table} 
 
 \toclessnparagraph{Observers}
 \vspace{-3truemm}
 \begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/get}{get}
         & returns the stored pointer \\
@@ -233,7 +233,7 @@ in the pImpl idiom.
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/owner_before}{owner\char`_before}
         & provides owner-based ordering of shared pointers \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table} 
 %%
 
@@ -251,7 +251,7 @@ in the pImpl idiom.
 \toclessnparagraph{Member functions}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr}{constructor}
         & creates a new \texttt{weak\char`_ptr} \\
@@ -262,19 +262,19 @@ in the pImpl idiom.
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/operator\%3D}{operator=}
         & assigns a \texttt{weak\char`_ptr} \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
     
 \toclessnparagraph{Modifiers}
 %~ \vspace{-8truemm}
 \begin{table}[ht]
-    \begin{tabular}{|l|l|}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/reset}{reset} & releases the ownership of the managed object \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/swap}{swap} &  swaps the managed objects \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}
     
 \toclessnparagraph{Observers}

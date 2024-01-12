@@ -1,30 +1,30 @@
 \begin{center}
     
-    \begin{tikzpicture}[show background grid]
+    \begin{tikzpicture}%[show background grid]
         
-        \begin{abstractclass}[text width=3cm]{ABCComponent}{0,0}
+        \begin{interface}[text width=3cm]{Component}{0,0}
             \operationtt{+ execute()}
-        \end{abstractclass}
+        \end{interface}
         
         \begin{class}[text width=3cm]{ComponentA}{0,-3}
-            \implement{ABCComponent}
+            \implement{Component}
             \attributett{...}
             \operationtt{+ execute()}
         \end{class}
         
-        \begin{abstractclass}[text width=5.5cm]{ABCDecorator}{6,-3}
+        \begin{class}[text width=5.5cm]{Decorator}{6,-3}
             \attributett{- wrappee: Component}
             \operationtt{+ ABCDecorator(c: Component)}
             \operationtt{+ execute()}
-        \end{abstractclass}
+        \end{class}
         \begin{class}[text width=3cm]{DecoratorA}{4,-7}
-            \implement{ABCDecorator}
+            \implement{Decorator}
             \attribute{...}
             \operation{+ execute()}
             \operation{+ extra()}
         \end{class}
         \begin{class}[text width=3cm]{DecoratorB}{8,-7}
-            \implement{ABCDecorator}
+            \implement{Decorator}
             \attribute{...}
             \operation{+ execute()}
             \operation{+ extra()}
