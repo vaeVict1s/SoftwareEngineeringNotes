@@ -1,13 +1,13 @@
 % ===== Document Class & Packages =====
 \documentclass[12pt,hidelinks]{book}
-    \setcounter{tocdepth}{4}
+    %~ \setcounter{tocdepth}{4}
     \usepackage{url}
     \usepackage{acronym}
     \usepackage{adjustbox}
-    %~ \usepackage[backend=biber,
-                %~ style=alphabetic,
-                %~ sorting=ynt]{biblatex}
-    %~ \addbibresource{./Chapters/Bibliography/bibliography.bib}
+    \usepackage[backend=bibtex, sorting=none]{biblatex}
+    %~ \DefineBibliographyStrings{english}{%
+                               %~ bibliography = {References},}
+    \addbibresource{./Chapters/Bibliography/bibliography.bib}
     \usepackage{layouts}
     \usepackage{layout}
     \usepackage{tocbibind}
@@ -181,11 +181,6 @@
 \newcommand{\highlightbf}[2][textcolor]{\tcbtp{\textbf{\color{#1}{#2}}}}
 \newcommand{\inlinecode}[1]{\tcbtp{\texttt{\color{textcolor}{#1}}}}
 
-%~ \newcommand{\highlightit}[2][]{
-    %~ \ifthenelse{\equal{#1}{}}
-    %~ {\tcbtp{\texttt{\color{textcolor}{#2}}}}
-    %~ {\tcbtp{\texttt{\color{#1}{#2}}}}
-%~ }
 
 % ======= Chapter Title Format ========
 \titleformat{\chapter}
@@ -256,18 +251,6 @@
 }
 
 \lstset{style=mystyle}
-
-% ======= Bibliography comments =======
-
-%~ \newenvironment{bibcomment}{%
-  %~ \item[]%
-  %~ \begingroup%
-  %~ \par%
-  %~ \parshape0%
-%~ }{%
-  %~ \par%
-  %~ \endgroup%
-%~ }
 
 % ========= Example Boxes =============
 \tcbset{
@@ -562,6 +545,7 @@
 	right=29mm, 
 	top=20mm, 
 	bottom=15mm}
+\nocite{*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %~ \input{./_ShadowedChapters/OriginalContent/original_content.tex}
 %~ \end{document}
@@ -576,36 +560,71 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %~ \normallayout
 \input{./Chapters/Algorithms/algorithms.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\printbibliography[heading=subbibintoc,keyword={algo},title={Algorithms Bibliography}]
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SolidPrinciples/solid_principles.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/UMLandOOP/UML_and_OOP.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\printbibliography[heading=subbibintoc,keyword={solid},title={Solid Principles Bibliography}]
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/DesignPatterns/design_patterns.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\printbibliography[heading=subbibintoc,keyword={designpatterns},title={Design Patterns Bibliography}]
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Idioms/idioms.tex}
+\printbibliography[heading=subbibintoc,keyword={idioms},title={Idioms Bibliography}]
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Chapters/UMLandOOP/UML_and_OOP.tex}
+\printbibliography[heading=subbibintoc,keyword={umlandoop},title={UML and OOP Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Containers/containers.tex}
+\printbibliography[heading=subbibintoc,keyword={containers},title={Containers Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/MemoryManagement/memory_management.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\printbibliography[heading=subbibintoc,keyword={memorymanagement},title={Memory Management Bibliography}]
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SmartPointers/smart_pointers.tex}
+\printbibliography[heading=subbibintoc,keyword={smartpointers},title={Smart Pointers Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/C++/C++.tex}
+\printbibliography[heading=subbibintoc,keyword={C++},title={C++ Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Concurrency/concurrency.tex}
+\printbibliography[heading=subbibintoc,keyword={concurrency},title={Concurrency Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Python/python.tex}
+\printbibliography[heading=subbibintoc,keyword={python},title={Python Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Testing/testing.tex}
+\printbibliography[heading=subbibintoc,keyword={testing},title={Testing Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/EmbeddedSystem/embedded_system.tex}
+\printbibliography[heading=subbibintoc,keyword={embeddedsystem},title={Embedded System Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/AI/ai.tex}
+\printbibliography[heading=subbibintoc,keyword={ai},title={AI Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Dictionary/dictionary.tex}
+\printbibliography[heading=subbibintoc,keyword={dictionary},title={Dictionary Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/Bibliography/bibliography.tex}
-%~ \printbibliography{}
+%~ \input{./Chapters/Bibliography/bibliography.tex}
+%~ \newpage{}
+%~ \newpage
+%~ \titleformat{\chapter} % this is needed to change the title formatting for the bibliography
+   %~ {\normalfont\Large\bfseries}{\thechapter}{0.5em}{#1}
+%~ \stepcounter{chapter} 
+%~ \printbibliography[heading=bibintoc,keyword={algo},title={Algorithms Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={solid},title={Solid Principles Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={designpatterns},title={Design Patterns Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={idioms},title={Idioms Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={umlandoop},title={UML and OOP Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={containers},title={Containers Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={memorymanagement},title={Memory Management Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={smartpointers},title={Smart Pointers Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={C++},title={C++ Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={concurrency},title={Concurrency Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={python},title={Python Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={testing},title={Testing Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={embeddedsystem},title={Embedded System Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={ai},title={AI Bibliography}]
+%~ \printbibliography[heading=bibintoc,keyword={dictionary},title={Dictionary Bibliography}]
+
 
 \end{document}

@@ -2,8 +2,23 @@
 \label{chap:algorithms}
 \vspace{10.5cm}
 
-\section{Time Complexity}
+\cite{algo-sedgewick-wayne}
+\cite{algo-skiena}
 
+\section{Time Complexity}
+Time complexity for an algorithm has tree different facets
+\begin{itemize}
+    \item The \highlightit{worst-case} complexity of the algorithm is 
+          the function deﬁned by the maximum number of steps taken in 
+          any instance of size n. 
+    \item The \highlightit{best-case} complexity of the algorithm is 
+          the function deﬁned by the minimum number of steps taken in 
+          any instance of size n. 
+    \item The \highlightit{average-case} complexity or expected time of 
+          the algorithm, which is the function deﬁned by the average 
+          number of steps over all instances of size n. 
+\end{itemize}
+\newpage
 \subsection{Big O notation}
 \begin{equation}
     \label{eqn:bigOnotation}
@@ -24,7 +39,6 @@ For all values $n>=n_0$, $f(n)$ is on or abow $c g(n)$.
 \newline
 A constant multiple of $g(n)$ is an \highlightit{asimptotic lower bound} for $f(n)$.
 
-\newpage
 \subsection{Theta notation}
 \begin{equation}
     \label{eqn:thetanotation}
@@ -40,11 +54,40 @@ $g(n)$ is an \highlightit{asimptotically tight bound} for $f(n)$.
 \newline
 describes an \highlightit{upper bound}.
 When we use it to \highlightit{bound the worst-case running time} of an 
-algorithm, we have a bound on the running time of the algorithm on \highlightit{every input}. 
-Thus, the $O(n^2)$ bound on worst-case running time of insertion sort 
+algorithm, we have a bound on the running time of the algorithm on \highlightit{every input}.
+\newline
+Thus, the $O(n^2)$ bound on worst-case running time of \highlightit{insertion sort} 
 also applies to its running time on every input.
 \newline
-The $\Theta(n^2)$ bound on the worst-case running time of insertion sort, however, 
+\textbf{Omega notation} 
+\newline
+describes a \highlightit{lower bound}.
+When we say that the running time (no modifier) of an algorithm is $\Omega(g(n))$, 
+we mean that 
+\highlightit{no matter what particular input of size n is chosen} for
+each value of n, the running time on that input is at least a constant 
+times $g(n)$, for sufficiently large $n$.
+\newline
+Equivalently, we are giving a \highlightit{lower bound on the best-case running time} 
+of an algorithm. For example, the best-case running time of insertion 
+sort is $\Omega(n)$, which implies that the running time of insertion sort 
+is $\Omega(n)$.
+\newline
+The \highlightit{running time of insertion sort therefore belongs to both $\Omega(n)$ 
+and $O(n^2)$}, since it falls anywhere between a linear function of n and 
+a quadratic function of n.
+Moreover, these bounds are asymptotically as tight as possible: 
+for instance, the running time of insertion sort is not $\Omega(n^2)$, 
+since there exists an input for which 
+insertion sort runs in $\Theta(n)$ time 
+(e.g., when the input is already sorted). 
+It is not contradictory, however, 
+to say that the worst-case running time of insertion sort is $\Omega(n^2)$, 
+since there exists an input that causes the algorithm to take $\Omega(n^2)$ time.
+\newline
+\textbf{Theta notation}
+\newline{}
+describes a \highlightit{tight bound}. The $\Theta(n^2)$ notation bound on the worst-case running time of insertion sort, however, 
 does not imply a $\Theta(n^2)$ bound 
 on the running time of insertion sort on every input. 
 For example, when the input is already sorted, 
@@ -61,42 +104,24 @@ no matter what particular input of size n is chosen,
 the running time on that input is bounded from above by the value $f(n)$.
 Equivalently, we mean that the worst-case running time is $O(n^2)$.
 
-\textbf{Omega notation} 
-\newline
-describes a \highlightit{lower bound}.
-When we say that the running time (no modifier) of an algorithm is $\Omega(g(n))$, 
-we mean that 
-\highlightit{no matter what particular input of size n is chosen} for each value of n, 
-the running time on that input is at least a constant times $g(n)$, for sufficiently large $n$.
-Equivalently, 
-we are giving a lower bound on the best-case running time of an algorithm.
-For example, 
-the best-case running time of insertion sort is $\Omega(n)$, 
-which implies that the running time of insertion sort is $\Omega(n)$.
-The running time of insertion sort 
-therefore 
-belongs to both $\Omega(n)$ and $O(n^2)$, 
-since it falls 
-anywhere between 
-a linear function of n and a quadratic function of n.
-Moreover, 
-these bounds are asymptotically as tight as possible: 
-for instance, the running time of insertion sort is not $\Omega(n^2)$, 
-since there exists an input for which 
-insertion sort runs in $\Theta(n)$ time 
-(e.g., when the input is already sorted). 
-It is not contradictory, however, 
-to say that the worst-case running time of insertion sort is $\Omega(n^2)$, 
-since there exists an input that causes the algorithm to take $\Omega(n^2)$ time.
-
 \newpage
 \subsection{Running times of well known algorithms}
 
 \begin{table}[h]
-    \begin{tabularx}{\textwidth}{l|l|l|X}
+    \begin{tabularx}{\textwidth}{|l|l|l|l|X|}
+    %~ \begin{tabular}{|l|l|l|l|X|}
         \hline{}
-         & & & \\
+        Algorithm & Big O & Omega & Theta & What \\
+        \hline
+        Selection Sort & & & 
+        & repeatedly identiﬁes the smallest remaining unsorted element 
+        and puts it at the end of the sorted portion of the array \\
+        \hline
+         & & & & \\
+        \hline
+         & & & & \\
         \hline    
+    %~ \end{tabular}
     \end{tabularx}
 \end{table}
 
@@ -111,4 +136,3 @@ There are three methods for solving recurrences:
 
 
 \section{Space Complexity}
-
