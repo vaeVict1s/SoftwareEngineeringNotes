@@ -3,66 +3,70 @@
 \vspace{10.5cm}
 
 \section{Smart Pointers in C++}
-\href{https://en.cppreference.com/w/cpp/memory}{Cppreference documentation about \textbf{smart pointers}}. 
+\href{https://en.cppreference.com/w/cpp/memory}{Cppreference documentation about \textbf{dynamic memory management}}. 
 \newline
-\textbf{Smart pointers} enable automatic, exception-safe, object 
-lifetime management.
+\highlight{Smart pointers} enable \highlightit{automatic, exception-safe, object 
+lifetime management}.
 \newline
-Generally speaking, a \textbf{smart pointer} is a data type whose value 
-can be used like a pointer, but which provides the additional feature of 
-memory management which frees the memory when the smart pointer is 
-no longer used. A smart pointer should therefore be used any time 
+Generally speaking, a smart pointer is a \highlightit{data type whose value 
+can be used like a pointer}, with the \highlightit{additional feature of 
+memory management}, that \highlightit{frees the memory when it is} \\
+\highlightit{no longer used}.
+\newline
+A smart pointer should therefore be used any time 
 the ownership of memory needs to be tracked.
 
+\newpage
 %% Unique Pointer
 \subsection{\texttt{std::unique\char`_ptr}}
     \href{https://en.cppreference.com/w/cpp/memory/unique_ptr}{cppreference documentation about \textbf{\texttt{std::unique\char`_ptr}}}.
     \newline
-    \texttt{std::unique\char`_ptr} is a smart pointer that \textbf{owns and manages} 
-    another object through a pointer and \textbf{disposes of} that object 
-    when the \texttt{std::unique\char`_ptr} goes out of scope.
+    \highlighttt{std::unique\char`_ptr} is a smart pointer that \highlightit{owns and manages} 
+    another object through a pointer and \highlightit{disposes of} that object 
+    \highlightit{when} the \highlighttt{std::unique\char`_ptr} goes \highlightit{out of scope}.
     \newline
     The object is disposed of, using the associated deleter when either 
     of the following happens:
     \begin{itemize}
-        \item the managing \texttt{std::unique\char`_ptr} object is destroyed
-        \item the managing \texttt{std::unique\char`_ptr} object is assigned 
-        another pointer
+        \item the managing \texttt{std::unique\char`_ptr} object is \highlightit{destroyed}
+        \item the managing \texttt{std::unique\char`_ptr} object is \highlightit{assigned 
+        another pointer}
         \newline 
         via \texttt{operator=} or \texttt{reset()}. 
     \end{itemize}
 
 \toclessnparagraph{Notes}
-Only \textbf{non-const} \texttt{std::unique\char`_ptr} can 
-\textbf{transfer the ownership} of the managed object to another 
-\texttt{std::unique\char`_ptr}.
+Only \highlightbf{non-const \texttt{std::unique\char`_ptr}} can 
+\highlightit{transfer the ownership} of the managed object to \highlightbf{another 
+\texttt{std::unique\char`_ptr}}.
 \newline
-If an object's lifetime is managed by a const \texttt{std::unique\char`_ptr}, 
-it is limited to the scope in which the pointer was created.
+If an object's lifetime is managed by a 
+\highlightbf{const \texttt{std::unique\char`_ptr}}, it is limited to 
+the scope in which the pointer was created.
 
-\texttt{std::unique\char`_ptr} is commonly used to manage the lifetime 
+\highlightbf{\texttt{std::unique\char`_ptr}} is commonly used to manage the lifetime 
 of objects, including:
     \begin{itemize}
-        \item providing \textbf{exception safety} to classes and functions 
+        \item providing \highlight{exception safety} to classes and functions 
         that handle objects with dynamic lifetime, 
-        by \textbf{guaranteeing deletion} on both normal exit and 
+        by \highlight{guaranteeing deletion} on both normal exit and 
         exit through exception 
 
-        \item \textbf{passing ownership} of uniquely-owned objects with 
+        \item \highlight{passing ownership} of uniquely-owned objects with 
         dynamic lifetime into functions 
 
-        \item \textbf{acquiring ownership} of uniquely-owned objects 
+        \item \highlight{acquiring ownership} of uniquely-owned objects 
         with dynamic lifetime from functions 
 
         \item as the element type in move-aware containers, 
         such as \texttt{std::vector}, which hold pointers to 
         dynamically-allocated objects
-        (e.g. if \textbf{polymorphic behavior} is desired).             
+        (e.g. if \highlight{polymorphic behavior} is desired).             
     \end{itemize}
 
-\texttt{std::unique\char`_ptr} may be constructed for an
-\textbf{incomplete type} T, such as to facilitate the use as a handle 
-in the pImpl idiom.
+\highlighttt{std::unique\char`_ptr} may be constructed for an
+\highlight{incomplete type} T, such as to facilitate the use as a handle 
+in the \highlight{pImpl idiom}.
 \newpage
 \toclessnparagraph{Member types}
 %~ \vspace{-8truemm}
@@ -151,18 +155,18 @@ in the pImpl idiom.
 \subsection{\texttt{std::shared\char`_ptr}}
     \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{Cppreference documentation about \textbf{\texttt{std::shared\char`_ptr}}}.
     \newline
-    This is a smart pointer that retains shared ownership of an object 
+    This is a smart pointer that \highlight{retains shared ownership} of an object 
     through a pointer.
     \newline
-    Several \texttt{shared\char`_ptr} objects may own the same object.
+    \highlight{Several \texttt{shared\char`_ptr} objects may own the same object}.
     \newline
     The object is destroyed and its memory deallocated when either of 
     the following happens:
     \begin{itemize}
-        \item the last remaining \texttt{shared\char`_ptr} owning 
-        the object is destroyed;
-        \item the last remaining \texttt{shared\char`_ptr} owning 
-        the object is assigned another pointer via \texttt{operator=} or 
+        \item the \highlight{last remaining} \texttt{shared\char`_ptr} owning 
+        the object \highlight{is destroyed};
+        \item the \highlight{last remaining} \texttt{shared\char`_ptr} owning 
+        the object is \highlight{assigned another pointer} via \texttt{operator=} or 
         \texttt{reset()}.             
     \end{itemize}
     

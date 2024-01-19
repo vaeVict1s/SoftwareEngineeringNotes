@@ -1,67 +1,158 @@
 \chapter{Containers}
 \label{chap:containers}
 \vspace{10.5cm}
-The \href{https://en.cppreference.com/w/cpp/container}{Containers library} is a generic collection 
-of class templates and algorithms that allow programmers to easily implement 
-common data structures like queues, lists and stacks.
+The \href{https://en.cppreference.com/w/cpp/container}{Containers library} 
+is a \highlightit{generic collection of class templates and algorithms} 
+that allow programmers \highlightit{to easily implement 
+common data structures} like queues, lists and stacks.
 \newline
 The container classes are:
 \begin{itemize}
-    \item sequence containers
-    \item associative containers, which can be searched in $O(\log{n})$.
-    \item unordered associative containers, which can be searched in $O(1)$ on average and in $O(n)$ in the worst one.
+    \item \highlightit{sequence containers}
+    \newline
+    implement data structures which can be accessed sequentially.
+    \item \highlightit{associative containers},
+    \newline    
+    can be searched in $O(\log{n})$.
+    \item \highlightit{unordered associative containers}
+    \newline
+    can be searched in $O(1)$ on average and in $O(n)$ in the worst one.
 \end{itemize}
 
+\newpage
 \section{Links to the CPP Reference documentation}
 
 \subsection{Sequence Containers}
-\href{https://en.cppreference.com/w/cpp/container/array}{array}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/vector}{vector}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/deque}{deque}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/forward_{list}}{forward\char`_list}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/list}{list}
+\begin{table}[h]
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \href{https://en.cppreference.com/w/cpp/container/array}{array} & \highlightit{static contiguous} array \\
+        \hline
+        \href{https://en.cppreference.com/w/cpp/container/vector}{vector} & \highlightit{dynamic contiguous} array \\
+        \hline
+        \href{https://en.cppreference.com/w/cpp/container/deque}{deque} & \highlightit{double-ended} queue \\
+        \hline
+        \href{https://en.cppreference.com/w/cpp/container/forward_{list}}{forward\char`_list} & \highlightit{singly-linked} list \\
+        \hline
+        \href{https://en.cppreference.com/w/cpp/container/list}{list} & \highlightit{doubly-linked} list \\
+        \hline
+    \end{tabularx}
+\end{table}
+%~ \href{https://en.cppreference.com/w/cpp/container/array}{array}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/vector}{vector}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/deque}{deque}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/forward_{list}}{forward\char`_list}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/list}{list}
+%~ \end{document}
 
 \subsection{Associative Containers}
-
-\href{https://en.cppreference.com/w/cpp/container/set}{set}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/map}{map}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/multiset}{multiset}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/multimap}{multimap}
+\begin{table}[h]
+    \begin{tabularx}{\textwidth}{|l|X|}
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/set}{set} & \highlightit{collection of unique keys}, sorted by keys \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/map}{map} & \highlightit{collection of key-value pairs}, sorted by keys, keys are unique \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/multiset}{multiset} & \highlightit{collection of keys}, sorted by keys \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/multimap}{multimap} & \highlightit{collection of key-value} pairs, sorted by keys \\
+    \hline
+    \end{tabularx}
+\end{table}
+%~ \href{https://en.cppreference.com/w/cpp/container/set}{set}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/map}{map}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/multiset}{multiset}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/multimap}{multimap}
 
 \subsection{Unordered Associative Containers}
-
-\href{https://en.cppreference.com/w/cpp/container/unordered_set}{unordered\char`_set}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/unordered_map}{unordered\char`_map}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/unordered_multiset}{unordered\char`_multiset}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/unordered_multimap}{unordered\char`_multimap}
-
-\subsection{Container Adaptors}
-\href{https://en.cppreference.com/w/cpp/container/stack}{stack}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/queue}{queue}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/priority_queue}{priority\char`_queue}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/flat_set}{flat\char`_set}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/flat_map}{flat\char`_map}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/flat_multiset}{flat\char`_multiset}\quad | \quad
-\href{https://en.cppreference.com/w/cpp/container/flat_multimap}{flat\char`_multimap}
-
-\section{Containers' Access Time}
-\begin{table}[h!t]
-    \begin{tabularx}{\textwidth}{X|c|c|c|c}
-    %~ \begin{tabular}{l|c|c|c|c}
-        \multirow{2}{*}{Associative Container} & \multirow{2}{*}{Sorted} & \multirow{2}{*}{Value} & Multiple Identical & \multirow{2}{*}{Access Time} \\
-                                               &        &       & Keys & \\
-        \hline
-        \texttt{std::set} & yes & no & no & logarithmic \\
-        \texttt{std::unordered\char`_set} & no & no & no & constant \\
-        \texttt{std::map} & yes & yes & no & logarithmic \\
-        \texttt{std::unordered\char`_map} & no & yes & no & constant \\
-        \texttt{std::multiset} & yes & no & yes & logarithmic\\
-        \texttt{std::unordered\char`_multiset} & no & no & yes & constant\\
-        \texttt{std::multimap} & yes & yes & yes & logarithmic\\
-        \texttt{std::unordered\char`_multimap} & no & yes & yes & constant\\
+\begin{table}[h]
+    \begin{tabularx}{\textwidth}{|l|X|}
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/unordered_set}{unordered\char`_set} & collection of unique keys, hashed by keys \\        
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/unordered_map}{unordered\char`_map} & collection of key-value pairs, hashed by keys, keys are unique \\        
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/unordered_multiset}{unordered\char`_multiset} & collection of keys, hashed by keys \\        
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/unordered_multimap}{unordered\char`_multimap} & collection of key-value pairs, hashed by keys \\        
+    \hline
     \end{tabularx}
-    %~ \end{tabular}
 \end{table}
+%~ \href{https://en.cppreference.com/w/cpp/container/unordered_set}{unordered\char`_set}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/unordered_map}{unordered\char`_map}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/unordered_multiset}{unordered\char`_multiset}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/unordered_multimap}{unordered\char`_multimap}
+\newpage
+\subsection{Container Adaptors}
+\begin{table}[h]
+    \begin{tabularx}{\textwidth}{|l|X|}
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/stack}{stack} & adapts a container to provide stack (LIFO data structure) \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/queue}{queue} & adapts a container to provide queue (FIFO data structure) \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/priority_queue}{priority\char`_queue} & adapts a container to provide priority queue \\
+    \hline
+    \end{tabularx}
+\end{table}
+%~ \href{https://en.cppreference.com/w/cpp/container/stack}{stack}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/queue}{queue}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/priority_queue}{priority\char`_queue}\quad | \quad
+
+
+\subsubsection{C++23 New Container Adaptors}
+With C++23, the following four Container Adaptors were introduced:
+\newline
+\begin{table}[h]
+    \begin{tabularx}{\textwidth}{|l|X|}
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/flat_set}{flat\char`_set} & adapts a container to provide a collection of unique keys, sorted by keys \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/flat_map}{flat\char`_map} & adapts two containers to provide a collection of key-value pairs, sorted by unique keys \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/flat_multiset}{flat\char`_multiset} & adapts a container to provide a collection of keys, sorted by keys \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/flat_multimap}{flat\char`_multimap} & adapts two containers to provide a collection of key-value pairs, sorted by keys \\
+    \hline
+    \end{tabularx}
+\end{table}
+
+%~ \href{https://en.cppreference.com/w/cpp/container/flat_set}{flat\char`_set}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/flat_map}{flat\char`_map}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/flat_multiset}{flat\char`_multiset}\quad | \quad
+%~ \href{https://en.cppreference.com/w/cpp/container/flat_multimap}{flat\char`_multimap}
+%~ \begin{table}[h!t]
+    %~ \begin{tabularx}{\textwidth}{|l|X|}
+    %~ \textbf{C++98} & \texttt{std::map}, \texttt{std::set}, \texttt{std::multimap}, \texttt{std::multiset} \\
+    %~ \hline
+    %~ \multirow{2}{*}{\textbf{C++11}} 
+    %~ & \texttt{std::unordered\char`_map}, \texttt{std::unordered\char`_set} \\
+    %~ & \texttt{std::unordered\char`_multimap}, \texttt{std::unordered\char`_multiset} \\
+    %~ \hline
+    %~ {\textbf{C++23}} & \texttt{flat\char`_map}, \quad \texttt{flat\char`_multimap}, 
+                       %~ \quad \texttt{flat\char`_set}, \quad \texttt{flat\char`_multiset} \\
+    %~ \hline
+    %~ \end{tabularx}
+%~ \end{table}
+
+%~ \section{Containers' Access Time}
+%~ \begin{table}[h!t]
+    %~ \begin{tabularx}{\textwidth}{X|c|c|c|c}
+    % \begin{tabular}{l|c|c|c|c}
+        %~ \multirow{2}{*}{Associative Container} & \multirow{2}{*}{Sorted} & \multirow{2}{*}{Value} & Multiple Identical & \multirow{2}{*}{Access Time} \\
+                                               %~ &        &       & Keys & \\
+        %~ \hline
+        %~ \texttt{std::set} & yes & no & no & logarithmic \\
+        %~ \texttt{std::map} & yes & yes & no & logarithmic \\
+        %~ \texttt{std::multiset} & yes & no & yes & logarithmic\\
+        %~ \texttt{std::multimap} & yes & yes & yes & logarithmic\\
+        %~ \texttt{std::unordered\char`_set} & no & no & no & constant \\
+        %~ \texttt{std::unordered\char`_map} & no & yes & no & constant \\
+        %~ \texttt{std::unordered\char`_multiset} & no & no & yes & constant\\
+        %~ \texttt{std::unordered\char`_multimap} & no & yes & yes & constant\\
+    %~ \end{tabularx}
+    % \end{tabular}
+%~ \end{table}
 \newpage
 \section{Invalidation of Iterators and References}
 \begin{table}[ht]
@@ -106,21 +197,6 @@ The container classes are:
 \end{table}
 \normalsize
 
-\section{C++23 New Container Adaptors}
-\subsection{Containers}
-With C++23, the following four Container Adaptors were introduced:
-\begin{table}[h!t]
-    \begin{tabularx}{\textwidth}{|l|X|}
-    %~ \textbf{C++98} & \texttt{std::map}, \texttt{std::set}, \texttt{std::multimap}, \texttt{std::multiset} \\
-    %~ \hline
-    %~ \multirow{2}{*}{\textbf{C++11}} 
-    %~ & \texttt{std::unordered\char`_map}, \texttt{std::unordered\char`_set} \\
-    %~ & \texttt{std::unordered\char`_multimap}, \texttt{std::unordered\char`_multiset} \\
-    \hline
-    {\textbf{C++23}} & \texttt{flat\char`_map}, \quad \texttt{flat\char`_multimap}, 
-                       \quad \texttt{flat\char`_set}, \quad \texttt{flat\char`_multiset} \\
-    \hline
-    \end{tabularx}
-\end{table}
+
 
 \newpage{}
