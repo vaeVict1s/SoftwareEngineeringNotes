@@ -3,13 +3,13 @@
 \vspace{10.5cm}
 
 \section{Memory Management}
-Allocation means to assign, allot, distribute or "set apart for 
-a particular purpose". Programs manage their memory paritioning or 
+\highlight{\textbf{Allocation} means to assign, allot, distribute or "set apart for 
+a particular purpose"}. Programs manage their memory paritioning or 
 dividing it into different units performing specific tasks.
 \newline
-In C++, there are two ways to create objects and this aspect reflects on 
-the existence of two different units used to allocate the memory,
-the \textbf{stack} and \textbf{heap}, which manage the program's 
+\highlight{In C++}, there are two ways to create objects and this aspect reflects on 
+the existence of \highlight{two different units used to allocate the memory,
+the \textbf{stack} and \textbf{heap}}, which manage the program's 
 used/unused memory in two different ways. 
 
 \begin{figure}[H]
@@ -22,55 +22,85 @@ used/unused memory in two different ways.
 
 \toclessnparagraph{Text}
 This area contains machine instructions (i.e. the executable 
-code). \textbf{Global} and \textbf{static} variables are typically 
-allocated at program startup. \textbf{Stack} contains all the automatic 
-variables. \textbf{Heap} is meant to allocate the memory for the dynamic 
-variables through the \textbf{\texttt{new}} and \textbf{\texttt{delete}} 
+code). \highlightbf{Global} and \highlightbf{static} variables are typically 
+allocated at program startup. \highlightbf{Stack} contains all the automatic 
+variables. \highlightbf{Heap} is meant to allocate the memory for the dynamic 
+variables through the \highlightbf{\texttt{new}} and \highlightbf{\texttt{delete}} 
 operators. The space in between is allocated by the operating system but 
 not used, and is meant to let both the heap and stack grow.
 
 \toclessnparagraph{Stack}
-This is a simple LIFO (last in, first out) data structure which must 
-support at least the \textbf{push} and \textbf{pop} operations. Even 
+This is a simple \highlight{LIFO} (last in, first out) data structure which must 
+support at least the \highlight{\textbf{push} and \textbf{pop} operations}. Even 
 though a stack only allows accesses at the top, it is easy to implement 
 and fast to execute push and pop operations.
 
 \toclessnparagraph{Heap}
-This is a more flexible data structure, which allows programs to 
+This is a \highlight{more flexible data structure}, which allows programs to 
 allocate or deallocate memory anywhere and in any convenient order. This 
-might cause hole in the heap, i.e. unallocated memory surrounded by 
+might cause \highlight{holes} in the heap, i.e. unallocated memory surrounded by 
 allocated memory.
 \newline
-The only restriction for the heap is that memory can be allocated in 
-a contiguous block of memory large enough to satisfy the request with a 
-single chunk of memory. This restriction has two effects: it requires 
-the operating system to scan the heap until a contiguous block is found, 
-and to coalesce adjacent blocks of memory returned by the program.
+The only restriction for the heap is that \highlight{memory can be allocated in 
+a contiguous block}
+\newline
+\highlight{of memory large enough to satisfy the request with a 
+single chunk of memory}. This restriction has \highlight{two effects}: it requires 
+the operating system \highlight{to scan the heap} until a contiguous block is found, 
+and \highlight{to coalesce adjacent blocks of memory} returned by the program.
 \newline
 Side effect is that the operation on the heap are slower than the 
 operations on the stack.
 
+\newpage
 \subsection{Memory Allocation and Deallocation in C}
     \begin{table}[h!t]
         \begin{center}
             \begin{tabularx}{\textwidth}{|l|X|}
                 \hline
-                \texttt{\href{https://en.cppreference.com/w/c/memory/malloc}{malloc}} & \\
+                \texttt{\href{https://en.cppreference.com/w/cpp/memory/c/malloc}{\texttt{void* malloc(std::size\char`_t size)}}} 
+                & Allocates size bytes of uninitialized storage. \\
+                & On success, returns the pointer to the beginning of newly allocated memory. To avoid a memory leak, the returned pointer must be deallocated. \\
+                & On failure, returns a null pointer. \\
                 \hline
-                \texttt{\href{https://en.cppreference.com/w/c/memory/free}{free}} & \\
+                \texttt{\href{https://en.cppreference.com/w/cpp/memory/c/free}{\texttt{void free(void* ptr);}}} 
+                & Deallocates the space previously allocated \\ % 
+                & $\bullet$ If ptr is a null pointer, the function does \\
+                & \quad nothing. \\
+                & $\bullet$ The behavior is undefined if \\
+                & \quad the value of ptr does not equal a value \\
+                & \quad returned by an earlier allocation \\
+                & \quad the memory area referred to by ptr has \\
+                & \quad already been deallocated, \\
+                & \quad after std::free returns, an access is made \\
+                & \quad through the pointer ptr. \\
                 \hline
             \end{tabularx}
         \end{center}
     \end{table}
+
+In the previous table, allocation is meant to be done by one of the following:
+\newline 
+\texttt{\href{https://en.cppreference.com/w/cpp/memory/c/malloc}{std::malloc}}, 
+\texttt{\href{https://en.cppreference.com/w/cpp/memory/c/calloc}{std::calloc}}, 
+\texttt{\href{https://en.cppreference.com/w/cpp/memory/c/aligned_alloc}{std::aligned\char`_alloc}} (since C++17),
+ or \texttt{\href{https://en.cppreference.com/w/cpp/memory/c/realloc}{std::realloc}}.\\
+Deallocation is meant to be done by one of the following:
+\newline
+\texttt{\href{https://en.cppreference.com/w/cpp/memory/c/free}{std::free()}} or \texttt{\href{https://en.cppreference.com/w/cpp/memory/c/realloc}{std::realloc()}}
 
 \subsection{Memory Allocation and Deallocation in C++}
     \begin{table}[h!t]
         \begin{center}
             \begin{tabularx}{\textwidth}{|l|X|}
                 \hline
-                \href{https://en.cppreference.com/w/cpp/language/new}{new expression} & \\
+                \href{https://en.cppreference.com/w/cpp/language/new}{\texttt{new} expression} & Creates and initializes objects with dynamic storage duration, that is, objects whose lifetime is not necessarily limited by the scope in which they were created.\\
                 \hline
-                \href{https://en.cppreference.com/w/cpp/language/delete}{delete expression} & \\
+                \href{https://en.cppreference.com/w/cpp/language/delete}{\texttt{delete} expression} & Destroys object(s) previously allocated by the new-expression and releases obtained memory area. \\
+                \hline
+                \href{https://en.cppreference.com/w/cpp/memory/new/operator_new}{\texttt{operator new}} & \\
+                \hline
+                \href{https://en.cppreference.com/w/cpp/memory/new/operator_delete}{\texttt{operator delete}} & \\
                 \hline
             \end{tabularx}
         \end{center}

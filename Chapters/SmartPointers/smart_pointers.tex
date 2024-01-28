@@ -36,16 +36,16 @@ the ownership of memory needs to be tracked.
     \end{itemize}
 
 \toclessnparagraph{Notes}
-Only \highlightbf{non-const \texttt{std::unique\char`_ptr}} can 
-\highlightit{transfer the ownership} of the managed object to \highlightbf{another 
+Only \highlight{\textbf{non-const} \texttt{std::unique\char`_ptr}} can 
+\highlightit{transfer the ownership} of the managed object to \highlight{\textbf{another} 
 \texttt{std::unique\char`_ptr}}.
 \newline
 If an object's lifetime is managed by a 
-\highlightbf{const \texttt{std::unique\char`_ptr}}, it is limited to 
-the scope in which the pointer was created.
+\highlight{\textbf{const} \texttt{std::unique\char`_ptr}}, it is \highlight{limited to 
+the scope} \highlight{in which the pointer was created}.
 
-\highlightbf{\texttt{std::unique\char`_ptr}} is commonly used to manage the lifetime 
-of objects, including:
+\highlight{\texttt{std::unique\char`_ptr}} is commonly used to \highlight{manage} the \highlight{lifetime 
+of objects}, including:
     \begin{itemize}
         \item providing \highlight{exception safety} to classes and functions 
         that handle objects with dynamic lifetime, 
