@@ -240,6 +240,66 @@
 }
 
 % ====== lstlisting environment =======
+%~ \definecolor{black}{cmyk}{0,0,0,1}             
+%~ \definecolor{white}{cmyk}{0,0,0,0}
+%~ \definecolor{darkgrey}{cmyk}{0,0,0,0.97}      %background in Visual Studio
+%~ \definecolor{green}{cmyk}{0.6,0,0.84,0}       %comments in Visual Studio
+%~ \definecolor{blue}{cmyk}{0.65,0.33,0,0.05}       %keywords in Visual Studio
+%~ \definecolor{rose}{cmyk}{0,0.26,0.38,0}       %strings in Visual Studio
+%~ \definecolor{lavender}{cmyk}{0,0.42,0,0.1}   %if/else,switch/case etc. in Visual Studio
+%~ \definecolor{lightblue}{cmyk}{0.35,0,0,0}     %local variables in Visual Studio
+%~ \definecolor{aqua}{cmyk}{0.65,0,0.23,0}       %class types in Visual Studio
+%~ \definecolor{lightgreen}{cmyk}{0.12,0,0.33,0.05} %enumerations and methods in Visual Studio
+
+%~ \lstset{
+%~ language=[Sharp]C,
+%~ numbers=left, 
+%~ numberstyle=\tiny\color{black}, 
+%~ rulesep=10pt,
+%~ xleftmargin=12pt,
+%~ framexleftmargin=-2pt,
+%~ framexrightmargin=-5pt,
+%~ showtabs=false,
+%~ showspaces=false,
+%~ showstringspaces=true,
+%~ breaklines=true,
+%~ breakatwhitespace=true,
+%~ backgroundcolor=\color{darkgrey},
+%~ rulecolor=\color{darkgrey},
+%~ commentstyle=\color{green},
+%~ morecomment=[s][\color{green}]{/*+}{*/},
+%~ morecomment=[s][\color{green}]{/*-}{*/},
+%~ basicstyle=\ttfamily\footnotesize\color{white},
+%~ stringstyle=\color{rose},
+%~ frame=trbl,
+%~ framesep=5pt,
+%~ numbersep=7pt,
+%~ belowcaptionskip=1\baselineskip,
+%~ %**********************
+%~ %ADD YOUR KEYWORDS HERE
+%~ %**********************
+%~ %-------------------------------------------
+%~ %keywords like string, int, false, true ...
+%~ keywordstyle=\color{blue},
+%~ morekeywords={partial, var, value, get, set},
+%~ %-------------------------------------------
+%~ %keywords like if/else, switch/cas ...
+%~ emphstyle=\color{lavender},
+%~ emph={if, else, return, throw, switch, case},
+%~ %-------------------------------------------
+%~ %Collection of your local and global variables
+%~ emphstyle={[2]\color{lightblue}},
+%~ emph={[2]someLocalVariable, someGlobalVariable},
+%~ %-------------------------------------------
+%~ %Collection of your class types
+%~ emphstyle={[3]\color{aqua}},
+%~ emph={[3]SomeOwnClassType},
+%~ %-------------------------------------------
+%~ %Collection of your methods
+%~ emphstyle={[4]\color{lightgreen}},
+%~ emph={[4]ToLower},
+%~ }
+
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},   
     commentstyle=\color{codegreen},
@@ -573,39 +633,39 @@
 %~ \end{document}
 %~ \newpage
 %~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%~ \normallayout
+% \normallayout
 \input{./Chapters/Algorithms/algorithms.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={algo},title={Algorithms Bibliography}]
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SolidPrinciples/solid_principles.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={solid},title={Solid Principles Bibliography}]
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/DesignPatterns/design_patterns.tex}
-\newpage
-\printbibliography[heading=subbibintoc,keyword={designpatterns},title={Design Patterns Bibliography}]
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{./Chapters/Idioms/idioms.tex}
-\newpage
-\printbibliography[heading=subbibintoc,keyword={idioms},title={Idioms Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/UMLandOOP/UML_and_OOP.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={umlandoop},title={UML and OOP Bibliography}]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Chapters/DesignPatterns/design_patterns.tex}
+\newpage
+\printbibliography[heading=subbibintoc,keyword={designpatterns},title={Design Patterns Bibliography}]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{./Chapters/Idioms/idioms.tex}
+\newpage
+\printbibliography[heading=subbibintoc,keyword={idioms},title={Idioms Bibliography}]
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Containers/containers.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={containers},title={Containers Bibliography}]
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/MemoryManagement/memory_management.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={memorymanagement},title={Memory Management Bibliography}]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/SmartPointers/smart_pointers.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={smartpointers},title={Smart Pointers Bibliography}]
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/C++/C++.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={C++},title={C++ Bibliography}]
@@ -621,19 +681,19 @@
 \input{./Chapters/Testing/testing.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={testing},title={Testing Bibliography}]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/EmbeddedSystem/embedded_system.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={embeddedsystem},title={Embedded System Bibliography}]
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/AI/ai.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={ai},title={AI Bibliography}]
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{./Chapters/Dictionary/dictionary.tex}
 \newpage
 \printbibliography[heading=subbibintoc,keyword={dictionary},title={Dictionary Bibliography}]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %~ \input{./Chapters/Bibliography/bibliography.tex}
 %~ \newpage{}
 %~ \newpage

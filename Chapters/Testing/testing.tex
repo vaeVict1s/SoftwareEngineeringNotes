@@ -1,12 +1,235 @@
 \chapter{Software Testing}
 \label{chap:testing}
 \vspace{10.5cm}
-\section{Seven Tesing Principles}
-\section{SDLC vs. STLC}
-\section{Unit Testing}
 
-\section{Integration Test and Regression Test}
-\subsection{Integration Test}
+\section{Seven Tesing Principles}
+
+\section{SDLC vs. STLC}
+
+\section{Python Unit Testing}
+
+\subsection{\texttt{unittest}}
+\href{https://docs.python.org/3/library/unittest.html}{\texttt{unittest} — Unit testing framework}
+
+It supports test automation, sharing of setup and shutdown code for tests, 
+aggregation of tests into collections, and independence of the tests from 
+the reporting framework.
+
+To achieve this, unittest supports some important concepts in an 
+object-oriented way:
+
+\begin{itemize}
+    \item \highlightbf{test fixture}
+    A test fixture represents the \highlightit{preparation needed} to perform one or 
+    more tests, and any associated \highlightit{cleanup actions}. This may involve, 
+    for example, creating temporary or proxy databases, directories, 
+    or starting a server process.
+
+    \item \highlightbf{test case}
+    A test case is the \highlightit{individual unit of testing}. It checks for a 
+    specific response to a particular set of inputs. \highlighttt{unittest} provides a 
+    base class, \highlighttt{TestCase}, which may be used to create new test cases.
+
+    \item \highlightbf{test suite}
+    A test suite is a \highlightit{collection of test cases, test suites, or both}. I1t 
+    is used to aggregate tests that should be executed together.
+
+    \item \highlightbf{test runner}
+    A test runner is a \highlightit{component which orchestrates} the execution of 
+    tests and provides the outcome to the user. The runner may use a 
+    graphical interface, a textual interface, or return a special value 
+    to indicate the results of executing the tests.
+\end{itemize}
+
+
+A testcase is created by subclassing 
+\href{https://docs.python.org/3/library/unittest.html#unittest.TestCase}{\texttt{unittest.TestCase}} 
+or using \href{https://docs.python.org/3/library/unittest.html#unittest.FunctionTestCase}{FunctionTestCase} for legacy compatibility\\
+Child class methods' names start by \texttt{test\char`_} as a naming convention 
+to inform the test runner. 
+
+\href{https://docs.python.org/3/library/unittest.html#unittest.main}{\texttt{unittest.main}} 
+provides a command line interface to execute tests.
+
+In the following tables~\ref{tab:assertmethod},~\ref{tab:exceptionassertmethods},~\ref{tab:morespecificassertmethods} 
+and~\ref{tab:typespecificassertmethods} a \highlight{list of assert methods provided 
+by \texttt{TestCase}}
+
+\begin{table}[h!t]
+    \begin{tabularx}{\textwidth}{|X|l|l|}
+    \hline
+    Method & Checks that & New in \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertEqual}
+         {\texttt{assertEqual(a, b)}} & \highlighttt{a $==$ b} & \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertNotEqual}
+         {\texttt{assertNotEqual(a, b)}} & \highlighttt{a $!=$ b} & \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertTrue}
+         {\texttt{assertTrue(x) bool(x)}} & \highlighttt{is True} & \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertFalse}
+         {\texttt{assertFalse(x) bool(x)}} & \highlighttt{is False} & \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertIs}
+         {\texttt{assertIs(a, b)}} & \highlighttt{a is b} & 3.1 \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertIsNot}
+         {\texttt{assertIsNot(a, b)}} & \highlighttt{a is not b} & 3.1 \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertIsNone}
+         {\texttt{assertIsNone(x)}} & x \highlighttt{is None} & 3.1 \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertIsNotNone}
+         {\texttt{assertIsNotNone(x)}} & x \highlighttt{is not None} & 3.1 \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertIn}
+         {\texttt{assertIn(a, b)}} & \highlighttt{a in b} & 3.1 \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertNotIn}
+         {\texttt{assertNotIn(a, b)}} & \highlighttt{a not in b} & 3.1 \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertIsInstance}
+         {\texttt{assertIsInstance(a, b)}} & \highlighttt{isinstance(a, b)} & 3.2 \\
+    \hline
+    \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertNotIsInstance}
+         {\texttt{assertNotIsInstance(a, b)}} & \highlighttt{not isinstance(a, b)} & 3.2 \\
+    \hline
+    \end{tabularx}
+    \caption{TestCase assert methods.}
+    \label{tab:assertmethod}
+\end{table}
+\newpage
+\begin{table}[h!t]
+    \begin{tabularx}{\textwidth}{|l|X|l|}
+        \hline
+        Method & Checks that & New in\\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertRaises}
+             {\small \texttt{assertRaises(exc, fun, *args, **kwds)}} & \texttt{fun} raises exc & \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertRaisesRegex}
+             {\small \texttt{assertRaisesRegex(exc, r, fun, *args, **kwds)}} & \texttt{fun} raises exc and the message matches regex r & 3. 1\\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertWarns}
+             {\small \texttt{assertWarns(warn, fun, *args, **kwds)}} & \texttt{fun} raises warn & 3.2 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertWarnsRegex}
+             {\small \texttt{assertWarnsRegex(warn, r, fun, *args, **kwds)}} & \texttt{fun} raises warn and the message matches regex r & 3.2 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertLogs}
+             {\small \texttt{assertLogs(logger, level)}} & The with block logs on logger with minimum level & 3.4 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertNoLogs}
+                {\small \texttt{assertNoLogs(logger, level)}} & The with block does not log on logger with minimum level & 3.10 \\
+        \hline
+    \end{tabularx}
+    \caption{TestCase methods to check the production of exceptions.}
+    \label{tab:exceptionassertmethods}
+\end{table}
+
+\begin{table}[h!t]
+    \begin{tabularx}{\textwidth}{|X|X|l|}
+        \hline
+        Method & Checks that & New in \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertAlmostEqual}
+             {\texttt{assertAlmostEqual(a, b)}} & \highlighttt{\texttt{round(a-b, 7)}} $==$ 0 & \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertNotAlmostEqual}
+             {\texttt{assertNotAlmostEqual(a, b)}} & \highlighttt{\texttt{round(a-b, 7)}} $!=$ 0 & \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertGreater}
+             {\texttt{assertGreater(a, b)}} & \highlighttt{a $>$ b} & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertGreaterEqual}
+             {\texttt{assertGreaterEqual(a, b)}} & \highlighttt{a $>=$ b} & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertLess}
+             {\texttt{assertLess(a, b)}} & \highlighttt{a $<$ b} & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertLessEqual}
+             {\texttt{assertLessEqual(a, b)}} & \highlighttt{a $<=$ b} & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertRegex}
+             {\texttt{assertRegex(s, r)}} & \highlighttt{\texttt{r.search(s)}} & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertNotRegex}
+             {\texttt{assertNotRegex(s, r)}} & \highlighttt{\texttt{not r.search(s)}} & 3.2 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertCountEqual}
+             {\texttt{assertCountEqual(a, b)}} & a and b have the \highlighttt{same elements} 
+        in the \highlighttt{same number}, regardless of their order. & 3.2 \\
+        \hline
+    \end{tabularx}
+    \caption{TestCase methods to perform more specific checks}
+    \label{tab:morespecificassertmethods}
+\end{table}
+
+\newpage
+\begin{table}[h!t]
+    \begin{tabularx}{\textwidth}{|l|X|X|}
+        \hline
+        Method & Used to compare & New in\\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertMultiLineEqual}
+             {\texttt{assertMultiLineEqual(a, b)}} & strings & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertSequenceEqual}
+             {\texttt{assertSequenceEqual(a, b)}} & sequences & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertListEqual}
+             {\texttt{assertListEqual(a, b)}} & lists & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertTupleEqual}
+             {\texttt{assertTupleEqual(a, b)}} & tuples & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertSetEqual}
+             {\texttt{assertSetEqual(a, b)}} & sets or frozensets & 3.1 \\
+        \hline
+        \href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.assertDictEqual}
+             {\texttt{assertDictEqual(a, b)}} & dicts & 3.1 \\
+        \hline
+    \end{tabularx}
+    \caption{TesCase type-specific methods automatically used by \texttt{assertEqual}}
+    \label{tab:typespecificassertmethods}
+\end{table}
+
+\subsubsection{Organizing test code}
+
+\nparagraph{\href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.setUp}
+           {\texttt{unittest.TestCase.setUp()}}}
+In case of a considerable number of tests to run, it is possible to 
+factor out the set-up using .
+
+The \highlighttt{TestCase.setUp} method does nothing on default, but 
+can be overridden by child classes in order to prepare the \highlight{test fixture}.
+
+Any exception different than \href{https://docs.python.org/3/library/exceptions.html\#AssertionError}{\texttt{AssertionError}} 
+or \href{https://docs.python.org/3/library/unittest.html\#unittest.SkipTest}{\texttt{SkipTest}} 
+raised by this method is interpreted as an error rather than a test failure.
+
+\nparagraph{\href{https://docs.python.org/3/library/unittest.html\#unittest.TestCase.tearDown}
+           {\texttt{unittest.TestCase.tearDown()}}} 
+The \texttt{TestCase.tearDown()} method is called immediately after 
+the test results are recorded, even if the test method raised an exception. 
+The only requirement for this method to be called is the success of \texttt{setUp()} call.
+
+\subsubsection{Grouping Tests}
+
+\subsection{\texttt{doctest}}
+\href{https://docs.python.org/3/library/doctest.html#module-doctest}{doctest}
+
+
+\section{C++ Unit Testing}
+\subsection{\texttt{gMock}}
+\href{http://google.github.io/googletest/gmock_for_dummies.html}{gMock for Dummies}
+
+\href{http://google.github.io/googletest/gmock_cook_book.html}{gMock Cookbook}
+
+%~ \section{Integration Test and Regression Test}
+\section{Integration Test}
 Integration testing \highlightit{checks the communication and data flow between 
 two modules}
 \newline 
@@ -24,7 +247,7 @@ It can be a black-box testing or white-box testing technique.
 between the ‘Proceed to Payment’ page and the payment gateway for an 
 e-commerce application.
 
-\subsection{Regression Test}
+\section{Regression Test}
 Regression testing \highlightit{re-checks 
 software or an application after new changes are introduced}. 
 This testing process runs \highlightit{functional and non-functional checks on the 
@@ -48,8 +271,9 @@ applications in your mobile after a system update. Smartphones often receive
 regular system updates that can hamper the ongoing functions of the phone. 
 Regression testing would assess if any OS or parts upgrade impacted your phone.
 
+\section{Behavior-Driven Development}
 
-\subsection{terms from the youtube video}
+\section{terms from the youtube video}
 \begin{itemize}
     \item decision coverage
     \item predicate coverage
@@ -57,4 +281,12 @@ Regression testing would assess if any OS or parts upgrade impacted your phone.
     \item boundary coverage
     \item black box testing
     \item white box testing
+\end{itemize}
+
+\section{Continous Integration Systems}
+\begin{itemize}
+    \item \href{https://buildbot.net/}{BuildBot}
+    \item \href{https://www.jenkins.io/}{Jenkins}
+    \item \href{https://github.com/features/actions}{GitHub Actions}
+    \item \href{https://www.appveyor.com/}{\texttt{AppVeyor}}
 \end{itemize}
