@@ -4,7 +4,7 @@
 
 %%% UML 
 \section{UML}
-    %% Class Diagram
+   %% Class Diagram
     \subsection{Class Diagram}
     In Unified Modeling Language, a class diagram \highlightit{describes 
     the static structure of a system} by showing the system's classes, 
@@ -59,7 +59,7 @@
               This relationship is structural and does not represent 
               any behavioural trait.
               \newline
-              Code implementation usually requires the requsting object 
+              Code implementation usually requires the requesting object 
               to invoke a method or member function using a 
               \highlightit{reference or a pointer to the controlled 
               object}.
@@ -192,18 +192,242 @@
              \end{table}
     \end{itemize}
 
+    \newpage
+    \subsection{Sequence Diagram}
+    
+    A \highlight{sequence diagram} or \highlight{system sequence diagram} shows process 
+    interactions arranged in a time sequence. The diagram depicts the 
+    processes and objects involved and the sequence of messages exchanged 
+    as needed to carry out the functionality. 
+    \newline
+    In the \highlight{4+1 architectural view model} of the system under 
+    development, sequence diagrams are typically associated with use case 
+    realizations~\cite{wiki-4+1-view-model}. 
+    \newline
+    Sequence diagrams are sometimes called \highlight{event diagrams} or 
+    \highlight{event scenarios}. 
+    
+    \subsubsection{Lifelines}
+    \begin{figure}[h!t]%
+        \centering
+        \subfloat{{\includegraphics[width=.35\textwidth]{OOPandUML/SequenceDiagram/sd_lifelines} }}%
+        \qquad
+        \subfloat{{\includegraphics[width=.35\textwidth]{OOPandUML/SequenceDiagram/sd_more_lifelines} }}%
+        \caption{Sequence Diagram Lifelines and Actors}%
+        \label{fig:sd-lifelines}%
+    \end{figure}
+
+    \subsubsection{Messages}
+    %~ \begin{figure}[h!t]
+        %~ \centering
+        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_messages}
+        %~ \caption{foo}
+        %~ \label{fig:sd-messages}
+    %~ \end{figure}
+    \begin{figure}[h!t]%
+        \centering
+        \subfloat[\centering Messages]{{\includegraphics[width=.25\textwidth]{OOPandUML/SequenceDiagram/sd_messages} }}%
+        \qquad
+        \subfloat[\centering Self Messages]{{\includegraphics[width=.25\textwidth]{OOPandUML/SequenceDiagram/sd_recursion} }}%
+        \qquad
+        \subfloat[\centering Lost and Found Messages]{{\includegraphics[width=.25\textwidth]{OOPandUML/SequenceDiagram/sd_lost_and_found} }}%
+        \caption{Sequence Diagram Messages}%
+        \label{fig:sd-lifelines}%
+    \end{figure}    
+    %~ \subsubsection{Execution Occurrence}
+    
+    %~ \nparagraph{Self Message}
+    %~ \begin{figure}[h!t]
+        %~ \centering
+        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_recursion}
+        %~ \caption{foo}
+        %~ \label{fig:}
+    %~ \end{figure}
+    
+    %~ \nparagraph{Lost and Found Messages}
+    %~ \begin{figure}[h!t]
+        %~ \centering
+        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_lost_and_found}
+        %~ \caption{foo}
+        %~ \label{fig:}
+    %~ \end{figure}
+    
+    \newpage
+    \subsubsection{Lifeline Start and End}
+    \begin{minipage}[t]{0.5\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+        \centering
+        \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_start_and_end}
+        \captionof{figure}{Object-Lifetime Start and End}
+        \label{fig:sd-lifelines-start-end}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+    \end{minipage}
+    
+    \subsubsection{Duration and Time Constraints}
+    \begin{minipage}[t]{0.5\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+        \centering
+        \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_time}
+        \captionof{figure}{}
+        \label{fig:sd-time}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+    \end{minipage}
+        
+    \newpage
+    \subsubsection{Combined Fragments}
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+    %~ \begin{figure}[h!t]
+        \centering
+        \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_fragment}
+        \captionof{figure}{Loop Fragment}
+        \label{fig:sd-loop-fragment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+    %~ \begin{wrapfigure}{l}{0.5\textwidth}
+        %~ \centering
+        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_fragment}
+        %~ \caption{Loop Fragment}
+        %~ \label{fig:sd-loop-fragment}       
+    %~ \end{wrapfigure}
+    
+    A combined fragment is one or more processing sequence enclosed in 
+    a frame and executed under specific named circumstances.
+    In fig~\ref{fig:sd-loop-fragment} there is an example of a loop fragment.
+    \newline
+    The available fragment are listed in table~\ref{tab:sd-fragments}. 
+    \end{minipage}
+    
+    \begin{table}[h!t]
+        \begin{tabularx}{\textwidth}{|l|X|}
+            \hline
+            Label & Function \\
+            \hline
+            \highlighttt{alt} & fragment to model \texttt{if\dots then\dots else} constructs \\
+            \hline
+            \highlighttt{opt} & fragment to model switch constructs \\
+            \hline
+            \highlighttt{loop} & fragment to enclose a series of messages which are repeated \\
+            \hline
+            \highlighttt{par} & fragment to model concurrent processing \\
+            \hline
+            \highlighttt{seq} & weak sequencing fragment to enclose a 
+               number of sequences for which all the messages must be processed 
+               in a preceding segment before the following segment can start, 
+               but which does not impose any sequencing within a segment on 
+               messages that don’t share a lifeline \\
+            \hline
+            \highlighttt{strict} & strict sequencing fragment to enclose 
+              a series of messages which must be processed in the given order \\
+            \hline
+            \highlighttt{neg} & negative fragment to enclose an invalid 
+              series of messages \\
+            \hline
+            \highlighttt{assert} & fragment to designate that any sequence 
+              not shown as an operand of the assertion is invalid \\
+
+            \hline
+            \highlighttt{break} & models an alternative sequence of events that is processed instead of the whole of the rest of the diagram \\
+            \hline
+            \highlighttt{critical} & encloses a critical section \\
+            \hline
+            \highlighttt{ignore} & declares a message or message to be of no interest if it appears in the current context \\
+            \hline
+            \highlighttt{consider} & fragment is in effect the opposite of the ignore fragment: any message not included in the consider fragment should be ignored \\
+            \hline
+        \end{tabularx}
+        \caption{Available Fragments}
+        \label{tab:sd-fragments}
+    \end{table}
+    
+    \newpage
+    \subsubsection{Gate}
+    \begin{figure}[h!t]%
+        \centering
+        \subfloat[\centering Top Level Diagram]{{\includegraphics[width=.35\textwidth]{OOPandUML/SequenceDiagram/sd_top_level_diagram} }}%
+        \qquad
+        \subfloat[\centering Nested Diagram]{{\includegraphics[width=.35\textwidth]{OOPandUML/SequenceDiagram/sd_nested_diagrams} }}%
+        \caption{Nested Sequence Diagrams}%
+        \label{fig:sd-nested}%
+    \end{figure}
+    %~ \begin{figure}[h!t]
+        %~ \centering
+        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_top_level_diagram}
+        %~ \caption{foo}
+        %~ \label{fig:}
+    %~ \end{figure}
+    
+    %~ \begin{figure}[h!t]
+        %~ \centering
+        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_nested_diagrams}
+        %~ \caption{foo}
+        %~ \label{fig:}
+    %~ \end{figure}
+    
+    \subsubsection{Part Decomposition}
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+    %~ \begin{figure}[h!t]
+        \centering
+        \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_part_decomposition}
+        \captionof{figure}{Object with }
+        \label{fig:sd-part-decomposition}
+    %~ \end{figure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+    An object can have more than one lifeline coming from it. 
+    \newline
+    This allows for inter and intra object messages to be displayed on 
+    the same diagram.
+    \end{minipage}
+  
+    \subsubsection{State Invariant / Covariant}
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+    %~ \begin{figure}[h!t]
+        \centering
+        \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_state_invariant}
+        \captionof{figure}{State Invariant}
+        \label{fig:sd-state-invariant}       
+     \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.4\textwidth} 
+    \vspace{-\baselineskip} % Required for vertically aligning minipages
+    A state invariant is a constraint placed on a lifeline that must be 
+    true at run-time. It is shown as a rectangle with semi-circular ends.
+    \newline
+    A continuation has the same notation as a state invariant, but is 
+    used in combined fragments and can stretch across more than one lifeline. 
+    \end{minipage}
+    %~ \begin{figure}[h!t]
+        %~ \centering
+        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_state_invariant}
+        %~ \caption{foo}
+        %~ \label{fig:}
+    %~ \end{figure}
+    
+    \clearpage
     \subsubsection{Class and Sequence diagram Cheatsheet}
     Following \highlightit{a summary of the information for class and sequance UML 
     diagrams}
-    \begin{figure}[H]
+    \begin{figure}[h!t]
         \centering
         \includegraphics[scale=0.7]{OOPandUML/uml_class_sequence_diag_cheatsheet}
         \caption{Class and Sequence diagrams cheatsheet}
         \label{fig:class-seq-diag-cheatsheet}
     \end{figure}
 
-    \subsection{Sequence Diagram}
-    
+\newpage
 %%% OOP.
 \section{Object Oriented Programming}
     \subsection{Polymorphism}
