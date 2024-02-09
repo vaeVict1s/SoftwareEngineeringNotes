@@ -216,7 +216,43 @@
         \caption{Sequence Diagram Lifelines and Actors}%
         \label{fig:sd-lifelines}%
     \end{figure}
+    A Lifeline is shown using a symbol that represents  
+    its “head” followed by a vertical line (which may be dashed) that 
+    represents the lifetime of the participant.
+    \newline{}
+    The head of the line can also be the representation of an actor.
+    
+    \subsubsection{Execution Specification}
+    Also known by the name of \highlight{Activation} is interaction fragment 
+    which represents a period in the participant's lifetime when it is
+    \begin{itemize}
+    \item executing a unit of behavior or action within the lifeline,
+    \item sending a signal to another participant,
+    \item waiting for a reply message from another participant.
+    \end{itemize}
+    The duration of an execution is represented by two execution occurrences - 
+    the start occurrence and the finish occurrence.
 
+    \vspace{.5cm}
+    \begin{minipage}[t]{0.5\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+        \centering
+        \includegraphics[scale=4]{OOPandUML/SequenceDiagram/sequence-execution-spec-callback}
+        \captionof{figure}{Overlapping Execution}
+        \label{fig:sd-lifelines-start-end}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+
+    Execution is represented as a thin grey or white rectangle on the lifeline. 
+    \newline
+    Overlapping executions on the same lifeline are represented by 
+    overlapping rectangles. 
+    \end{minipage}
+
+
+    \newpage
     \subsubsection{Messages}
     %~ \begin{figure}[h!t]
         %~ \centering
@@ -233,39 +269,79 @@
         \subfloat[\centering Lost and Found Messages]{{\includegraphics[width=.25\textwidth]{OOPandUML/SequenceDiagram/sd_lost_and_found} }}%
         \caption{Sequence Diagram Messages}%
         \label{fig:sd-lifelines}%
-    \end{figure}    
-    %~ \subsubsection{Execution Occurrence}
+    \end{figure}
     
-    %~ \nparagraph{Self Message}
-    %~ \begin{figure}[h!t]
-        %~ \centering
-        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_recursion}
-        %~ \caption{foo}
-        %~ \label{fig:}
-    %~ \end{figure}
+    Message is a named element that defines one specific kind of 
+    communication between lifelines of an interaction. The message 
+    specifies not only the kind of communication, but also the sender 
+    and the receiver. Sender and receiver are normally two occurrence 
+    specifications (points at the ends of messages).
+
+    A message is shown as a line from the sender message end to the 
+    receiver message end. The line must be such that every line fragment 
+    is either horizontal or downwards when traversed from send event to 
+    receive event. The send and receive events may both be on the same 
+    lifeline. The form of the line or arrowhead reflects properties of 
+    the message. 
     
-    %~ \nparagraph{Lost and Found Messages}
-    %~ \begin{figure}[h!t]
-        %~ \centering
-        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_lost_and_found}
-        %~ \caption{foo}
-        %~ \label{fig:}
-    %~ \end{figure}
+    Depending on the type of action that was used to generate the message, message could be one of:
+    \begin{itemize}
+        \item synchronous call
+        \item asynchronous call
+        \item asynchronous signal
+        \item create
+        \item delete
+        \item reply        
+    \end{itemize}
+
+
     
     \newpage
     \subsubsection{Lifeline Start and End}
     \begin{minipage}[t]{0.5\textwidth}
 	\vspace{-\baselineskip} % Required for vertically aligning minipages
         \centering
-        \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_start_and_end}
-        \captionof{figure}{Object-Lifetime Start and End}
-        \label{fig:sd-lifelines-start-end}
+        \includegraphics[scale=4]{OOPandUML/SequenceDiagram/sequence-message-create}
+        \captionof{figure}{Object-Lifetime Start}
+        \label{fig:sd-lifelines-start}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.4\textwidth}
 	\vspace{-\baselineskip} % Required for vertically aligning minipages
-    \end{minipage}
+
+    Create message is sent to lifeline to create itself. Note, that it is 
+    weird but common practice in OOAD to send create message to a 
+    nonexisting object to create itself. In real life, 
+    create message is sent to some runtime environment.
+
     
+    %~ Delete message (called stop in previous versions of UML) is sent to terminate another lifeline. The lifeline usually ends with a cross in the form of an X at the bottom denoting destruction occurrence.
+
+    %~ UML 2.3 specification provides neither specific notation for delete message nor a stereotype. Until they provide some notation, we can use custom «destroy» stereotype. 
+    \end{minipage}
+    \vspace{0.5cm}
+    
+    Create message is shown as a dashed line with open arrowhead (same as reply), 
+    and pointing to created lifeline's head. 
+    
+    \vspace{0.5cm}
+    \begin{minipage}[t]{0.5\textwidth}
+	\vspace{-\baselineskip} % Required for vertically aligning minipages
+        \centering
+        \includegraphics[scale=4]{OOPandUML/SequenceDiagram/sequence-message-delete}
+        \captionof{figure}{Object-Lifetime End}
+        \label{fig:sd-lifelines-end}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.4\textwidth}
+	\vspace{-\baselineskip}
+    
+    Delete message (called stop in previous versions of UML) is sent to terminate another lifeline. The lifeline usually ends with a cross in the form of an X at the bottom denoting destruction occurrence.
+    \end{minipage}
+    \vspace{0.5cm}
+    
+    UML 2.3 specification provides neither specific notation for delete message nor a stereotype. Until they provide some notation, we can use custom «destroy» stereotype. 
+
     \subsubsection{Duration and Time Constraints}
     \begin{minipage}[t]{0.5\textwidth}
 	\vspace{-\baselineskip} % Required for vertically aligning minipages
@@ -303,7 +379,7 @@
     a frame and executed under specific named circumstances.
     In fig~\ref{fig:sd-loop-fragment} there is an example of a loop fragment.
     \newline
-    The available fragment are listed in table~\ref{tab:sd-fragments}. 
+    The available fragments are listed in table~\ref{tab:sd-fragments}. 
     \end{minipage}
     
     \begin{table}[h!t]
@@ -358,6 +434,24 @@
         \caption{Nested Sequence Diagrams}%
         \label{fig:sd-nested}%
     \end{figure}
+    A gate is a message end, connection point for relating a message 
+    outside of an interaction fragment with a message inside the 
+    interaction fragment.
+    
+    The purpose of gates and messages between gates is to specify the 
+    concrete sender and receiver for every message. 
+    Gates play different roles:
+    \begin{itemize}
+    \item formal gates - on interactions
+    \item actual gates - on interaction uses
+    \item expression gates - on combined fragment
+    \end{itemize}
+    
+    The gates are named implicitly or explicitly. Implicit gate name is 
+    constructed by concatenating the direction of the message ("in" or "out") 
+    and the message name, e.g. \texttt{in\char`_search}, \texttt{out\char`_read}.
+
+    Gates are notated just as message connection points on the frame. 
     %~ \begin{figure}[h!t]
         %~ \centering
         %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_top_level_diagram}
@@ -391,7 +485,7 @@
     the same diagram.
     \end{minipage}
   
-    \subsubsection{State Invariant / Covariant}
+    \subsubsection{State Invariant}
     \begin{minipage}[t]{0.4\textwidth}
 	\vspace{-\baselineskip} % Required for vertically aligning minipages
     %~ \begin{figure}[h!t]
@@ -403,19 +497,29 @@
     \hfill
     \begin{minipage}[t]{0.4\textwidth} 
     \vspace{-\baselineskip} % Required for vertically aligning minipages
-    A state invariant is a constraint placed on a lifeline that must be 
-    true at run-time. It is shown as a rectangle with semi-circular ends.
-    \newline
-    A continuation has the same notation as a state invariant, but is 
-    used in combined fragments and can stretch across more than one lifeline. 
-    \end{minipage}
-    %~ \begin{figure}[h!t]
-        %~ \centering
-        %~ \includegraphics[scale=0.5]{OOPandUML/SequenceDiagram/sd_state_invariant}
-        %~ \caption{foo}
-        %~ \label{fig:}
-    %~ \end{figure}
+    A state invariant is an interaction fragment which represents a 
+    runtime constraint on the participants of the interaction.
     
+    It may be used to specify different kinds of constraints,
+    such as values of attributes or variables, internal or external states, etc.    
+
+    %~ A state invariant is a constraint placed on a lifeline that must be 
+    %~ true at run-time. It is shown as a rectangle with semi-circular ends.
+    %~ \newline
+    %~ A continuation has the same notation as a state invariant, but is 
+    %~ used in combined fragments and can stretch across more than one lifeline. 
+    \end{minipage}
+    \vspace{0.5cm}
+    
+    State invariant is usually shown as a constraint in curly braces on 
+    the lifeline. 
+
+    It could also be shown as a state symbol representing the equivalent 
+    of a constraint that checks the state of the object represented by 
+    the lifeline. This could be either the internal state of the classifier 
+    behavior of the corresponding classifier or some external state based 
+    on a "black-box" view of the lifeline. 
+
     \clearpage
     \subsubsection{Class and Sequence diagram Cheatsheet}
     Following \highlightit{a summary of the information for class and sequance UML 
