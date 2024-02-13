@@ -65,11 +65,83 @@ Atomic objects are
     \end{tabularx}
 \end{table}
 %%% Paragraph
+
 \subsection{Operations on atomic types}
 \vspace{-8truemm}
+%~ \begin{table}[h!t]
+    %~ \begin{adjustbox}{width=1.1\columnwidth,left}
+    %~ \begin{tabular}{|l|l|}
+        %~ \cline{1-2}
+        %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_is_lock_free}{atomic\char`_is\char`_lock\char`_free} 
+        %~ & checks if the atomic type's operations are lock-free \\
+        %~ \cline{1-2}
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_store}{atomic\char`_store} \\ 
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_store}{atomic\char`_store\char`_explicit}}}
+                         %~ & atomically replaces the value of the atomic object  \\
+                         %~ & with a non-atomic argument \\
+        %~ \cline{1-2}
+
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_load}{atomic\char`_load} \\
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_load}{atomic\char`_load\char`_explicit}}}
+                       %~ & atomically obtains the value stored \\
+                       %~ & in an atomic object \\
+       %~ \cline{1-2}
+       %~ \multirow{2}{*}{\parbox{4.5cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_exchange}{atomic\char`_exchange} \\ 
+                                      %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_exchange}{atomic\char`_exchange\char`_explicit}}}
+                       %~ &  atomically replaces the value of the atomic object with non-atomic argument\\
+                       %~ &  and returns the old value of the atomic\\
+        %~ \cline{1-2}
+        %~ \multirow{4}{*}{\parbox{7.5cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_weak} \\
+                                       %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_weak\char`_explicit} \\ 
+                                       %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_strong} \\ 
+                                       %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}{atomic\char`_compare\char`_exchange\char`_strong\char`_explicit}}}
+                        %~ & \\
+                        %~ & atomically compares the value of the atomic object with non-atomic argument \\
+                        %~ & and performs atomic exchange if equal or atomic load if not \\
+                        %~ & \\
+        %~ \cline{1-2}
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_add}{atomic\char`_fetch\char`_add} \\ 
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_add}{atomic\char`_fetch\char`_add\char`_explicit}}}
+                        %~ & adds a non-atomic value to an atomic object\\
+                        %~ & and obtains the previous value of the atomic \\
+        %~ \cline{1-2}
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_sub}{atomic\char`_fetch\char`_sub} \\ 
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_sub}{atomic\char`_fetch\char`_sub\char`_explicit}}}
+                        %~ & subtracts a non-atomic value from an atomic object\\
+                        %~ & and obtains the previous value of the atomic\\
+        %~ \cline{1-2}
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_and}{atomic\char`_fetch\char`_and} \\
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_and}{atomic\char`_fetch\char`_and\char`_explicit}}}
+                        %~ & replaces the atomic object with the result of bitwise AND with a non-atomic argument\\
+                        %~ & and obtains the previous value of the atomic\\
+        %~ \cline{1-2}
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or} \\
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or\char`_explicit}}}
+                        %~ & replaces the atomic object with the result of bitwise OR with a\\
+                        %~ & a non-atomic argument and obtains the previous value of the atomic \\
+        %~ \cline{1-2}
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_xor}{atomic\char`_fetch\char`_xor} \\
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_xor}{atomic\char`_fetch\char`_xor\char`_explicit}}}
+                        %~ & blocks the thread until notified and the atomic value changes \\
+                        %~ & \\
+        %~ \cline{1-2}
+        %~ \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_wait}{atomic\char`_wait} \\
+                                     %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_wait}{atomic\char`_wait\char`_explicit}}}
+                        %~ & replaces the atomic object with the result of bitwise XOR with a non-atomic argument \\
+                        %~ & and obtains the previous value of the atomic \\
+        %~ \cline{1-2}
+        %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_notify_one}{atomic\char`_notify\char`_one} 
+        %~ & notifies a thread blocked in \texttt{atomic\char`_wait} \\
+        %~ \cline{1-2}
+        %~ \href{https://en.cppreference.com/w/cpp/atomic/atomic_notify_all}{atomic\char`_notify\char`_all} 
+        %~ & notifies all threads blocked in \texttt{atomic\char`_wait} \\
+        %~ \cline{1-2}
+    %~ \end{tabular}
+    %~ \end{adjustbox}
+%~ \end{table}
 \begin{table}[h!t]
-    \begin{adjustbox}{width=1.1\columnwidth,left}
-    \begin{tabular}{|l|l|}
+    %~ \begin{adjustbox}{width=1.1\columnwidth,left}
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_is_lock_free}{atomic\char`_is\char`_lock\char`_free} 
         & checks if the atomic type's operations are lock-free \\
@@ -104,6 +176,13 @@ Atomic objects are
                         & adds a non-atomic value to an atomic object\\
                         & and obtains the previous value of the atomic \\
         \cline{1-2}
+        \end{tabularx}
+        \end{table}
+        
+        \begin{table}[h!t]
+    %~ \begin{adjustbox}{width=1.1\columnwidth,left}
+        \begin{tabularx}{\textwidth}{|l|X|}
+        \cline{1-2}
         \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_sub}{atomic\char`_fetch\char`_sub} \\ 
                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_sub}{atomic\char`_fetch\char`_sub\char`_explicit}}}
                         & subtracts a non-atomic value from an atomic object\\
@@ -113,8 +192,7 @@ Atomic objects are
                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_and}{atomic\char`_fetch\char`_and\char`_explicit}}}
                         & replaces the atomic object with the result of bitwise AND with a non-atomic argument\\
                         & and obtains the previous value of the atomic\\
-        \cline{1-2}
-        \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or} \\
+        \multirow{2}{*}{\parbox{4.5cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or} \\
                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or\char`_explicit}}}
                         & replaces the atomic object with the result of bitwise OR with a\\
                         & a non-atomic argument and obtains the previous value of the atomic \\
@@ -135,8 +213,8 @@ Atomic objects are
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_notify_all}{atomic\char`_notify\char`_all} 
         & notifies all threads blocked in \texttt{atomic\char`_wait} \\
         \cline{1-2}
-    \end{tabular}
-    \end{adjustbox}
+    \end{tabularx}
+    %~ \end{adjustbox}
 \end{table}
 
 \newpage
@@ -195,6 +273,7 @@ Atomic objects are
    \end{tabularx}
 \end{table}
 
+\newpage
 \subsection{Memory synchronization ordering}
 \vspace{-8truemm}
 \begin{table}[h!t]
@@ -215,7 +294,6 @@ Atomic objects are
     \end{tabularx}
 \end{table}
 
-\newpage
 \subsection{Mutual exclusion}
 Mutual exclusion algorithms prevent multiple threads from simultaneously accessing shared resources. 
 This prevents data races and provides support for synchronization between threads. 
@@ -331,7 +409,7 @@ This prevents data races and provides support for synchronization between thread
          \cline{1-2}
     \end{tabularx}
 \end{table}
-\newpage
+
 \subsection{Futures}
 \vspace{-8truemm}
 \begin{table}[h!t]

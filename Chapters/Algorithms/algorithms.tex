@@ -107,21 +107,106 @@ Equivalently, we mean that the worst-case running time is $O(n^2)$.
 \begin{table}[h]
     \begin{tabularx}{\textwidth}{|l|l|l|l|X|}
     %~ \begin{tabular}{|l|l|l|l|X|}
-        \hline{}
-        Algorithm & Big O & Omega & Theta & What \\
         \hline
-        Selection Sort & & & 
-        & repeatedly identiﬁes the smallest remaining unsorted element 
-        and puts it at the end of the sorted portion of the array \\
+        Algorithm & Best & Average & Worst & Worst Space Complexity  \\
         \hline
-         & & & & \\
+        Quicksort & $O(n\log{n})$ & $O(n\log{n})$ & $O(n^{2})$&$O(\log{n})$ \\
         \hline
-         & & & & \\
+        Mergesort & $O(n\log{n})$ & $O(n\log{n})$&$O(n\log{n})$ &$O(n)$ \\
+        \hline
+        Timsort & $O(n)$  &$O(n\log{n})$& $O(n\log{n})$& $O(n)$\\
+        \hline
+        Heapsort & $O(n\log{n})$& $O(n\log{n})$& $O(n\log{n})$& $O(1)$\\
+        \hline
+        Bubble Sort & $O(n)$ &$O(n^{2})$ & $O(n^{2})$&$O(1)$\\
+        \hline
+        Insertion Sort & $O(n)$ &$O(n^{2})$ & $O(n^{2})$&$O(1)$\\
+        \hline
+        Selection Sort & $O(n^{2})$ & $O(n^{2})$& $O(n^{2})$& $O(1)$  \\
+        \hline
+        Shell Sort & $O(n)$ & $O((n\log{n})^{2})$ & $O((n\log{n})^{2})$& $O(1)$\\
+        \hline
+        Bucket Sort & $O(n+k)$ & $O(n+k)$ & $O(n^{2})$ & $O(n)$\\
+        \hline
+        Radix Sort & $O(nk)$ & $O(nk)$ & $O(nk)$ & $O(n+k)$\\
         \hline    
     %~ \end{tabular}
     \end{tabularx}
 \end{table}
 
+Verbal description of the previous sorting algorithms:
+\begin{itemize}
+
+    \item Quicksort \\
+    selecting a 'pivot' element from the array and partitioning 
+    the other elements into two sub-arrays, according to whether 
+    they are less than or greater than the pivot. For this reason, 
+    it is sometimes called partition-exchange sort.[4] The sub-arrays 
+    are then sorted recursively.
+    
+    \item Mergesort \\
+    First, divide the list into the smallest unit (1 element), 
+    then compare each element with the adjacent list to sort and 
+    merge the two adjacent lists. Finally, all the elements are 
+    sorted and merged.
+        
+    \item Timsort \\
+    a hybrid, stable sorting algorithm, derived from merge sort 
+    and insertion sort, designed to perform well on many kinds of 
+    real-world data. It was implemented by Tim Peters in 2002 for 
+    use in the Python programming language. The algorithm finds 
+    subsequences of the data that are already ordered (runs) and uses 
+    them to sort the remainder more efficiently. This is done by 
+    merging runs until certain criteria are fulfilled. Timsort was 
+    Python's standard sorting algorithm from version 2.3 to version 3.10
+    
+    \item Heapsort \\
+    comparison-based sorting algorithm which can be thought of as 
+    "an implementation of selection sort using the right data structure."[3] 
+    Like selection sort, heapsort divides its input into a sorted and an 
+    unsorted region, and it iteratively shrinks the unsorted region by 
+    extracting the largest element from it and inserting it into the 
+    sorted region. Unlike selection sort, heapsort does not waste time 
+    with a linear-time scan of the unsorted region; rather, heap sort 
+    maintains the unsorted region in a heap data structure to efficiently 
+    find the largest element in each step.
+    
+    \item Bubble Sort \\
+    a simple sorting algorithm that repeatedly steps through the input 
+    list element by element, comparing the current element with the one 
+    after it, swapping their values if needed. These passes through the 
+    list are repeated until no swaps have to be performed during a pass, 
+    meaning that the list has become fully sorted
+    
+    \item Insertion Sort \\
+    iterates, consuming one input element each repetition, and grows a 
+    sorted output list. At each iteration, insertion sort removes one 
+    element from the input data, finds the location it belongs within 
+    the sorted list, and inserts it there. It repeats until no input 
+    elements remain. 
+    
+    
+    \item Selection Sort \\
+    repeatedly identiﬁes the smallest remaining unsorted element 
+    and puts it at the end of the sorted portion of the array
+    
+    \item Shell Sort \\
+    
+    
+    \item Bucket Sort \\
+    Each bucket is then sorted individually, either using a different 
+    sorting algorithm, or by recursively applying the bucket sorting 
+    algorithm. It is a distribution sort, a generalization of pigeonhole 
+    sort that allows multiple keys per bucket, and is a cousin of radix 
+    sort in the most-to-least significant digit flavor. Bucket sort can 
+    be implemented with comparisons and therefore can also be considered 
+    a comparison sort algorithm. The computational complexity depends on 
+    the algorithm used to sort each bucket, the number of buckets to use, 
+    and whether the input is uniformly distributed. 
+    
+    \item Radix Sort \\
+
+\end{itemize}
 
 \subsection{Methods for solving the recurrence}
 There are three methods for solving recurrences:
