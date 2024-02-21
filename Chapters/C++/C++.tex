@@ -4,8 +4,9 @@
 \section{C++: General Knowledge and Good Practices}
 \label{sec:c++gen-knowledge}
 \subsection{Rule of three/five/zero}
-References in bibliography:~\cite{fernandes-ruleofzero}, 
-\cite{meyers-concern-ruleof0}, \cite{cppcoreguidelines-C67}, \cite{cppcoreguidelines-C21}.
+%~ References in bibliography:~\cite{fernandes-ruleofzero}, 
+%~ \cite{meyers-concern-ruleof0}, \cite{cppcoreguidelines-C67}, \cite{cppcoreguidelines-C21}.
+
 \subsubsection{Rule of three}
 \label{subsubsec:c++ruleof3}
 If a class requires a \highlightit{user-defined destructor}, a user-defined 
@@ -84,14 +85,124 @@ define or =delete them all
 \toclessnparagraph{Examples}
 \toclessnparagraph{How to fix it}
 
-\subsection{Const Correctness}
-\label{subsec:c++const-corr}
+\subsection{General Topics}
+\subsubsection{\href{https://isocpp.org/wiki/faq/intrinsic-types}{Built-in / Intrinsic / Primitive Data Types}}
+A \highlight{POD type} is a C++ type that has an equivalent in C, and 
+that uses the same rules as C uses for initialization, copying, layout, 
+and addressing.
+
+The actual definition of a POD type is recursive and gets a little gnarly. 
+\newline
+Here’s a slightly simplified definition of POD: 
+\begin{itemize}
+    \item a \highlight{POD type’s non-static data members} must be 
+          \highlight{public} and can be of any of these types: 
+          \highlighttt{bool}, \highlight{any numeric type} including the 
+          various char variants, 
+          \newline
+          \highlight{any enumeration type}, \highlight{any data-pointer type} 
+          (that is, any type convertible to \texttt{void*}), 
+          \highlight{any pointer-to-function type}, or 
+          \highlight{any POD type}, including \highlight{arrays of any of these}. 
+    \item \highlight{data-pointers and pointers-to-function} are okay, 
+          but \highlight{pointers-to-member} are not. 
+    \item \highlight{references} are not allowed
+    \item a POD type can’t have \highlight{constructors}, \highlight{virtual functions}, 
+          \highlight{base classes}, or an 
+          \newline
+          \highlight{overloaded assignment operator}.
+\end{itemize}
+
+When \highlight{initializing non-static data members} of built-in / intrinsic / 
+primitive types, it is always better to initialize all non-static data 
+members in the constructor's \highlight{initialization list}.
+\newline
+In order to nitialize your built-in / intrinsic / primitive variable by 
+an expression that the compiler doesn’t evaluate solely at compile-time, 
+concern should be put on the initalization order fiasco, explained 
+in~\ref{subsubsec:constructors}.
+\newline
+A function should return
+\begin{itemize}
+    \item \highlighttt{void} if there is no need for a return value;
+    \item \highlight{local by value}
+    \item \highlight{local by pointer}
+    \item \highlight{data member by value}
+    \item \highlight{data member by pointer}
+    \item \highlight{data member by reference-to-nonconst}
+    \item \highlight{data member by referenec-to-const}
+    \item \highlighttt{shared\char`_ptr}
+    \item local \highlighttt{unique\char`_ptr} or \highlighttt{shared\char`_ptr}
+    \item \highlight{other}
+    \item
+\end{itemize}
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/input-output}{Input/Output via \texttt{<iostream>} and \texttt{<cstdio>}}}
+There are several reasons why \texttt{<iostream>} should be preferred to 
+\texttt{<cstdio>}
+\begin{itemize}
+    \item \highlight{type-safeness} is better guaranteed since \texttt{<iostream>} 
+          lets the compiler know the I/O object statically, while \texttt{<cstdio>}
+    \item \highlight{less error prone}
+    \item \highlight{extensibility}
+    \item \highlight{inheritance}
+\end{itemize}
+
+\textbf{check for invalid input}
+\begin{lstlisting}[language=C++]
+#include <iostream>
+int main()
+{
+  std::cout << "Enter a number, or -1 to quit: ";
+  int i = 0;
+  while (std::cin >> i) {    // GOOD FORM
+    if (i == -1) break;
+    std::cout << "You entered " << i << '\n';
+  }
+  // ...
+}
+\end{lstlisting}
+
+\textbf{skip invalid input}
+\begin{lstlisting}[language=C++]
+// ...
+while ((std::cout << "How old are you? ")
+     && (!(std::cin >> age) || age < 1 || age > 200)) {
+std::cout << "That's not a number between 1 and 200; ";
+std::cin.clear();
+std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+// ...
+\end{lstlisting}
+
+\textbf{Functioning of \texttt{(std::cin >> foo)}}
+
+\textbf{stop processing past the end of file}
+
+\textbf{Ending output lines with \texttt{std::endl} of \texttt{'\textbackslash n'}}
+
+\textbf{Providing printing for an entire hierarchy of classes}
+
+\textbf{\texttt{printOn() method vs. \texttt{friend} function}}
+
+\textbf{providing input for a class}
+
+\textbf{reopen \texttt{std::cin} and \texttt{std::cout} in binary mode}
+
+\textbf{writing/reading objects to/from a data file}
+
+\textbf{sending objects to another computer}
+
+\textbf{printing a \texttt{char} as a number}
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/const-correctness}{Const Correctness}}
+\label{subsubsec:c++const-corr}
 \href{https://isocpp.org/wiki/faq/const-correctness}{ISOCpp FAQ about \highlight{\texttt{const} correctness}}.
 \newline
 Const correctness consists in using the keyword \highlighttt{const} to 
 prevent \texttt{const} objects from being mutated.
 
-\subsubsection{const and pointer combinations}
+\subsubsection{\texttt{const} and pointer combinations}
 Reading it right-to-left
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
@@ -130,6 +241,7 @@ Reading it right-to-left
         \hline
     \end{tabularx}
 \end{table}
+
 The equivalence between the second and the first combination is due 
 to the same reason valid for the pointers.
 \newline
@@ -263,7 +375,7 @@ int main()
 \end{lstlisting}
 In case the third line of the main were legal, \texttt{q} would be 
 pointing at \texttt{p} and the next line it would change \texttt{p} to 
-point at \texttt{x}. This would maje the \texttt{const} qualifier 
+point at \texttt{x}. This would made the \texttt{const} qualifier 
 disappear. The last line would then use \texttt{p} ability to modify 
 its referent and the program would end up modifying a 
 \texttt{const Foo}.
@@ -271,27 +383,58 @@ its referent and the program would end up modifying a
 In case of necessity, the solution is to change \texttt{const Foo**} to 
 \texttt{const Foo* const*}.
 
+\subsubsection{\href{https://isocpp.org/wiki/faq/references}{References}}
+A \highlight{reference} is an alias for an object. At the assembly 
+implementation level, a reference \texttt{i} to an object \texttt{x} is 
+typically the machine address of the object \texttt{x}. When the 
+programmer writes an instruction like \texttt{i++}, the compiler generates 
+the code to increment the value of the referenced object \texttt{x}.
+\newline
+Assigning to a reference changes the state of the referenced object.
+\newline
+In case a function returns a reference, the function call can appear 
+on the left hand of an assignment operator:
+\begin{lstlisting}[language=C++]
+class Array {
+public:
+  int size() const;
+  float& operator[] (int index);
+  // ...
+};
+int main()
+{
+  Array a;
+  for (int i = 0; i < a.size(); ++i)
+    a[i] = 7;    // This line invokes Array::operator[](int)
+  // ...
+}
+\end{lstlisting}
+Method chaining like \highlighttt{object.method1().method2()}, in which 
+the returned object from \texttt{method1()} is the \texttt{this} object 
+for \texttt{method2()} are possible because of return by reference.
+\newline
+The method chaining is used in the \highlight{Named Parameter Idiom}, 
+described in~\ref{subsec:named-parameter-idiom} (see also~\cite{isocpp-named-parameter-idiom}).
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/freestore-mgmt}{Memory Management}}
+The best tecniques to prevent memory leakes rely on 
+
+
 \subsection{Classes and Inheritance}
 
-\subsubsection{Classes and Objects}
-\href{https://isocpp.org/wiki/faq/classes-and-objects}{ISOCpp FAQ about \textbf{Classes and Objects}}
+\subsubsection{\href{https://isocpp.org/wiki/faq/classes-and-objects}{\textbf{Classes and Objects}}}
 
-\subsubsection{Constructors}
-\href{https://isocpp.org/wiki/faq/ctors}{ISOCpp FAQ about \textbf{Constructors}}
+\subsubsection{\href{https://isocpp.org/wiki/faq/ctors}{\textbf{Constructors}}}
+\label{subsubsec:constructors}
 
-\subsubsection{Destructors}
-\href{https://isocpp.org/wiki/faq/dtors}{ISOCpp FAQ about \textbf{Destructors}}
+\subsubsection{\href{https://isocpp.org/wiki/faq/dtors}{\textbf{Destructors}}}
 
-\subsubsection{Assignment Operator}
-\href{https://isocpp.org/wiki/faq/assignment-operators}{ISOCpp FAQ about \textbf{Assignment Operator}}
+\subsubsection{\href{https://isocpp.org/wiki/faq/assignment-operators}{\textbf{Assignment Operator}}}
 
-\subsubsection{Operator Overloading}
-\href{https://isocpp.org/wiki/faq/operator-overloading}{ISOCpp FAQ about \textbf{Operator Overloading}}
+\subsubsection{\href{https://isocpp.org/wiki/faq/operator-overloading}{\textbf{Operator Overloading}}}
 
-\subsubsection{Friends}
+\subsubsection{\href{https://isocpp.org/wiki/faq/friends}{\textbf{Friends}}}
 \label{subsubsec:friend}
-\href{https://isocpp.org/wiki/faq/friends}{ISOCpp FAQ about \textbf{Friends}}
-\newline
 \href{https://en.cppreference.com/w/cpp/language/friend}{Cppreference documentation about \textbf{Friends}}
 \newline
 A \highlighttt{friend} can be a \highlighttt{function}, a \highlighttt{class}, 
@@ -325,14 +468,12 @@ Friendship \highlightit{is not inherited, transitive or reciprocal}:
 Usually, it is better to rely on member function if possible and \texttt{friend} 
 ones when it is really needed.
 
-\subsubsection{Inheritance - Basics}
+\subsubsection{\href{https://isocpp.org/wiki/faq/basics-of-inheritance}{\textbf{Inheritance - Basics}}}
 \label{subsubsec:inheritance-basics}
-\href{https://isocpp.org/wiki/faq/basics-of-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Basics}} 
 
 \toclessnparagraph{\texttt{static} initialization}
 
-\subsubsection{Inheritance - Virtual member function}
-\href{https://isocpp.org/wiki/faq/virtual-functions}{ISOCpp FAQ about Inheritance - \textbf{\texttt{virtual} functions}}.
+\subsubsection{\href{https://isocpp.org/wiki/faq/virtual-functions}{Inheritance - \textbf{\texttt{virtual} member functions}}}.
 \newline
 A \href{https://en.cppreference.com/w/cpp/language/virtual}{virtual member function} 
 is the way of C++ to allow derived classes to replace the implementation 
@@ -564,9 +705,9 @@ support.
 
 
 
-\subsubsection{Inheritance - Proper Inheritance and Substitutability}
+\subsubsection{\href{https://isocpp.org/wiki/faq/proper-inheritance}{\textbf{Inheritance - Proper Inheritance and Substitutability}}}
 \label{subsubsec:proper-inheritance}
-\href{https://isocpp.org/wiki/faq/proper-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Proper Inheritance and Substainability}}
+
 \toclessnparagraph{Converting \texttt{Derived** $\rightarrow$ Base**}}
 Differently from the conversion \texttt{Derived* $\rightarrow$ Base*}, 
 the conversion mentioned in the title does not compile, because it 
@@ -593,9 +734,7 @@ and easy to explain: a \texttt{Derived} object is larger than a
 it was possible to store both the kinds of objects in the same array. 
 
 
-\subsubsection{Inheritance - Abstract Base Classes (ABCs)}
-\href{https://isocpp.org/wiki/faq/abcs}{ISOCpp FAQ about \textbf{Inheritance - Abstract Base Classes}}
-\newline
+\subsubsection{\href{https://isocpp.org/wiki/faq/abcs}{\textbf{Inheritance - Abstract Base Classes}}}
 At the design level, an \highlighttt{ABC} corresponds to an abstract 
 concept. At the programming language level, an \highlighttt{ABC} is a 
 class containing one or more pure \highlighttt{virtual} functions, as 
@@ -615,17 +754,14 @@ Even though it is possible to provide a definition of a pure
 If a class owns \ref{npar:virtual-ctor}
 
 
-\subsubsection{Inheritance - What your mother never told you}
-\href{https://isocpp.org/wiki/faq/strange-inheritance}{ISOCpp FAQ about \textbf{Inheritance - What your mother never told you}}
+\subsubsection{\href{https://isocpp.org/wiki/faq/strange-inheritance}{\textbf{Inheritance - What your mother never told you}}}
 
 \toclessnparagraph{\texttt{final} classes and \texttt{virtual} methods}
 
 \toclessnparagraph{Calling \texttt{virtual} function from non-\texttt{virtual} functions of base class}
 
 
-\subsubsection{Inheritance - \texttt{private} and \texttt{protected} inheritance}
-\href{https://isocpp.org/wiki/faq/private-inheritance}{ISOCpp FAQ about \textbf{Inheritance - \texttt{private} and \texttt{protected} inheritance}}
-\newline
+\subsubsection{\href{https://isocpp.org/wiki/faq/private-inheritance}{\textbf{Inheritance - \texttt{private} and \texttt{protected} inheritance}}}
 Private and protected inheritance are expressed using respectively the 
 keyword \highlighttt{private} and \highlighttt{protected} in place of 
 \highlighttt{public} in the definition of the derived class.
@@ -748,8 +884,7 @@ public:
 \end{lstlisting}
 
 
-\subsubsection{Inheritance - Multiple and Virtual Inheritance}
-\href{https://isocpp.org/wiki/faq/multiple-inheritance}{ISOCpp FAQ about \textbf{Inheritance - Multiple and Virtual Inheritance}}
+\subsubsection{\href{https://isocpp.org/wiki/faq/multiple-inheritance}{\textbf{Inheritance - Multiple and Virtual Inheritance}}}
 \toclessnparagraph{Do we really need multiple inheritance?}
 Every modern language with \texttt{static} type checking and inheritance 
 provides multiple inheritance. In C++, an \textit{ABC} serves usually as 
@@ -1110,6 +1245,341 @@ Afterwards, the destructor of the virtual base classes that appear in
 the hierarchy are called, taking into account a class only when it uniquely 
 appear for the first time.
 \newpage
+
+
+\subsection{Beyond Classes}
+\subsubsection{\href{https://isocpp.org/wiki/faq/templates}{Templates}}
+
+A class template is a description of how to build a family of classes 
+that all look basically the same, and a function template describes how 
+to build a family of similar looking functions.
+\newline
+A class template is sometimes called \highlight{parameterized type} or 
+\highlight{genericity}.
+\newline
+Class templates are often used to build type safe containers 
+(although this only scratches the surface for how they can be used).
+
+\begin{lstlisting}[language=C++]
+// This would go into a header file such as "Array.h"
+template<typename T>
+class Array {
+public:
+  Array(int len=10)                
+  : len_(len), data_(new T[len]) { }
+ ~Array()                          { delete[] data_; }
+  int len() const                  { return len_;     }
+  const T& operator[](int i) const { return data_[check(i)]; }
+  T&       operator[](int i)       { return data_[check(i)]; }
+  Array(const Array<T>&);
+  Array(Array<T>&&);
+  Array<T>& operator= (const Array<T>&);
+  Array<T>& operator= (Array<T>&&);
+private:
+  int len_;
+  T*  data_;
+  int check(int i) const {
+    assert(i >= 0 && i < len_);
+    return i;
+  }
+};
+\end{lstlisting}
+The template in the previous example removes the need to rewrite the 
+same class for different data-types, using a general identifier called 
+\texttt{T} in the example.
+\newline
+Like for a normal class, templates' methods can be defined outside the 
+class.
+\newline
+Instantiations of class templates need to be explicit about the parameters 
+over which they are instantiating, for example
+\begin{lstlisting}[language=C++]
+int main()
+{
+  Array<int>        ai;
+  Array<Array<int>> aai;  // before C++11, 
+                          // compiler would see a >> (right-shift)
+}
+\end{lstlisting}
+
+The syntax for a function template is the following
+\begin{lstlisting}[language=C++]
+template<typename T>
+void swap(T& x, T& y)
+{
+  T tmp = x;
+  x = y;
+  y = tmp;
+}
+\end{lstlisting}
+
+Template functions usually do not need to be explicit about the parameters 
+over which they are instantiating. The compiler can usually determine 
+them automatically. Every time we used \texttt{swap()} with a given pair 
+of types, the compiler will go to the above definition and will create 
+yet another “template function” as an instantiation of the above.
+\newline
+Every once in a while it can be needed to explicitly select which version 
+of a function template to use, because the compiler cannot deduce the type 
+at all, or it would deduce the wrong type.
+\newline
+For example, the function template might have not any parameter of its 
+template argument types 
+%~ \begin{lstlisting}[language=C++]
+%~ template<typename T>
+%~ void f()
+%~ {
+  %~ // ...
+%~ }
+%~ \end{lstlisting}
+and calls to this function need to explicitly select the template version.
+\newline
+It could be useful to force the compiler to select a function template 
+that requires certain promotions on arguments. With a 
+template like the following
+\begin{lstlisting}[language=C++]
+template<typename T>
+void g(T x)
+{
+  // ...
+}
+\end{lstlisting}
+\texttt{g("xyz")} would select \text{g<char*>(char*)} but to call the 
+template for strings it is possible to use \texttt{g<std::string>("xyz")}. 
+\newline
+It might also happen that the function template has two parameters of the  
+same type but the user calls it with two different types
+\begin{lstlisting}[language=C++]
+template<typename T>
+void g(T x, T y);
+int m = 0;
+long n = 1;
+g<int>(m, n);
+\end{lstlisting}
+In this case, the compiler can not deduce itself, and an explicit selection 
+must be done.
+\newline
+It is possible to use \highlight{template specialization}, in case the 
+function template’s observable behavior is consistent for all 
+the T types with the differences limited to implementation details. 
+For example, a function template that represent an object as a string 
+could make use of \texttt{std::boolalpha} to represent a \texttt{bool} as 
+\texttt{false} and \texttt{true}, or \texttt{std::precision} to represent a 
+\texttt{double}, and so on.
+\newline
+In case the function template has common code along with a relatively 
+small amount of \texttt{T}-specific code, 
+\newline
+Function templates participate in \highlight{name resolution for overloaded functions}, 
+the rules are different though. For a template to be considered in overload 
+resolution, the type has to match exactly. If the types do not match exactly, 
+the conversions are not considered and the template is simply dropped 
+from the set of viable functions. That’s what is known as \highlight{SFINAE} — 
+Substitution Failure Is Not An Error.
+\newline
+The reasons why ... are 
+\begin{itemize}
+    \item A template is not a class or a function. A template is a “pattern” 
+          that the compiler uses to generate a family of classes or functions.
+    \item In order for the compiler to generate the code, it must see both 
+          the template definition (not just declaration) and the specific 
+          types/whatever used to “fill in” the template. For example, 
+          if you’re trying to use a \texttt{Foo<int>}, the compiler must 
+          see both the \texttt{Foo} template and the fact that you’re 
+          trying to make a specific \texttt{Foo<int>}.
+    \item Your compiler probably doesn’t remember the details of one \texttt{.cpp} 
+          file while it is compiling another .cpp file. It could, but most 
+          do not.
+          \newline
+          This is called the \highlight{separate compilation model}.
+\end{itemize}
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/containers}{Container Classes}}
+A contiguous array is the optimal construct for accessing a sequence of 
+objects in memory, in terms of space and time.
+\newline
+In C++ there are better alternatives to plain C arrays, easier to write 
+to read and less prone to errors but with same speed. Two of the main 
+issues with C-style arrays are
+\begin{itemize}
+    \item C array doesn't know its own size
+    \item the name of a C array converts to its first element almost always
+\end{itemize}
+The first issue implies that there can not be array assignment. Moreover, 
+an array size must be determined at compile-time.
+\newline
+The second issue makes array interacts badly with inheritance. In the 
+following code
+\begin{lstlisting}
+class Base { void fct(); /* ... */ };
+class Derived : Base { /* ... */ };
+void f(Base* p, int sz)
+{
+    for (int i=0; i<sz; ++i) p[i].fct();
+}
+Base ab[20];
+Derived ad[20];
+void g()
+{
+    f(ab,20);
+    f(ad,20);    // disaster!
+}
+\end{lstlisting}
+the array of \texttt{Derived} is treated as an array of \texttt{Base} 
+and the different sizes of the two break the subscripting without the 
+compiler clearly notifying it, as it would do with \texttt{vector}s.
+\newline
+Some of the benefits that come with the container classes are the following
+\begin{itemize}
+    \item it is possible to insert an element in almost any place without 
+          the need 
+    \item
+\end{itemize}
+
+Some of the things that can be done using arrays are
+\begin{itemize}
+    \item \texttt{std::map} can be used as a lookup table;
+    \item \texttt{std::map} can be used as a sparse array or matrix;
+    \item \texttt{std::array} can be used in place of plain arrays, since 
+          it provides the user with boundary checks, memory management 
+          in case of exceptions
+    \item 
+    \item 
+\end{itemize}
+
+The storage for a \texttt{std::vector<T>} or \texttt{std::array<T, N>} 
+is guaranteed to be \highlight{contiguous}. This means that for any 
+non-empty \texttt{std::vector<T>} or \texttt{std::array<T,N>} named 
+\texttt{v} and an integer \texttt{n} in the range \texttt{0 \dots v.size()-1}, 
+it is always sure that \texttt{\&v[0] + n == \&v[n]}.
+\newline
+On the other side, \texttt{v.begin()} is not guaranteed to be a \texttt{T*} 
+therefore it is not guaranteed to have the same value as \texttt{\&v[0]}. 
+Using \texttt{v.data()} is always safe though.
+\newline
+Containers provided by C++ are homogeneous, in the sense that they 
+contain elements of the same type. In order to hold elements of several 
+different types, it is possible to use a container of pointers to a 
+polymorphyc type.
+Homogeneous container are the easiest to use, give the best compile-time 
+error messages and have no unnecessary run-time overhead.
+\newline 
+To have an heterogeneous container, it is possible to define a common 
+interface for all the elements and make a container of pointers:
+\begin{lstlisting}[language=C++]
+class Io_obj { /* ... */ };    // the interface needed to take part in object I/O
+vector<Io_obj*> vio;           // if you want to manage the pointers directly
+vector<shared_ptr<Io_obj>> v2; // if you want a "smart pointer" to handle the objects
+\end{lstlisting}
+An alternative is to use libraries like 
+\href{http://www.boost.org/doc/libs/1_55_0/doc/html/any.html}{\texttt{boost::any}}.
+\newline
+If a pointer is used, objects in the container can be accessed through 
+the pointers themselves, levereaging the polymorphic behavior as well. 
+To know the exact type of the object, it is possible to use 
+\texttt{dynamic\char`_cast<>} or \texttt{typeid()}. To copy the container 
+of different objects, the \highlight{virual costructor idiom} 
+is probably needed (see~\ref{npar:virtual-ctor}).
+\newline
+In order to make things easier, it is possible to rely on a \texttt{shared\char`_pointer}.
+\newline
+It could be necessary to have a container of disjoint classes, that do 
+not share a common base class. In this case, it is possible to create 
+a handle class and make a container of handle objects. This approach 
+comes with the benefit of encapsulating most of the memory management 
+and object lifetime, but also with the downside of maintenance every time 
+there are changes to the set of elements that can be contained.
+
+\href{https://isocpp.org/wiki/faq/containers#slow-containers}{check and include}
+
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/class-libraries}{Class Libraries}}
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/exceptions}{Exceptions and Error Handlings}}
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/value-vs-ref-semantics}{Reference and Value Semantics}}
+
+\highlighttt{virtual} data allows a derived class to change the exact 
+class of a base class's member object. It is not directly supported by C++, 
+it can be simulated though.
+\newline
+To \highlight{simulate a \texttt{virtual} data},
+\begin{itemize}
+    \item the base class must have a \highlight{pointer to the member object};
+    \item the derived class must provide a \highlight{\texttt{new} object to be pointed 
+    to by the base class's pointer}
+\end{itemize}
+The base class would also have one or more constructors that provide their own 
+referent
+
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/inline-functions}{Inline Functions}}
+Conceptually similar to what happens with a \texttt{\#define} macro, 
+the compiler inline-expands a function call, inserting the function's 
+code directly into the caller's code stream.
+\newline
+Because of the \highlight{procedurally integration} the optimizer can 
+make on the called code, this expansion might improve the perfomances. 
+Considering the following code
+\begin{lstlisting}[language=C++]
+void f()
+{
+  int x = /*...*/;
+  int y = /*...*/;
+  int z = /*...*/;
+  // ...code that uses x, y and z...
+  g(x, y, z);
+  // ...more code that uses x, y and z...
+}
+\end{lstlisting}
+in a typical C++ implementation with registers and a stack, registers 
+and parameters get written on the stack just before the call to \texttt{g(x)}, 
+then the parameters get read from the stack into \texttt{g(x)} and read 
+again to restore the register after \texttt{g(x)} returns to \texttt{f(x)}.
+\newline
+If the compiler inline-expands the call to \texttt{g(x)}, there would not 
+be a function call and the not needed writes and reads that come with it.
+\newline
+It is not automatic that an \texttt{inline} function can improve the 
+perfomance, since it might depend on multiple factors.
+\begin{itemize}
+    \item 
+    \item 
+    \item 
+\end{itemize}
+
+\texttt{inline} functions should be used instead of \texttt{macro}s
+
+https://isocpp.org/wiki/faq/misc-technical-issues\#macros-with-if \\
+https://isocpp.org/wiki/faq/misc-technical-issues\#macros-with-multi-stmts \\
+https://isocpp.org/wiki/faq/misc-technical-issues\#macros-with-token-pasting \\
+https://isocpp.org/wiki/faq/big-picture\#use-evil-things-sometimes
+
+In order to make both a non-member and function \texttt{inline}, the 
+declaration stays the same but the definition must prepended with 
+the keyword \texttt{inline} and written in a \highlight{header file}. 
+In case the definition is placed in a \texttt{.cpp} file, unless the 
+function is used only in that single file there will be an 
+\texttt{unresolved external} error from the linker.
+\newline
+Another way to tell the compiler that a function is \texttt{inline} is 
+to define the member function in the class body without the \texttt{inline} 
+keyword in the definition. This way might be confusing 
+for readers though, sinche it mixes the what (behavior) with the how 
+(implementation). Therefore, in case of a highly reused class the 
+definition outside the class should be preferred.
+\newline
+In case of an \texttt{inline} member function defined outside the class, 
+the keyword must be put on the definition only, as this separation makes 
+it easier for the user to read the header file to determine the 
+\highlight{observable semantics} or \highlight{external behavior}.
+
+
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/pointers-to-members}{Pointers to Member Functions}}
+
+\subsubsection{\href{https://isocpp.org/wiki/faq/serialization}{Serialization and Unserialization}}
+
 
 \subsection{Value Categories}
 \label{subsubsec:value-categories}
@@ -3468,7 +3938,7 @@ auto result1 = std::find(std::execution::par, std::begin(longVector), std::end(l
 auto result2 = std::sort(std::execution::seq, std::begin(longVector), std::end(longVector));
 \end{lstlisting}
 
-\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#}stdsample
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#stdsample}
                     {std::sample}}
 Samples n elements in the given sequence (without replacement) where every element has an equal chance of being selected.
 
