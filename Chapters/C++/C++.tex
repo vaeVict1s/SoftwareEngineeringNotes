@@ -83,7 +83,77 @@ define or =delete them all
 \subsection{The Most Vexing Parse}
 \label{subsubsec:most-vex-parse}
 \toclessnparagraph{Examples}
+The term \highlight{"most vexing parse"} was first used by Scott Meyers 
+in 2001. While unusual in C, the phenomenon was quite common in C++ until 
+the introduction of uniform initialization in C++11.
+\newline
+This issue is about ambiguous code line like
+\begin{lstlisting}[]
+void f(double my_dbl)
+{
+  int i(int(my_dbl));
+}
+\end{lstlisting}
+in which the second line can be interpreted both as \highlight{a declaration 
+of a variable} \texttt{i} whose initial value is obtained by converting 
+\texttt{my\char`_dbl} into an \texttt{int} and as \highlight{a function declaration} 
+equivalent to
+\begin{lstlisting}[]
+int i(int my_dbl);
+\end{lstlisting} 
+A similar ambiguity arises for 
+\begin{lstlisting}[language=C++]
+struct Foo {};
+
+struct FooKeeper {
+  explicit FooKeeper(Foo f);
+  int get_foo();
+};
+
+int main() {
+  FooKeeper foo_keeper(Foo());
+  return foo_keeper.get_foo();
+}
+\end{lstlisting}
+in which the line
+\begin{lstlisting}[language=C++]
+TimeKeeper time_keeper(Timer());    
+\end{lstlisting}
+can be interpreted both as a variable definition and a function 
+declaration. The C++ standard requires the second interpretation, which 
+is not consistent with the previous code.
 \toclessnparagraph{How to fix it}
+It is possible to solve this parsing issue in different ways.
+\newline
+In the type conversion example
+\begin{itemize}
+    \item C-style cast
+    \begin{lstlisting}[language=C++]
+    int i((int)my_dbl);
+    \end{lstlisting}
+    
+    \item C++ named cast (to prefer to the previous solution)
+    \begin{lstlisting}[language=C++]
+    int i(static_cast<int>(my_dbl));
+    \end{lstlisting} 
+\end{itemize}
+In the variable declaration example, since C++11 the preferred method is 
+to use uniform brace initialization
+\begin{lstlisting}[language=C++]
+//Any of the following work:
+FooKeeper foo_keeper(Foo{});
+FooKeeper foo_keeper{Foo()};
+FooKeeper foo_keeper{Foo{}};
+FooKeeper foo_keeper(     {});
+FooKeeper foo_keeper{     {}};
+\end{lstlisting}
+
+Prior to C++11, extra parenthesis or copy-initialization solves the 
+most vexing parse issue
+\begin{lstlisting}[language=C++]
+FooKeeper foo_keeper( /*Avoid MVP*/ (Foo()) );
+FooKeeper foo_keeper = FooKeeper(Foo());
+\end{lstlisting}
 
 \subsection{General Topics}
 \subsubsection{\href{https://isocpp.org/wiki/faq/intrinsic-types}{Built-in / Intrinsic / Primitive Data Types}}
@@ -417,7 +487,200 @@ The method chaining is used in the \highlight{Named Parameter Idiom},
 described in~\ref{subsec:named-parameter-idiom} (see also~\cite{isocpp-named-parameter-idiom}).
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/freestore-mgmt}{Memory Management}}
-The best tecniques to prevent memory leakes rely on 
+The best tecniques to prevent memory leakes rely on hiding allocation and 
+deallocation inside more manageable types. Single objects can be managed 
+through \texttt{make\char`_unique} and \texttt{make\char`_shared}, multiple 
+objects can be managed through the container \texttt{vector} or 
+\texttt{unordered\char`_map}. Their memory management frees the programmer 
+from explicit memory management, macros, casts, overflow checks, 
+explicit size limits, pointers and similia. 
+\newline
+Templates and the standard libraries make this use of containers, resource 
+handles, etc., much easier than it was even a few years ago. The use of 
+exceptions makes it close to essential.
+\newline
+In the following code, a \texttt{unique\char`_ptr} is used as a resource 
+handle in order not to cope with allocation/deallocation responsibilities 
+when returning an object allocated on the freestore from a function
+\begin{lstlisting}[language=C++]
+#include<memory>
+#include<iostream>
+using namespace std;
+struct S {
+  S() { cout << "make an S\n"; }
+  ~S() { cout << "destroy an S\n"; }
+  S(const S&) { cout << "copy initialize an S\n"; }
+  S& operator=(const S&) { cout << "copy assign an S\n"; }
+};
+S* f()
+{
+  return new S;   // who is responsible for deleting this S?
+};
+unique_ptr<S> g()
+{
+  return make_unique<S>();    // explicitly transfer responsibility for deleting this S
+}
+int main()
+{
+  cout << "start main\n";
+  S* p = f();
+  cout << "after f() before g()\n";
+//S* q = g(); // this error would be caught by the compiler
+  unique_ptr<S> q = g();
+  cout << "exit main\n";
+//leaks *p
+//implicitly deletes *q
+}    
+\end{lstlisting}
+In case containers are not available, it is possible to use a memory leak 
+detector as part of your standard development procedure, or plug in a 
+garbage collector.
+\newline
+In C++11 a literal \highlighttt{nullptr} has been introduced and should 
+be used as the null pointer value in place of the previous solutions 
+(namely \texttt{NULL} and \texttt{0}).
+\newline
+The function of \highlighttt{delete} is deleting the data pointed by its 
+operand. It must be used not more than once on the same pointer allocated 
+with a \highlighttt{new}, assuming that pointer has not gone through a 
+successive \texttt{new} assignment.
+\newline
+The \highlighttt{malloc()/free()} operations can not be mixed with 
+\highlighttt{new/delete} operations. The reasons are that they do not 
+operate on the same level: they allocate on \highlight{different heaps} 
+and \highlight{the former work with raw memory} while 
+\highlight{the latter work with constructed objects} whose proper 
+construction and distruction are guaranteed. 
+\newline
+More specifically, \texttt{malloc()} is a function that takes a number 
+(of bytes) as its argument; it returns a \texttt{void*} pointing to 
+unitialized storage and this pointer needs to be converted to a proper 
+type. \texttt{new} is an operator that takes a type and 
+(optionally) a set of initializers for that type as its arguments; it 
+returns a pointer to an (optionally) initialized object of its type.
+\newline
+\texttt{malloc()} reports memory exhaustion by returning \texttt{0}. 
+\texttt{new} reports allocation and initialization errors by throwing 
+exceptions (\texttt{bad\char`_alloc}).
+\newline
+Another important reason to use \texttt{new} and \texttt{delete} is their 
+\highlight{overridability}.
+\newline
+In case there is a need to use \texttt{realloc()}, it is better to use 
+\texttt{vector} containers. When \texttt{realloc()} has to copy the 
+allocation, it uses a bitwise copy operation, which will tear many C++ 
+objects to shreds. C++ objects should be allowed to copy themselves. 
+\newline
+C++ provides the programmer with 
+\href{https://en.cppreference.com/w/cpp/memory/new/set_new_handler}{\texttt{set\char`_new\char`_handler}}, 
+a function called by allocation functions whenever a memory allocation 
+attempt fails.
+\newline
+In C++ there is not the need to check whether a pointer is \texttt{null} 
+before \texttt{delete}-ing it. The process goes through two steps
+\begin{lstlisting}[language=C++]
+// Original code: delete p;
+if (p) {    // or "if (p != nullptr)"
+  p->~Fred();
+  operator delete(p);
+}   
+\end{lstlisting}
+in which \texttt{operator delete(p)} calls the memory deallocation primitive, 
+\texttt{void operator delete(void* p)}
+C++ does not guarantee that \texttt{delete} also null out its operand. 
+One reason is that the operand of \texttt{delete} is not required to be 
+an \texttt{lvalue}.
+\newline
+In case it is important to null out the pointer, a possible implementation 
+can be
+\begin{lstlisting}[language=C++]
+template<class T> inline void destroy(T*& p) { delete p; p = 0; }
+\end{lstlisting}
+Passing a reference has also the effect to prevent the a call of this 
+function template on an \texttt{rvalue}.
+\newline
+For what concerns the call to the destructor at the end of the scope, 
+heap allocation should be used only if an object needs to live beyond the 
+lifetime of the scope you create it in. Even then, \texttt{make\char`_unique} 
+or \texttt{make\char`_shared}. In rare cases in which heap allocation is 
+really needed and \texttt{new} is used to create an object, \texttt{delete} 
+must be used to destroy the object, taking into account that code is 
+no longer exception-safe.
+\newline
+In case an object must live in a scope only, heap allocation is not 
+needed at all.
+\newline
+In case an array of objects is created with \texttt{new}, the \texttt{delete[]}
+operator must be used to destroy the array. There are several ways a 
+compiler can keep memory of the number of elements to destroy\\
+https://isocpp.org/wiki/faq/compiler-dependencies\#num-elems-in-new-array-overalloc \\
+https://isocpp.org/wiki/faq/compiler-dependencies\#num-elems-in-new-array-assocarray
+\newline
+In case of interest, there are several code example to
+\begin{itemize}
+    \item \href{https://isocpp.org/wiki/faq/freestore-mgmt#multidim-arrays}
+               {allocating multidimensional arrays using \texttt{new}}
+    
+    \item \href{https://isocpp.org/wiki/faq/freestore-mgmt#multidim-arrays2}
+               {allocating multidimensional arrays encapsulating pointers 
+               in a class}
+               
+    \item \href{https://isocpp.org/wiki/faq/freestore-mgmt#multidim-arrays3}
+               {reworking the previous example in terms of templates}
+    
+    \item \href{https://isocpp.org/wiki/faq/freestore-mgmt#multidim-arrays4}
+               {building a multidimensiona array using \texttt{std::vector}}
+    
+\end{itemize}
+
+In case a member function needs to \texttt{delete this} following 
+requirements must be satisfied
+\begin{itemize}
+    \item \texttt{this} object was allocated via new (not by \texttt{new[]}, 
+          nor by placement new, nor a local object on the stack, 
+          nor a namespace-scope / global, nor a member of another 
+          object)
+    
+    \item member function will be the last member function invoked on 
+          this object.
+    
+    \item the rest of your member function (after the delete this line) 
+          doesn’t touch any piece of this object (including calling any 
+          other member functions or touching any data members). This 
+          includes code that will run in destructors for any objects 
+          allocated on the stack that are still alive.
+    
+    \item no one even touches the \texttt{this} pointer itself after the 
+          \texttt{delete} this line. In other words, you must not examine 
+          it, compare it with another pointer, compare it with \texttt{nullptr}, 
+          print it, cast it, do anything with it.
+    
+\end{itemize}
+
+It's also possible to use the \highlight{Named Constructor Idiom} 
+(see~\ref{subsec:named-ctor-idiom} and~\cite{isocpp-named-ctor-idiom}) 
+to force a class to be created via \texttt{new} rather than as local, 
+namespace-scope, global or \texttt{static}
+\begin{lstlisting}[language=C++]
+class Fred {
+public:
+  // The create() methods are the "named constructors":
+  static Fred* create()                 { return new Fred();     }
+  static Fred* create(int i)            { return new Fred(i);    }
+  static Fred* create(const Fred& fred) { return new Fred(fred); }
+  // ...
+private:
+  // The constructors themselves are private or protected:
+  Fred();
+  Fred(int i);
+  Fred(const Fred& fred);
+  // ...
+};
+\end{lstlisting}
+In case \texttt{Fred} class is expected to have derived classes, 
+the constructors must be in 
+\newline
+\texttt{protected} section of the class.
 
 
 \subsection{Classes and Inheritance}
@@ -1410,7 +1673,7 @@ an array size must be determined at compile-time.
 \newline
 The second issue makes array interacts badly with inheritance. In the 
 following code
-\begin{lstlisting}
+\begin{lstlisting}[language=C++]
 class Base { void fct(); /* ... */ };
 class Derived : Base { /* ... */ };
 void f(Base* p, int sz)
@@ -1574,9 +1837,106 @@ the keyword must be put on the definition only, as this separation makes
 it easier for the user to read the header file to determine the 
 \highlight{observable semantics} or \highlight{external behavior}.
 
-
-
 \subsubsection{\href{https://isocpp.org/wiki/faq/pointers-to-members}{Pointers to Member Functions}}
+Pointers to member functions are different than pointers to simple functions.
+\newline
+Considering the function
+\begin{lstlisting}[language=C++]
+int f(char a, float b);
+\end{lstlisting}
+its type changes depending on whether it is an ordinary function or a 
+non-\texttt{static} member of an immaginary \texttt{Fred} class.
+\begin{lstlisting}[language=C++]
+int (*)(char,float);        // in case of an ordinary function
+                            // or a static member function
+int (Fred::*)(char,float)   // in case of a member function 
+                            // of class Fred
+\end{lstlisting}
+Pointers to member functions require elaborate tecniques to be passed to 
+signal handler, X event callback, system call that starts a thread/task 
+and so on, since the interrupts are unable to provide the member function 
+with a \texttt{this} pointer.
+\newline 
+One possible solution is to use a \texttt{static} member as interrupt.
+\newline
+When creating pointers to member a function for a class, for example
+\begin{lstlisting}[language=C++]
+class Fred 
+{
+public:
+  int f(char x, float y);
+  // ...
+};
+\end{lstlisting}
+it useful to rely on \texttt{typedef} to create a pointer \texttt{FredMemFn} 
+to any member of \texttt{Fred} class that takes a \texttt{(char, float)}
+\begin{lstlisting}[language=C++]
+typedef  int (Fred::*FredMemFn)(char x, float y);
+\end{lstlisting}
+Consequently, it is trivial to declare a member-function pointer
+\begin{lstlisting}[language=C++]
+int main()
+{
+  FredMemFn p = &Fred::f;
+  // ...
+}
+\end{lstlisting}
+or a function that receive a member-function pointer
+\begin{lstlisting}[language=C++]
+void userCode(FredMemFn p)
+{ /*...*/ }
+\end{lstlisting}
+or a function that returns a member-function pointer
+\begin{lstlisting}[language=C++]
+void userCode(FredMemFn p)
+{ /*...*/ }
+\end{lstlisting}
+C++17 provides the programmer with an 
+\href{https://en.cppreference.com/w/cpp/utility/functional/invoke}{\texttt{std::invoke}} 
+\begin{lstlisting}[language=C++]
+void userCode(Fred& fred, FredMemFn p)
+{
+  int ans = std::invoke(p, fred, 'x', 3.14);
+  // Would normally be: int ans = (fred.*p)('x', 3.14);
+  // ...
+}
+\end{lstlisting}
+In case \texttt{std::invoke} is not accessible, a macro like the following
+\begin{lstlisting}[language=C++]
+#define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
+\end{lstlisting}
+could help reducing code complexity
+\begin{lstlisting}[language=C++]
+void userCode(Fred& fred, FredMemFn p)
+{
+  int ans = CALL_MEMBER_FN(fred,p)('x', 3.14);
+  // Would normally be: int ans = (fred.*p)('x', 3.14);
+  // ...
+}
+\end{lstlisting}
+In case the member function is constant, the \texttt{typedef} should look 
+like
+\begin{lstlisting}[language=C++]
+typedef int (Fred::*FredMemFn)(int) const;
+\end{lstlisting}
+ 
+\highlight{pointer-to-member access operators} are the last resource,
+in case neither the \texttt{std::invoke} nor a macro are possible options
+\begin{lstlisting}[language=C++]
+class Fred { /*...*/ };
+typedef  int (Fred::*FredMemFn)(int i, double d);
+void sample(Fred x, Fred& y, Fred* z, FredMemFn func)
+{
+  x.*func(42, 3.14);
+  y.*func(42, 3.14);
+  z->*func(42, 3.14);
+}    
+\end{lstlisting}
+Neither a pointer to a member function nor a pointer to a function can 
+be converted to a \texttt{void*}
+\newline
+A \highlight{functionoid} is similar to a function pointer but with 
+more flexibility and thread safety.
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/serialization}{Serialization and Unserialization}}
 
