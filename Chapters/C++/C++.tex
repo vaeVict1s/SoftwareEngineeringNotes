@@ -88,7 +88,7 @@ in 2001. While unusual in C, the phenomenon was quite common in C++ until
 the introduction of uniform initialization in C++11.
 \newline
 This issue is about ambiguous code line like
-\begin{lstlisting}[]
+\begin{lstlisting}[language=C++]
 void f(double my_dbl)
 {
   int i(int(my_dbl));
@@ -686,11 +686,188 @@ the constructors must be in
 \subsection{Classes and Inheritance}
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/classes-and-objects}{\textbf{Classes and Objects}}}
+A \highlight{class} is the building block of Object Oriented programming. 
+It defines a data type, that consists of a set of states and a set of 
+operations which transition between those states. A class provides a set 
+of (usually public) operations, and a set of (usually non-public) data 
+bits representing the abstract values that instances of the type can have.
+\newline
+An object is a region of storage with associated semantics defined in the 
+class it belongs to.
+\newline
+An interface is good when
+\begin{itemize}
+    \item unnecessary details are intentionally hidden. 
+          \newline
+          This reduces the user’s defect-rate.
+    \item users don’t need to learn a new set of words and concepts. 
+          \newline
+          This reduces the user’s learning curve.
+\end{itemize}
+Encapsulation is the mechanism used to prevent unauthorized access to 
+some piece of information or functionality of a class/object.
+\newline
+The key money-saving insight is to separate the volatile part of some 
+chunk of software from the stable part.
+\newline
+The \highlight{volatile parts} are the implementation details. In case 
+of a single class this part is encapsulated in the \highlight{private/protected} 
+part of the class. Inheritance can also be used as a form of encapsulation.
+\newline
+The \highlight{stable parts} are the interfaces. Good ones provide 
+simplified view in the vocabulary of users, and are designed from the 
+outside-in. !!! PUT LINK TO OPERATOR OVERLOADING !!! 
+\newline
+If there is a single class, the interface is simply the class's \texttt{public} 
+member functions and \texttt{friend} functions. The \texttt{private} 
+and/or \texttt{protected} parts of a class contain the class’s implementation, 
+which is typically where the data lives.
+\newline
+The clean interface separates the interface from its implementation, 
+and encapsulation forces users to use the interface.
+\newline
+Encapsulation does not prevent a user to read the private and/or protected 
+parts of a class, but does prevent the code from being dependent on the 
+insides of the class.
+\newline
+A class method can directly access the non-\texttt{public} members of 
+another instance of its class. This rule of C++ preserves the encapsulation. 
+Otherwise there would be the need to provide a \texttt{public get\char`_method} 
+for each \texttt{private} variable used by the assignment operator, 
+the copy constructor, the comparison operators, the binary arithmetic 
+and bitwise operators, and many others.
+\newline
+Methods and friends of a derived class can access the \texttt{protected} 
+base class members of any of its own objects, but not others. Suppose 
+the classes \texttt{D1} and \texttt{D2} inherit from class \texttt{B}, 
+that has a \texttt{private x} member. In this scenario, the compiler 
+let \texttt{D1}'s members and friend dirrectly access the \texttt{x} 
+member of any \texttt{D1}. The compiler gives a compile-time error 
+if \texttt{D1} member or friend tries to directly access the \texttt{x} 
+member of anything it does not know is at least a \texttt{D1}, such as 
+via a \texttt{B*} pointer, a \texttt{B\&} reference, a \texttt{B} object, 
+a \texttt{D2*} pointer, a \texttt{D2\&} reference, a \texttt{D2} object.
+\newline
+The members and base classes of a struct are public by default, while in 
+class, they default to private. For the other aspects are functionally 
+equivalent.
+\newline
+To define an in-class constant useable in a compile time constant expression, 
+there are three choices
+\begin{lstlisting}[language=C++]
+class X {
+    constexpr int c1 = 42; // preferred since C++11
+    static const int c2 = 7;
+    enum { c3 = 19 };
+    array<char,c1> v1;
+    array<char,c2> v2;
+    array<char,c3> v3;
+    // ...
+};    
+\end{lstlisting}
+In case the contant isn't needed in a compile time constant expression
+\begin{lstlisting}[language=C++]
+class Z {
+    static char* p;     // initialize in definition
+    const int i;        // initialize in constructor
+public:
+    Z(int ii) :i(ii) { }
+};
+char* Z::p = "hello, there";    
+\end{lstlisting}
+It is possible to bind a reference to a static data member (to take its 
+address), if and only if it has an out-of-the-class definition
+\begin{lstlisting}[language=C++]
+class AE {
+    // ...
+public:
+    static const int c6 = 7;
+    static const int c7 = 31;
+};
+const int AE::c7;   // definition
+    void byref(const int&);
+int f()
+{
+            byref(AE::c6);                  // error: c6 not an lvalue
+            byref(AE::c7);                  // ok
+    const int* p1 = &AE::c6;    // error: c6 not an lvalue
+    const int* p2 = &AE::c7;    // ok
+    // ...
+}
+\end{lstlisting}
+
+Like C, C++ doesn’t define layouts, just semantic constraints that must 
+be met.
+\newline
+The size of an empty class isn't zero to ensure that two different objects 
+will have different addresses. For the same reason, \texttt{new} always 
+return pointers to different objects.
+\newline
+The Empty Base Optimization (see~\cite{cppreference-ebo}) is a mandatory 
+requirement on class layout since C++11, and requires that the size of any 
+object or member subobject is required to be at least 1 even if the type 
+is an empty class type'
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/ctors}{\textbf{Constructors}}}
 \label{subsubsec:constructors}
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/dtors}{\textbf{Destructors}}}
+\label{subsubsec:destructors}
+Destructors are used to realease any resource allocated by the object, 
+like a semaphore, a file and so on. A very common case is 
+\texttt{delete}-ing the object created using \texttt{new}.
+\newline
+Destructors are invocated on a local scope in reverse order of 
+construction in the code.
+\newline
+The objects stored in an array are destructed in reverse order of 
+construction as well.
+\newline
+The sub-objects are destructed in reverse order of construction as well. 
+For example, having this structure
+\begin{lstlisting}[language=C++]
+struct derived: base0, base1
+{
+  member0 m0_;
+  member1 m1_;
+  ~derived()
+  {
+    local0 l0;
+    local1 l1;
+  }
+}
+\end{lstlisting}
+when an \texttt{derived} object goes out of scope, destructors are called 
+in this order: \texttt{~local1()}, \texttt{~local0()}, \texttt{~member1()}, 
+\texttt{~member0()}, \texttt{~base1()}, \texttt{~base0()}
+\newline
+Destructors can not be overloaded.
+\newline
+Destructors need not to be called on local variables. In case it is needed 
+to destroy a local object in a specific point of a local scope, it is 
+possible to use an artificial block \texttt{\{\dots\}}. In case it's not 
+possible to wrap the object with an artificial block, the solution is 
+to create a function with similar duties.
+\newline
+If the object to destroy was allocated via \texttt{new}, a call to the 
+destructor isn't needed unless it was a placement \texttt{new}
+\begin{lstlisting}[language=C++]
+void someCode()
+{
+  char memory[sizeof(Fred)];
+  void* p = memory;
+  Fred* f = new(p) Fred();
+  // ...
+  f->~Fred();   // Explicitly call the destructor for the placed object
+}    
+\end{lstlisting}
+\href{https://isocpp.org/wiki/faq/dtors#placement-delete}{\textbf{Is there a placement delete?}}
+\newline
+From a class destructor, it is not needed to explicitly call destructor 
+of neither member objects nor base classes.
+\newline
+\href{https://isocpp.org/wiki/faq/dtors#memory-pools}{\textbf{Is there a way to force new to allocate memory from a specific memory area?}}
+\newline
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/assignment-operators}{\textbf{Assignment Operator}}}
 
@@ -1757,6 +1934,35 @@ there are changes to the set of elements that can be contained.
 
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/class-libraries}{Class Libraries}}
+The \highlighttt{STL} is a library that consists mainly of container 
+classes, along with iterators and algorithms to work with the content 
+of the containers. Techically speaking it is no longer meaningful since 
+the classes it provides have been integrated into the standard library. 
+Sometimes, it is described as a separate library though.
+\newline
+A good resource about STL is
+\newline
+\href{http://stdcxx.apache.org/doc/stdlibug/index.html}{Apache C++ Standard Library} 
+\newline
+The National-Institute-of-Health's-class-library, \highlight{NIHCL}, is 
+a C++ translation of the Smalltalk class library. It can be retrieved 
+\href{128.231.128.7/pub/NIHCL/nihcl-3.0.tar.Z}{here}.
+\newline
+For what concerns Numerical Recipes, following some resources
+\newline
+\href{http://www.siam.org/}{LAPACK: Linear Algebra Subroutine Library.}
+\newline
+\href{https://www.netlib.org/}{Netlib is a collection of mathematical software, papers, and databases.}
+\newline
+Other information about C++ class libraries can be found in the following 
+resources
+\newline
+\href{http://www.trumphurst.com/cpplibs/cpplibs.php}{Available C++ Libraries FAQ maintained by Nikki Locke.}
+\newline
+\href{http://www.mathtools.net/}{Mothtools.net A Resource for the Technical Computing Community.}
+\newline
+\href{https://www.boost.org/}{boost C++ libraries}
+\newline
 
 \subsubsection{\href{https://isocpp.org/wiki/faq/exceptions}{Exceptions and Error Handlings}}
 
