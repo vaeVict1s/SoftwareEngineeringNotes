@@ -1,0 +1,98 @@
+*** to do
+
+%%%
+%%% C++ %%%
+%%%
+Based on the FAQs list below, read documentation and mark with an x 
+when done
+
+*** sec,subsec,subsubsec,paragraph to finish
+C++ chapter
+
+
+*** cppreference pages to read
+https://en.cppreference.com/w/cpp/language/storage_duration
+
+*** to research about
+Bertrand Meyer’s Law of Inversion - https://se.inf.ethz.ch/~meyer/publications/old/dbc_chapter.pdf
+
+
+isocpp FAQs to read (x mark means it's done)
+Overview Topics
+
+General Topics
+
+x   Built-in / Intrinsic / Primitive Data Types
+    Missing - What should be returned from a function
+x   Input/output via <iostream> and <cstdio>
+    Missing - several parts listed in the chapter itself
+x   Const Correctness
+    Check if finished
+o/  References
+    Check and mark as finished
+x   Memory Management
+
+Classes and Inheritance
+
+x   Classes and Objects
+o   Constructors
+o/   Destructors
+o   Assignment Operators
+    Operator Overloading
+x   Friends
+    Inheritance — Basics
+     nparagraph Virtual Ctor
+  
+x   Inheritance — virtual functions
+x   Inheritance — Proper Inheritance and Substitutability
+x   Inheritance — Abstract Base Classes (ABCs)
+    \ Copy Constructor and Assignment Operator for a class containing a pointer to a (abstract) base class
+
+    Inheritance — What your mother never told you
+x   Inheritance — private and protected inheritance
+x   Inheritance — Multiple and Virtual Inheritance
+
+Beyond Classes
+
+o/   Templates
+o/   Container Classes
+x   Class Libraries
+o   Exceptions and Error Handling
+o/   Reference and Value Semantics
+o/   Inline Functions
+o/   Pointers to Member Functions
+    - missing Fuctionoids
+    Serialization and Unserialization
+
+
+
+*** *** ***
+%%%
+%%% Algorithms
+%%%
+Time complexity
+controllare le definizioni iniziali
+introdurre alcuni algoritmi
+
+
+
+%%%
+%%% Design Patterns
+%%%
+design patterns
+-) how to
+   Mediator, Memento,  Observer,
+   State, Strategy, Template Method,
+   Visitor, Adapter, Bridge, Composite, 
+   Facade, Flyweight
+   Decorator
+   structure components
+
+
+TO DO:
+rework the relationship between patterns in a single table
+to avoid redundant repetitions.
+
+
+Reference to add
+https://www.embedded.com/introduction-to-direct-memory-access/
