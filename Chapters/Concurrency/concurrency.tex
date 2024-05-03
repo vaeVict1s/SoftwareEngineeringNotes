@@ -18,6 +18,55 @@ condition variables, and futures.
         \cline{1-2}   
     \end{tabularx}
 \end{table}
+\begin{lstlisting}
+#include <string>
+#include <iostream>
+#include <thread>
+
+using namespace std;
+
+// The function we want to execute on the new thread.
+void task1(string msg)
+{
+  cout << "task1 says: " << msg;
+}
+
+int main()
+{
+  // Constructs the new thread and runs it. Does not block execution.
+  thread t1(task1, "Hello");
+
+  // Do other things...
+
+  // Makes the main thread wait for the new thread to finish execution, therefore blocks its own execution.
+  t1.join();
+}
+\end{lstlisting}
+
+\begin{itemize}
+    \item A program is an executable file which consists of a set of 
+          instructions to perform some task and is usually stored on 
+          the disk of your computer.
+    \item A process is what we call a program that has been loaded 
+          into memory along with all the resources it needs to operate. 
+          It has its own memory space.
+    \item A thread is the unit of execution within a process. A process 
+          can have multiple threads running as a part of it, where each 
+          thread uses the process’s memory space and shares it with 
+          other threads.
+    \item Multithreading is a technique where multiple threads are 
+          spawned by a process to do different tasks, at about the same 
+          time, just one after the other. This gives you the illusion 
+          that the threads are running in parallel, but they are actually 
+          run in a concurrent manner. In Python, the Global Interpreter 
+          Lock (GIL) prevents the threads from running simultaneously.
+    \item Multiprocessing is a technique where parallelism in its truest 
+          form is achieved. Multiple processes are run across multiple 
+          CPU cores, which do not share the resources among them. 
+          Each process can have many threads running in its own memory 
+          space. In Python, each process has its own instance of Python 
+          interpreter doing the job of executing the instructions.
+\end{itemize}
 %%% Paragraph
 \subsection{Functions managing the current thread}
 \vspace{-8truemm}
@@ -374,6 +423,22 @@ This prevents data races and provides support for synchronization between thread
         \cline{1-2}
     \end{tabularx}
 \end{table}
+
+A lock allows only one thread to enter the part that's locked and 
+the lock is not shared with any other processes.
+
+A mutex is the same as a lock but it can be system wide 
+(shared by multiple processes).
+
+A semaphore does the same as a mutex but allows x number of threads 
+to enter, this can be used for example to limit the number of cpu, io or 
+ram intensive tasks running at the same time.
+
+For a more detailed post about the differences between mutex and 
+semaphore read here.
+
+You also have read/write locks that allows either unlimited number of 
+readers or 1 writer at any given time.
 
 \subsection{Call once}
 \vspace{-8truemm}
