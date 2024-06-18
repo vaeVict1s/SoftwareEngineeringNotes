@@ -20,11 +20,11 @@
             %~ \operationtt{+ createProduct(): Product}
         %~ \end{class}
         
-        \begin{interface}[text width=3cm]{Product}{8,0}
+        \begin{interface}[text width=3cm]{Product}{8,-0.2}
             \operationtt{+ doStuff()}
         \end{interface}
         
-        \begin{class}[text width=3.3cm]{ProductA}{8,-4}
+        \begin{class}[text width=3.3cm]{ProductA}{8,-3.7}
         \implement{Product}\end{class}
 
         %~ \begin{class}[text width=3.3cm]{ConcreteProductB}{10,-4}
@@ -32,10 +32,12 @@
         
         %~ \unidirectional
         
-        \draw [ umlcd style dashed line , - >] ( Creator) -- 
+        \draw [ - >] ( Creator.east) ++ (0,-0.15) -- 
         %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
-        ( Product) ;
-        \draw [ umlcd style dashed line , - >] ( CreatorA) -- 
+        ( Product.west);
+        \draw [ umlcd style dashed line , - >] ( CreatorA.east) ++ (0,-0.5) 
+        -- ++(2,0) node [ above , sloped , black ]{$ < <$ create $ > >$} 
+        -- ++(2,0) -|
         %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
         ( ProductA) ;
         %~ \aggregation{Abstraction}{}{}{Implementation}
