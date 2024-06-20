@@ -2,7 +2,7 @@
     
     \begin{tikzpicture}%[show background grid]
 
-    \begin{class}[text width=5.5cm]{FlyweightFactry}{0,0}
+    \begin{class}[text width=5.5cm]{FlyweightFactory}{0,0}
         \attributett{- cache: Flyweight[]}
         \operationtt{+ getFlyweight(extrinsicState)}
     \end{class}
@@ -25,6 +25,7 @@
     \begin{class}[text width=2cm]{Client}{-6,-0.3}
     \end{class}
 
+        \draw [ - >] ( Client)  -- ( FlyweightFactory) ;                                   
 
 
     \end{tikzpicture}
