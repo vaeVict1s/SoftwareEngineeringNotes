@@ -35,6 +35,14 @@
             \operationtt{+ operation()}                    
         \end{class}
 
+        %~ \aggregation{ConcMediator}{}{}{ComponentA}
+        %~ \aggregation{ConcMediator}{}{}{ComponentB}
+        %~ \aggregation{ConcMediator}{}{}{ComponentC}
+        
+        \draw [{diamond}-{Stealth}] ( ConcMediator.east) ++ (0,-1) -- ( ComponentA) ;
+        \draw [{diamond}-{Stealth}] ( ConcMediator.east) ++ (0,-1.5) -- ( ComponentB.south) ;
+        \draw [{diamond}-{Stealth}] ( ConcMediator.east) ++ (0,-2) -- ( ComponentC.south) ;
+
     \end{tikzpicture}
 
 \end{center}
