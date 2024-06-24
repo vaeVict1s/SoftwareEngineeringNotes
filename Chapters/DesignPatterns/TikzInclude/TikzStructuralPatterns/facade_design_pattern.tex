@@ -17,7 +17,7 @@
         \end{class}
         
         
-        \begin{class}[text width=4.5cm]{AdditionaFacade}{8.5,0}
+        \begin{class}[text width=4.5cm]{AdditionalFacade}{8.5,0}
             \operationtt{+ anotherSubSysOperation}
         \end{class}
         
@@ -29,7 +29,11 @@
         \end{class}
         
         \draw [ - >] ( Client)  -- ( Facade) ;                                   
-
+        \draw [ - >] ( Facade)  -- ( AdditionalFacade) ;                                   
+        
+        \draw[dashed, - >] (Facade) -- (SubSystemA);
+        \draw[dashed, - >] (Facade) -- (SubSystemB);
+        \draw[dashed, - >] (Facade) -- (SubSystemC);
         
     \end{tikzpicture}
     

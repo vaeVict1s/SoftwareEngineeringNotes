@@ -5,7 +5,9 @@
         \begin{interface}[text width=3cm]{ClientInterface}{0,0}
             \operationtt{+ method(data)}
         \end{interface}
+        
         \begin{class}[text width=3cm]{Adapter}{0,-3}
+            \implement{ClientInterface}
             \attributett{- adaptee: Service}
             \operationtt{+ mwthod(data)}
         \end{class}
@@ -18,6 +20,9 @@
         \begin{class}[text width=2cm]{Client}{-4,-0.3}
             
         \end{class}
+        
+        \draw [ - >] ( Client) -- ( ClientInterface) ;
+        \draw [ - >] ( Adapter) -- ( Service) ;
         
     \end{tikzpicture}
     
