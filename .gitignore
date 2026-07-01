@@ -1,0 +1,47 @@
+# File temporanei di compilazione
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.pdfsync
+*.xdv
+*.dvi
+
+# Editor backup
+*~
+*.bak
+*.tmp
+*.swp
+
+# Directory di output (es. se usi latexmk o arara)
+build/
+output/
+
+# MacOS
+.DS_Store
+
+# TeXStudio e altri IDE
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.maf
+*.mtc*
+*.bcf
+*.run.xml
+*-blx.bib
+*-blx.bib.pdf
