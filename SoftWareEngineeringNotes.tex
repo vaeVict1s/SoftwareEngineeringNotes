@@ -1,26 +1,30 @@
 % ===== Document Class & Packages =====
 \documentclass[12pt,hidelinks]{book}
-    %~ \setcounter{tocdepth}{4}
     \usepackage{url}
     \usepackage{acronym}
     \usepackage{adjustbox}
     \usepackage[backend=bibtex, sorting=none, defernumbers=true]{biblatex}
-    %~ \DefineBibliographyStrings{english}{%
-                               %~ bibliography = {References},}
-    %~ \addbibresource{./Chapters/Bibliography/bibliography.bib}
     \addbibresource{./Chapters/Bibliography/c++.bib}
     \addbibresource{./Chapters/Bibliography/idioms.bib}
     \addbibresource{./Chapters/Bibliography/memorymanagement.bib}
     \addbibresource{./Chapters/Bibliography/smartpointers.bib}
     \addbibresource{./Chapters/Bibliography/containers.bib}
     \addbibresource{./Chapters/Bibliography/concurrency.bib}
+    \addbibresource{./Chapters/Bibliography/linuxprocesses.bib}
+    \addbibresource{./Chapters/Bibliography/memorymodel.bib}
+    \addbibresource{./Chapters/Bibliography/cacheperformance.bib}
+    \addbibresource{./Chapters/Bibliography/numa.bib}
+    \addbibresource{./Chapters/Bibliography/linuxnetworking.bib}
+    \addbibresource{./Chapters/Bibliography/eventdrivenio.bib}
+    \addbibresource{./Chapters/Bibliography/memorymapping.bib}
+    \addbibresource{./Chapters/Bibliography/kernelbypass.bib}
+    \addbibresource{./Chapters/Bibliography/lowlatency.bib}
     \addbibresource{./Chapters/Bibliography/algorithms.bib}
     \addbibresource{./Chapters/Bibliography/designpatterns.bib}
     \addbibresource{./Chapters/Bibliography/solidprinciples.bib}
     \addbibresource{./Chapters/Bibliography/umlandoop.bib}
     \addbibresource{./Chapters/Bibliography/python.bib}
     \addbibresource{./Chapters/Bibliography/testing.bib}
-    \addbibresource{./Chapters/Bibliography/embedded.bib}
     \addbibresource{./Chapters/Bibliography/ai.bib}
     \addbibresource{./Chapters/Bibliography/dictionary.bib}
     \input{./Chapters/Bibliography/bibliography_commands.tex}
@@ -48,7 +52,6 @@
 	\usepackage{xcolor}
 	\usepackage{tikz,lipsum,lmodern}
     \usetikzlibrary{arrows,arrows.meta}
-    %~ \usepackage{tikz-uml}
     \usepackage{pgf-umlcd}
     \renewcommand{\umldrawcolor}{black}
     \renewcommand{\umlfillcolor}{white}
@@ -73,8 +76,6 @@
     \usepackage{multicol, multirow}
     \usepackage{tabularx}
     \usepackage{caption}
-    %~ \usepackage{exam}
-    %~ \usepackage{fixltx2e}
 	\tcbuselibrary{theorems}
 	\tcbuselibrary{breakable, skins}
 	\tcbuselibrary{listings, documentation}
@@ -97,9 +98,6 @@
     \textbf{#1#2}\textit{\small #3}
 }
 \captionsetup{format=custom}
-
-% ========= Label Setup ===============
-%~ \setcounter{secnumdepth}{3}
 
 % ============= Macros ================
 \newcommand{\fillin}{\underline{\hspace{.75in}}{\;}}
@@ -135,18 +133,12 @@
 
 \fancypagestyle{dictionarystyle}{
     \renewcommand{\headrulewidth}{0.4pt}
-    %~ \newlength{\myoddoffset}
-    %~ \setlength{\myoddoffset}{\marginparwidth + \marginparsep}
-    %~ \fancyhf{}
     \pagestyle{fancy}
     \fancyhead{}
     \fancyfoot{}
     \fancyfoot[C]{\textbf{\thepage}}
-    %~ \fancyheadoffset[leh,roh]{\marginparsep}
-    %~ \fancyheadoffset[loh,reh]{\myoddoffset}
     \fancyhead[LE,LO]{\textbf{\rightmark}}
     \fancyhead[RE,RO]{\textbf{\leftmark}}
-    %~ \fancyhead[CO,CE]{\thepage}}
     }
     
 % =====================================
@@ -192,7 +184,6 @@
 \definecolor{textcolor}{RGB}{0, 61, 165}  
 
 % ========== Text Highlight ===========
-%~ \usepackage[skins]{tcolorbox}
 \definecolor{tpgray}{gray}{0.90}
 \newtcbox\tcbtp{hbox, on line, colback=tpgray, enhanced, frame hidden, boxrule=0pt, 
     top=-2pt, bottom=-2pt, right=-2pt, left=-2pt, rounded corners}
@@ -278,66 +269,6 @@
 }
 
 % ====== lstlisting environment =======
-%~ \definecolor{black}{cmyk}{0,0,0,1}             
-%~ \definecolor{white}{cmyk}{0,0,0,0}
-%~ \definecolor{darkgrey}{cmyk}{0,0,0,0.97}      %background in Visual Studio
-%~ \definecolor{green}{cmyk}{0.6,0,0.84,0}       %comments in Visual Studio
-%~ \definecolor{blue}{cmyk}{0.65,0.33,0,0.05}       %keywords in Visual Studio
-%~ \definecolor{rose}{cmyk}{0,0.26,0.38,0}       %strings in Visual Studio
-%~ \definecolor{lavender}{cmyk}{0,0.42,0,0.1}   %if/else,switch/case etc. in Visual Studio
-%~ \definecolor{lightblue}{cmyk}{0.35,0,0,0}     %local variables in Visual Studio
-%~ \definecolor{aqua}{cmyk}{0.65,0,0.23,0}       %class types in Visual Studio
-%~ \definecolor{lightgreen}{cmyk}{0.12,0,0.33,0.05} %enumerations and methods in Visual Studio
-
-%~ \lstset{
-%~ language=[Sharp]C,
-%~ numbers=left, 
-%~ numberstyle=\tiny\color{black}, 
-%~ rulesep=10pt,
-%~ xleftmargin=12pt,
-%~ framexleftmargin=-2pt,
-%~ framexrightmargin=-5pt,
-%~ showtabs=false,
-%~ showspaces=false,
-%~ showstringspaces=true,
-%~ breaklines=true,
-%~ breakatwhitespace=true,
-%~ backgroundcolor=\color{darkgrey},
-%~ rulecolor=\color{darkgrey},
-%~ commentstyle=\color{green},
-%~ morecomment=[s][\color{green}]{/*+}{*/},
-%~ morecomment=[s][\color{green}]{/*-}{*/},
-%~ basicstyle=\ttfamily\footnotesize\color{white},
-%~ stringstyle=\color{rose},
-%~ frame=trbl,
-%~ framesep=5pt,
-%~ numbersep=7pt,
-%~ belowcaptionskip=1\baselineskip,
-%~ %**********************
-%~ %ADD YOUR KEYWORDS HERE
-%~ %**********************
-%~ %-------------------------------------------
-%~ %keywords like string, int, false, true ...
-%~ keywordstyle=\color{blue},
-%~ morekeywords={partial, var, value, get, set},
-%~ %-------------------------------------------
-%~ %keywords like if/else, switch/cas ...
-%~ emphstyle=\color{lavender},
-%~ emph={if, else, return, throw, switch, case},
-%~ %-------------------------------------------
-%~ %Collection of your local and global variables
-%~ emphstyle={[2]\color{lightblue}},
-%~ emph={[2]someLocalVariable, someGlobalVariable},
-%~ %-------------------------------------------
-%~ %Collection of your class types
-%~ emphstyle={[3]\color{aqua}},
-%~ emph={[3]SomeOwnClassType},
-%~ %-------------------------------------------
-%~ %Collection of your methods
-%~ emphstyle={[4]\color{lightgreen}},
-%~ emph={[4]ToLower},
-%~ }
-
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},   
     commentstyle=\color{codegreen},
@@ -631,27 +562,10 @@
 	\rule{13cm}{0.4pt}\vspace*{-\baselineskip}\vspace{3.2pt} % Thin horizontal rule
 	\rule{13cm}{1.6pt} % Thick horizontal rule
 	
-		\vspace{1.75\baselineskip} % Whitespace after the title block
-% =================
-%	Information	
-% =================
-	%~ {\large Produced by: \textit{vaeVictis} \\
-		%~ \vspace*{1.2\baselineskip}
-	%~ \textit{\href{mailto:leo.expat@gmail.com}{leo.expat@gmail.com}}} \\
-	%~ \vfill
-%See section \ref{sec:contacts} for social contacts.\\ \vspace{1mm}
-%~ This document is written in \LaTeX \\
-%~ \vspace{1mm}
-%~ Enjoy!
+		\vspace{1.75\baselineskip}
 \end{titlepage}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \tableofcontents
 
-\vfill
-%~ \small{\noindent \textbf{About This File} \vspace{-3mm}\\
-%~ \noindent \rule{3.3cm}{0.5pt} \\
-%~ This file was created for the benefit of all teachers and students wanting to use Latex for tests/exams/lessons/thesis/articles etc.\\
-%~ The entirety of the contents within this file, and folder, are free for public use.}
 \newpage
 \newgeometry{
 	left=29mm, 
@@ -659,19 +573,6 @@
 	top=20mm, 
 	bottom=15mm}
 \nocite{*}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%~ \input{./_ShadowedChapters/OriginalContent/original_content.tex}
-%~ \end{document}
-%~ \newpage
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%~ \input{./_ShadowedChapters/DocLayouts/DocLayouts.tex}
-%~ \newpage
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%~ \input{./_ShadowedChapters/StyleExamples/style_examples.tex}
-%~ \end{document}
-%~ \newpage
-%~ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \normallayout
 \part{C++ Foundations}
 \input{./Chapters/C++/C++.tex}
 \newpage
@@ -691,6 +592,34 @@
 \input{./Chapters/Concurrency/concurrency.tex}
 \newpage
 \printbibsection{subbibintoc}{concurrency}{Concurrency Bibliography}
+\part{Systems and Low Latency}
+\input{./Chapters/LinuxProcesses/linux_processes.tex}
+\newpage
+\printbibsection{subbibintoc}{linuxprocesses}{Linux Processes and Threads Bibliography}
+\input{./Chapters/MemoryModel/memory_model.tex}
+\newpage
+\printbibsection{subbibintoc}{memorymodel}{Memory Model and Synchronization Bibliography}
+\input{./Chapters/CachePerformance/cache_performance.tex}
+\newpage
+\printbibsection{subbibintoc}{cacheperformance}{Cache Coherence and Performance Bibliography}
+\input{./Chapters/NUMA/numa.tex}
+\newpage
+\printbibsection{subbibintoc}{numa}{NUMA Architectures Bibliography}
+\input{./Chapters/LinuxNetworking/linux_networking.tex}
+\newpage
+\printbibsection{subbibintoc}{linuxnetworking}{Linux Networking Fundamentals Bibliography}
+\input{./Chapters/EventDrivenIO/event_driven_io.tex}
+\newpage
+\printbibsection{subbibintoc}{eventdrivenio}{Event Driven I/O Bibliography}
+\input{./Chapters/MemoryMapping/memory_mapping.tex}
+\newpage
+\printbibsection{subbibintoc}{memorymapping}{Memory Mapping and Shared Memory Bibliography}
+\input{./Chapters/KernelBypass/kernel_bypass.tex}
+\newpage
+\printbibsection{subbibintoc}{kernelbypass}{Kernel Bypass and Low Latency Networking Bibliography}
+\input{./Chapters/LowLatencyEngineering/low_latency_engineering.tex}
+\newpage
+\printbibsection{subbibintoc}{lowlatency}{Low Latency Engineering Bibliography}
 \part{Algorithms}
 \input{./Chapters/Algorithms/algorithms.tex}
 \newpage
@@ -712,9 +641,6 @@
 \input{./Chapters/Testing/testing.tex}
 \newpage
 \printbibsection{subbibintoc}{testing}{Testing Bibliography}
-\input{./Chapters/EmbeddedSystem/embedded_system.tex}
-\newpage
-\printbibsection{subbibintoc}{embeddedsystem}{Embedded System Bibliography}
 \input{./Chapters/AI/ai.tex}
 \newpage
 \printbibsection{subbibintoc}{ai}{AI Bibliography}

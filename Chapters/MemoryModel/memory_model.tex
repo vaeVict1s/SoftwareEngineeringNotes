@@ -1,0 +1,76 @@
+\chapter{Memory Model and Synchronization}
+\label{chap:memorymodel}
+\vspace{10.5cm}
+
+\section{C++ Memory Model}
+\label{sec:cpp-memory-model}
+
+\subsection{Data Race}
+\label{subsec:data-race}
+
+\subsection{Race Condition}
+\label{subsec:race-condition}
+
+\subsection{Happens-Before}
+\label{subsec:happens-before}
+
+\subsection{Sequential Consistency}
+\label{subsec:sequential-consistency}
+
+\section{Memory Orders}
+\label{sec:memory-orders-theory}
+
+\subsection{C++ Reference}
+\label{subsec:memory-order-reference}
+See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:memory-order} for 
+\texttt{std::memory\char`_order} definitions and enumerator semantics.
+
+\subsection{Release-Acquire Pairing}
+\label{subsec:release-acquire-pairing}
+
+\subsection{When to Weaken Ordering}
+\label{subsec:when-to-weaken-ordering}
+
+\section{Lock-Free Ring Buffer (SPSC)}
+\label{sec:spsc-ring-buffer}
+
+\subsection{SPSC Model}
+\label{subsec:spsc-model}
+
+\subsection{Head and Tail Indices}
+\label{subsec:spsc-head-tail}
+
+\subsection{Producer and Consumer Ordering}
+\label{subsec:spsc-producer-consumer-ordering}
+
+\subsection{Full and Empty Conditions}
+\label{subsec:spsc-full-empty}
+
+\subsection{Cache-Line Layout}
+\label{subsec:spsc-cache-line-layout}
+
+\subsection{Implementation}
+\label{subsec:spsc-implementation}
+
+\section{Synchronization}
+\label{sec:synchronization-theory}
+
+\subsection{C++ Reference}
+\label{subsec:sync-reference}
+See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:mutual-exclusion} for 
+\texttt{std::mutex}, \texttt{std::shared\char`_mutex}, and related types.
+
+\subsection{Spinlock}
+\label{subsec:spinlock}
+
+\section{Performance Considerations}
+\label{sec:sync-performance}
+
+\subsection{Lock Contention}
+\label{subsec:lock-contention}
+
+\subsection{Lock Convoy}
+\label{subsec:lock-convoy}
+
+\subsection{Synchronization Scalability}
+\label{subsec:scalability}

@@ -1,0 +1,31 @@
+\chapter{Low Latency Engineering}
+\label{chap:lowlatency}
+\vspace{10.5cm}
+
+\section{CPU Isolation}
+\label{sec:cpu-isolation}
+
+\subsection{\texttt{isolcpus}}
+\label{subsec:isolcpus}
+
+\subsection{\texttt{nohz\_full}}
+\label{subsec:nohz-full}
+
+\subsection{\texttt{rcu\_nocbs}}
+\label{subsec:rcu-nocbs}
+
+\section{Busy Polling}
+\label{sec:busy-polling}
+
+\section{Cache Optimization}
+\label{sec:lowlatency-cache-optimization}
+See Chapter~\ref{chap:cacheperformance} for cache hierarchy, false sharing, and 
+\texttt{perf}-based profiling. This section covers operational cache tuning only.
+
+\section{Avoiding Allocations}
+\label{sec:avoiding-allocations}
+See Section~\ref{sec:spsc-ring-buffer} for pre-allocated SPSC ring buffers. 
+This section covers general allocation avoidance on hot paths.
+
+\section{Latency vs Throughput}
+\label{sec:latency-vs-throughput}

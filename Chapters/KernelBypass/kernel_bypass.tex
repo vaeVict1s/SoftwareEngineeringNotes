@@ -1,0 +1,43 @@
+\chapter{Kernel Bypass and Low Latency Networking}
+\label{chap:kernelbypass}
+\vspace{10.5cm}
+
+\section{Why Kernel Bypass}
+\label{sec:why-kernel-bypass}
+
+\subsection{Kernel Networking Overhead}
+\label{subsec:kernel-networking-overhead}
+
+\subsection{System Call Overhead}
+\label{subsec:syscall-overhead}
+See Section~\ref{sec:user-kernel-mode} for user mode vs kernel mode. 
+Here, syscall overhead is framed as a networking latency cost.
+
+\subsection{Context Switches}
+\label{subsec:kernel-bypass-context-switches}
+See Section~\ref{subsec:context-switch} for the general OS definition. 
+Here, context switches are a latency cost of kernel networking and syscall-heavy I/O paths.
+
+\section{Technologies}
+\label{sec:kernel-bypass-technologies}
+
+\subsection{DPDK}
+\label{subsec:dpdk}
+
+\subsection{Solarflare OpenOnload}
+\label{subsec:openonload}
+
+\subsection{AF\_XDP}
+\label{subsec:af-xdp}
+
+\section{When To Use Them}
+\label{sec:kernel-bypass-when-to-use}
+
+\subsection{Trading}
+\label{subsec:kernel-bypass-trading}
+
+\subsection{HPC}
+\label{subsec:kernel-bypass-hpc}
+
+\subsection{Ultra-Low Latency Systems}
+\label{subsec:kernel-bypass-ultra-low-latency}

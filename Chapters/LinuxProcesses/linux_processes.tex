@@ -1,0 +1,49 @@
+\chapter{Linux Processes and Threads}
+\label{chap:linuxprocesses}
+\vspace{10.5cm}
+
+\section{Processes vs Threads}
+\label{sec:processes-vs-threads}
+
+\subsection{Processes}
+\label{subsec:processes}
+
+\subsection{Threads}
+\label{subsec:threads}
+See Chapter~\ref{chap:concurrency} for the C++ thread API (\texttt{std::thread} and related types). 
+This section covers the OS view of threads inside a process.
+
+\section{Address Space}
+\label{sec:address-space}
+
+\section{User Mode vs Kernel Mode}
+\label{sec:user-kernel-mode}
+
+\section{Linux Scheduler}
+\label{sec:linux-scheduler}
+
+\subsection{Context Switch}
+\label{subsec:context-switch}
+
+\subsection{Scheduling Classes}
+\label{subsec:scheduling-classes}
+
+\subsection{Real-Time Scheduling}
+\label{subsec:realtime-scheduling}
+
+\section{Thread Affinity}
+\label{sec:thread-affinity}
+
+\subsection{CPU Affinity}
+\label{subsec:cpu-affinity}
+
+\subsection{Thread Pinning}
+\label{subsec:thread-pinning}
+
+\subsection{\texttt{sched\_setaffinity()}}
+\label{subsec:sched-setaffinity}
+
+\subsection{Pinning on Dedicated Cores}
+\label{subsec:core-pinning}
+Core-level pinning via \texttt{sched\char`_setaffinity()} is covered above. 
+For NUMA node placement, see Section~\ref{subsec:numa-thread-placement}.
