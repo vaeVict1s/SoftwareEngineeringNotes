@@ -17,16 +17,13 @@
 \subsection{Memory Access Latency}
 \label{subsec:numa-memory-latency}
 
-\subsection{NUMA-Local Thread Placement}
-\label{subsec:numa-thread-placement}
-For core-level pinning with \texttt{sched\char`_setaffinity()}, see Section~\ref{subsec:core-pinning}. 
-This section covers placing threads on CPUs within the same NUMA node as their data.
-
 \section{NUMA-Aware Programming}
 \label{sec:numa-aware-programming}
 
 \subsection{Allocation Locality}
 \label{subsec:numa-allocation-locality}
 
-\subsection{NUMA Node CPU Binding}
-\label{subsec:numa-cpu-placement}
+\subsection{NUMA Thread and CPU Binding}
+\label{subsec:numa-thread-cpu-binding}
+For core-level pinning with \texttt{sched\char`_setaffinity()}, see Section~\ref{subsec:cpu-affinity-thread-pinning}. 
+This section covers \texttt{numactl}, \texttt{libnuma}, and placing threads on the same NUMA node as their data.

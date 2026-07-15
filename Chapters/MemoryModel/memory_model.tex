@@ -16,14 +16,16 @@
 
 \subsection{Sequential Consistency}
 \label{subsec:sequential-consistency}
+See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:memory-order} for \texttt{memory\char`_order\char`_seq\char`_cst}. 
+This subsection covers the formal model only.
 
 \section{Memory Orders}
 \label{sec:memory-orders-theory}
 
 \subsection{C++ Reference}
 \label{subsec:memory-order-reference}
-See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:memory-order} for 
-\texttt{std::memory\char`_order} definitions and enumerator semantics.
+See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:memory-sync-ordering} for API listings and 
+Section~\ref{subsec:memory-order} for semantics.
 
 \subsection{Release-Acquire Pairing}
 \label{subsec:release-acquire-pairing}
@@ -48,6 +50,8 @@ See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:memory-order} for
 
 \subsection{Cache-Line Layout}
 \label{subsec:spsc-cache-line-layout}
+See Section~\ref{subsec:false-sharing-solutions} for padding and alignment as a general technique. 
+This subsection covers SPSC-specific head/tail placement only.
 
 \subsection{Implementation}
 \label{subsec:spsc-implementation}

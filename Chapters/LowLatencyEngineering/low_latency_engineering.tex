@@ -4,6 +4,8 @@
 
 \section{CPU Isolation}
 \label{sec:cpu-isolation}
+Assumes per-thread pinning from Section~\ref{subsec:sched-setaffinity}. 
+This section covers kernel boot parameters that isolate cores from general scheduler noise.
 
 \subsection{\texttt{isolcpus}}
 \label{subsec:isolcpus}
@@ -16,6 +18,8 @@
 
 \section{Busy Polling}
 \label{sec:busy-polling}
+Builds on non-blocking sockets (Section~\ref{sec:blocking-vs-nonblocking-io}) and \texttt{epoll} 
+(Chapter~\ref{chap:eventdrivenio}). Trades CPU usage for lower wake-up latency.
 
 \section{Cache Optimization}
 \label{sec:lowlatency-cache-optimization}

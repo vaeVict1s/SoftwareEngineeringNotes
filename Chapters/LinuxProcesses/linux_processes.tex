@@ -15,6 +15,8 @@ This section covers the OS view of threads inside a process.
 
 \section{Address Space}
 \label{sec:address-space}
+Virtual address space and pages are introduced here. For translation cost, see Section~\ref{sec:tlb}. 
+For demand paging and page faults, see Section~\ref{subsec:page-faults}.
 
 \section{User Mode vs Kernel Mode}
 \label{sec:user-kernel-mode}
@@ -34,16 +36,11 @@ This section covers the OS view of threads inside a process.
 \section{Thread Affinity}
 \label{sec:thread-affinity}
 
-\subsection{CPU Affinity}
-\label{subsec:cpu-affinity}
-
-\subsection{Thread Pinning}
-\label{subsec:thread-pinning}
+\subsection{CPU Affinity and Thread Pinning}
+\label{subsec:cpu-affinity-thread-pinning}
+Per-thread core pinning with \texttt{sched\char`_setaffinity()} is covered in the next subsection. 
+For NUMA node placement, see Section~\ref{subsec:numa-thread-cpu-binding}. 
+For OS-level core isolation (\texttt{isolcpus}), see Section~\ref{sec:cpu-isolation}.
 
 \subsection{\texttt{sched\_setaffinity()}}
 \label{subsec:sched-setaffinity}
-
-\subsection{Pinning on Dedicated Cores}
-\label{subsec:core-pinning}
-Core-level pinning via \texttt{sched\char`_setaffinity()} is covered above. 
-For NUMA node placement, see Section~\ref{subsec:numa-thread-placement}.
