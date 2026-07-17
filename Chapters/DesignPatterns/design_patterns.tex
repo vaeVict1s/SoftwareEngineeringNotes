@@ -712,7 +712,15 @@ objects that are easier to implement, change, test, and reuse.
                                              stand-alone object} containing 
                                              all information about it.\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & applying the \highlightit{Principle of Separation of Concerns}\\
+        \multirow{1}{*}{\textbf{How to}} & a request is turned into a 
+                                           \highlightit{command object} 
+                                           that stores the receiver and 
+                                           the operation parameters; \\
+                                         & an \highlightit{invoker} 
+                                           triggers \texttt{execute()} 
+                                           without knowing how the work 
+                                           is done, so commands can be 
+                                           queued, logged, or undone\\
         \hline
         \textbf{When needed} & $\bullet$ there is the need to parametrize 
                                objects with operations\\
@@ -831,9 +839,15 @@ objects that are easier to implement, change, test, and reuse.
                                              without exposing its underlying} \\
                                            & \highlightit{representation}\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & encapsulating the details 
-                                           of the traversal into a 
-                                           object called iterator \\
+        \multirow{1}{*}{\textbf{How to}} & traversal logic is moved into a 
+                                           separate \highlightit{iterator} 
+                                           object that exposes 
+                                           \texttt{next}/\texttt{hasNext} 
+                                           (or equivalent); \\
+                                         & the collection only creates 
+                                           iterators, so clients walk 
+                                           elements without knowing the 
+                                           underlying structure\\
         \hline
         \textbf{When needed} & $\bullet$ collection with complex 
                                data structure not to expose to users\\
@@ -939,7 +953,16 @@ objects that are easier to implement, change, test, and reuse.
                                              communications} between 
                                              the objects \\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & components talk only to a 
+                                           \highlightit{mediator} 
+                                           interface instead of to each 
+                                           other; \\
+                                         & the concrete mediator 
+                                           encapsulates interaction 
+                                           rules and routes calls, so 
+                                           adding a component does not 
+                                           wire a new mesh of 
+                                           dependencies\\
         \hline
         \textbf{When needed} & $\bullet$ changing an already exhisting 
                                class which is strongly coupled \\
@@ -1058,7 +1081,15 @@ objects that are easier to implement, change, test, and reuse.
                                              without exposing 
                                              internals\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & the \highlightit{originator} 
+                                           creates an opaque 
+                                           \highlightit{memento} that 
+                                           stores its internal state; \\
+                                         & a \highlightit{caretaker} 
+                                           keeps mementos and asks the 
+                                           originator to restore from 
+                                           one, without reading the 
+                                           saved fields itself\\
         \hline
         \textbf{When needed} & $\bullet$ snapshots of an object's 
                                state are needed in order to restore 
@@ -1144,7 +1175,16 @@ objects that are easier to implement, change, test, and reuse.
         \multirow{1}{*}{\textbf{What for}} & implementing a 
                                              \highlightit{subscription mechanism}\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & a \highlightit{publisher} 
+                                           keeps a list of 
+                                           \highlightit{subscribers} 
+                                           and notifies them on state 
+                                           changes; \\
+                                         & subscribers implement a 
+                                           common update interface and 
+                                           register/unregister at 
+                                           runtime, so the publisher 
+                                           never hard-codes their types\\
         \hline
         \textbf{When needed} & $\bullet$ changes to the state of one 
                                object may require changing other objects 
@@ -1227,7 +1267,15 @@ objects that are easier to implement, change, test, and reuse.
                                              behavior depends on their 
                                              internal state}\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & state-specific behavior is 
+                                           extracted into separate 
+                                           \highlightit{state} classes 
+                                           that share an interface; \\
+                                         & the context holds a current 
+                                           state object and delegates 
+                                           calls to it, switching the 
+                                           reference when the state 
+                                           changes\\
         \hline
         \textbf{When needed} & $\bullet$ implementing an object that 
                                          behaves differently depending 
@@ -1324,7 +1372,15 @@ objects that are easier to implement, change, test, and reuse.
                                              class}, in oder to use 
                                              them interchangeably \\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & each algorithm variant becomes 
+                                           a \highlightit{strategy} 
+                                           class behind a shared 
+                                           interface; \\
+                                         & the context holds a strategy 
+                                           reference and delegates the 
+                                           varying step to it, so the 
+                                           algorithm can be swapped 
+                                           without changing the context\\
         \hline
         \textbf{When needed} & $\bullet$ different variants of the same 
                                          algorithm must be used by an 
@@ -1453,7 +1509,16 @@ objects that are easier to implement, change, test, and reuse.
                                            & and letting subclasses 
                                              override specific steps\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & based on \highlightit{inheritance}\\
+        \multirow{1}{*}{\textbf{How to}} & a base class defines a 
+                                           \highlightit{template method} 
+                                           that calls a fixed sequence 
+                                           of steps; \\
+                                         & invariant steps stay in the 
+                                           base class, while 
+                                           \highlightit{primitive/hook} 
+                                           steps are abstract or 
+                                           virtual so subclasses fill 
+                                           them in via inheritance\\
         \hline
         \textbf{When needed} & $\bullet$ client needs to extend only 
                                          specific steps of an algorithm \\
@@ -1536,7 +1601,15 @@ objects that are easier to implement, change, test, and reuse.
                                              from the objects} they 
                                              operate on\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & each element class accepts a 
+                                           \highlightit{visitor} and 
+                                           calls back 
+                                           \texttt{visit(this)}; \\
+                                         & new operations are added as 
+                                           new visitor classes, while 
+                                           the element hierarchy stays 
+                                           closed to that change 
+                                           (double dispatch)\\
         \hline
         \textbf{When needed} & $\bullet$ performing an operation on all elements 
                                of a complex data structure\\
@@ -1628,7 +1701,15 @@ objects that are easier to implement, change, test, and reuse.
         \multirow{1}{*}{\textbf{What for}} & allowing \highlightit{objects with 
         incompatible interfaces to collaborate}\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & an \highlightit{adapter} 
+                                           implements the interface 
+                                           clients expect and 
+                                           \highlightit{translates} 
+                                           calls to the adaptee's API; \\
+                                         & clients depend only on the 
+                                           target interface, so the 
+                                           foreign class can be reused 
+                                           without changing either side\\
         \hline
         \textbf{When needed} & $\bullet$ a class' interface is 
                                incompatible with the rest of the 
@@ -1739,7 +1820,16 @@ objects that are easier to implement, change, test, and reuse.
                                              abstracion and an implementation, 
                                              developed independently from each other\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \\
+        \multirow{1}{*}{\textbf{How to}} & the \highlightit{abstraction} 
+                                           hierarchy holds a reference 
+                                           to an 
+                                           \highlightit{implementation} 
+                                           interface and delegates 
+                                           low-level work to it; \\
+                                         & both hierarchies can evolve 
+                                           independently, and the 
+                                           implementation can be swapped 
+                                           at runtime\\
         \hline
         \textbf{When needed} & $\bullet$ dividing and organizing a 
                                          monolithic class that has 
