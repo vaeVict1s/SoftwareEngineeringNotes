@@ -1,22 +1,74 @@
 \chapter{Memory Model and Synchronization}
 \label{chap:memorymodel}
 
+Chapter~\ref{chap:concurrency} lists the C++ APIs (\texttt{std::atomic}, mutexes, 
+\texttt{memory\char`_order} enumerators). This chapter explains the \highlight{rules}: when two 
+threads may see each other's writes, which orders are enough for a handoff, and how to 
+build a small \highlight{lock-free SPSC} queue used on HFT hot paths.
+
 \section{C++ Memory Model}
 \label{sec:cpp-memory-model}
+The C++ memory model defines which program executions are allowed when threads share memory. 
+Compilers and CPUs may \highlight{reorder} loads and stores unless synchronisation forbids it. 
+Portable concurrent code relies on atomics, mutexes, or other synchronising operations --- 
+not on ``it works on my machine.''
 
 \subsection{Data Race}
 \label{subsec:data-race}
+A \highlight{data race} occurs when two threads access the \highlight{same memory location}, 
+at least one access is a \highlight{write}, and the accesses are \highlight{not ordered} by 
+the memory model (no mutex, no atomic with adequate ordering, no other happens-before edge).
+\newline
+In C++, a data race is \highlightbf{undefined behavior}. Fix it with atomics, locks, or by 
+giving each thread private data.
+
+\begin{lstlisting}[language=C++]
+#include <thread>
+
+int g = 0;  // shared, non-atomic
+
+void bad()
+{
+    std::thread a([] { g = 1; });
+    std::thread b([] { g = 2; });  // data race with a
+    a.join();
+    b.join();
+}
+\end{lstlisting}
 
 \subsection{Race Condition}
 \label{subsec:race-condition}
+A \highlight{race condition} is a broader engineering term: the program's correctness depends on 
+\highlight{timing} or interleaving. It may or may not be a formal data race.
+\newline
+Example: both threads use a mutex (no data race) but the business logic still breaks if 
+updates run in the wrong order. Interview tip: say \highlight{data race} when you mean UB; 
+say \highlight{race condition} for logic/timing bugs.
 
 \subsection{Happens-Before}
 \label{subsec:happens-before}
+\highlight{Happens-before} is the relation that makes writes in one thread \highlight{visible} 
+to another. If A happens-before B, then B is guaranteed to see the side effects of A 
+(for the relevant memory).
+\newline
+Typical ways to create happens-before between threads:
+\begin{itemize}
+    \item Unlock of a mutex happens-before a later lock of the \highlight{same} mutex.
+    \item Atomic \texttt{release} store happens-before an atomic \texttt{acquire} load that 
+          \highlight{reads the value written} by that store (on the same atomic object).
+    \item Thread construction / \texttt{join} edges with the thread's entry and exit.
+\end{itemize}
+Without a happens-before edge, another thread may see stale or torn values.
 
 \subsection{Sequential Consistency}
 \label{subsec:sequential-consistency}
 See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:memory-order} for \texttt{memory\char`_order\char`_seq\char`_cst}. 
 This subsection covers the formal model only.
+\newline
+Under \highlight{sequential consistency}, there is a single total order of all seq\_cst 
+atomic operations that all threads agree on, and it is consistent with each thread's 
+program order. It is the \highlight{easiest mental model} and the default for many atomic 
+operations --- but often \highlight{stronger (and costlier)} than a producer/consumer handoff needs.
 
 \section{Memory Orders}
 \label{sec:memory-orders-theory}
@@ -28,32 +80,148 @@ Section~\ref{subsec:memory-order} for semantics.
 
 \subsection{Release-Acquire Pairing}
 \label{subsec:release-acquire-pairing}
+The standard pattern for publishing data from a producer to a consumer:
+\begin{enumerate}
+    \item Producer writes the payload (non-atomic or relaxed atomics).
+    \item Producer performs a \highlight{release} store on a flag / index (``data is ready'').
+    \item Consumer performs an \highlight{acquire} load on that flag / index.
+    \item If the consumer sees the producer's value, it may safely read the payload.
+\end{enumerate}
+The release-acquire pair creates happens-before: all writes \highlight{before} the release 
+become visible to the consumer \highlight{after} the matching acquire.
+
+\begin{lstlisting}[language=C++]
+#include <atomic>
+#include <thread>
+
+int payload = 0;
+std::atomic<bool> ready{false};
+
+void producer()
+{
+    payload = 42;                                  // (1)
+    ready.store(true, std::memory_order_release);  // (2)
+}
+
+void consumer()
+{
+    while (!ready.load(std::memory_order_acquire)) {  // (3)
+        // spin or wait
+    }
+    // (4) safe to read payload: sees 42
+    int x = payload;
+}
+\end{lstlisting}
+
+\noindent
+\texttt{memory\char`_order\char`_acq\char`_rel} is for read-modify-write that both acquire and release 
+(e.g.\ some lock implementations). \texttt{memory\char`_order\char`_relaxed} only guarantees 
+atomicity of that location --- \highlight{no} synchronisation with other memory.
 
 \subsection{When to Weaken Ordering}
 \label{subsec:when-to-weaken-ordering}
+\begin{itemize}
+    \item \highlightbf{seq\_cst} --- default / when unsure; simplest reasoning; may cost more on weak HW.
+    \item \highlightbf{release / acquire} --- message passing, SPSC indices, ``publish flag'' patterns.
+    \item \highlightbf{relaxed} --- pure counters, statistics, when no other data depends on the atomic.
+    \item Prefer \highlight{correct first}; measure before weakening further on x86 (often strong in practice, 
+          but portable code must still use the right orders).
+\end{itemize}
 
 \section{Lock-Free Ring Buffer (SPSC)}
 \label{sec:spsc-ring-buffer}
+A \highlight{single-producer single-consumer} ring buffer moves messages between two threads 
+without a mutex. It is a standard HFT building block (feed thread $\rightarrow$ strategy thread).
 
 \subsection{SPSC Model}
 \label{subsec:spsc-model}
+Exactly \highlight{one} thread pushes, exactly \highlight{one} thread pops. That restriction allows 
+a simple design with two indices and no CAS loops for the common path. Multi-producer or 
+multi-consumer queues need different algorithms (and are harder to get right).
 
 \subsection{Head and Tail Indices}
 \label{subsec:spsc-head-tail}
+Use a fixed-capacity array. The producer advances a \highlight{tail} (write position); the consumer 
+advances a \highlight{head} (read position). Indices are \texttt{std::atomic} (or indexed modulo capacity).
+\newline
+Only the producer writes \texttt{tail}; only the consumer writes \texttt{head}. Each thread may 
+\highlight{read} the other's index.
 
 \subsection{Producer and Consumer Ordering}
 \label{subsec:spsc-producer-consumer-ordering}
+\begin{itemize}
+    \item Producer: write slot, then \texttt{tail.store(..., release)}.
+    \item Consumer: \texttt{head}-side acquire load of \texttt{tail} (or acquire load when observing 
+          new data), then read slot.
+\end{itemize}
+Release-acquire on the indices publishes the slot contents to the consumer.
 
 \subsection{Full and Empty Conditions}
 \label{subsec:spsc-full-empty}
+With capacity $N$ (often power of two):
+\begin{itemize}
+    \item \highlight{Empty} when \texttt{head == tail} (consumer has caught up).
+    \item \highlight{Full} when \texttt{tail - head == N} (no free slot) --- exact formula depends on 
+          whether you leave one slot empty or use an explicit size counter.
+\end{itemize}
+Never let producer and consumer update the \highlight{same} index.
 
 \subsection{Cache-Line Layout}
 \label{subsec:spsc-cache-line-layout}
 See Section~\ref{subsec:false-sharing-solutions} for padding and alignment as a general technique. 
 This subsection covers SPSC-specific head/tail placement only.
+\newline
+Put \texttt{head} and \texttt{tail} on \highlight{separate cache lines} (\texttt{alignas(64)}) so the 
+producer's stores to \texttt{tail} do not invalidate the consumer's line for \texttt{head} 
+(false sharing).
 
 \subsection{Implementation}
 \label{subsec:spsc-implementation}
+Sketch (power-of-two capacity, one empty slot to distinguish full/empty):
+
+\begin{lstlisting}[language=C++]
+#include <atomic>
+#include <cstdint>
+#include <vector>
+
+template <typename T, std::size_t N>
+class SpscRing {
+    static_assert((N & (N - 1)) == 0, "N power of two");
+    static_assert(N >= 2);
+
+    alignas(64) std::atomic<std::size_t> head_{0};  // consumer
+    alignas(64) std::atomic<std::size_t> tail_{0};  // producer
+    T buf_[N];
+
+public:
+    bool try_push(const T& v)
+    {
+        const std::size_t t = tail_.load(std::memory_order_relaxed);
+        const std::size_t next = (t + 1) & (N - 1);
+        if (next == head_.load(std::memory_order_acquire)) {
+            return false;  // full
+        }
+        buf_[t] = v;
+        tail_.store(next, std::memory_order_release);
+        return true;
+    }
+
+    bool try_pop(T& out)
+    {
+        const std::size_t h = head_.load(std::memory_order_relaxed);
+        if (h == tail_.load(std::memory_order_acquire)) {
+            return false;  // empty
+        }
+        out = buf_[h];
+        head_.store((h + 1) & (N - 1), std::memory_order_release);
+        return true;
+    }
+};
+\end{lstlisting}
+
+\noindent
+Interview talking points: SPSC only; release/acquire on indices; cache-line separation; 
+preallocate \texttt{buf\_} (no \texttt{new} on the hot path).
 
 \section{Synchronization}
 \label{sec:synchronization-theory}
@@ -65,15 +233,51 @@ See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:mutual-exclusion} for
 
 \subsection{Spinlock}
 \label{subsec:spinlock}
+A \highlight{spinlock} waits by spinning on an atomic flag instead of sleeping in the kernel. 
+On a \highlight{dedicated core} with very short critical sections, it can beat a mutex 
+(no context switch). On a busy machine, spinning wastes CPU and can hurt latency elsewhere.
+\newline
+Rough rule: mutex for most code; spinlock only when you control the core and the critical 
+section is tiny. See also busy polling (Section~\ref{sec:busy-polling}).
+
+\begin{lstlisting}[language=C++]
+#include <atomic>
+
+struct Spinlock {
+    std::atomic_flag flag = ATOMIC_FLAG_INIT;
+
+    void lock()
+    {
+        while (flag.test_and_set(std::memory_order_acquire)) {
+            // spin
+        }
+    }
+
+    void unlock()
+    {
+        flag.clear(std::memory_order_release);
+    }
+};
+\end{lstlisting}
 
 \section{Performance Considerations}
 \label{sec:sync-performance}
 
 \subsection{Lock Contention}
 \label{subsec:lock-contention}
+\highlight{Contention} means many threads fight for the same lock. Hold times grow, cores wait, 
+and caches bounce the lock word. Fixes: finer-grained locks, shard data, or remove sharing 
+(SPSC / thread-local).
 
 \subsection{Lock Convoy}
 \label{subsec:lock-convoy}
+A \highlight{lock convoy} happens when threads repeatedly wake, find the lock taken, and sleep 
+again --- often with priority or scheduling effects that serialize progress. Symptom: high 
+context-switch rate around one mutex. Prefer shorter critical sections and less sharing.
 
 \subsection{Synchronization Scalability}
 \label{subsec:scalability}
+Ask: does adding cores increase useful work, or only increase waiting on one lock? 
+Designs that scale typically \highlight{partition} work (per-core queues, sharding) instead of 
+one global mutex. HFT systems often accept \highlight{single-threaded} hot paths plus SPSC 
+handoffs rather than fine-grained locking everywhere.

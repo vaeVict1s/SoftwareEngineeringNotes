@@ -175,9 +175,18 @@
 \definecolor{floralwhite}{rgb}{1.0, 0.98, 0.94}
 
 % ----- Colors added by me
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
+% Oblivion 2 (Geany) token colors — listing background stays light
+\definecolor{obliviondefault}{HTML}{2E3436}
+\definecolor{oblivionkeyword}{HTML}{4E9A06}
+\definecolor{obliviontype}{HTML}{3465A4}
+\definecolor{oblivionstring}{HTML}{C4A000}
+\definecolor{oblivioncomment}{HTML}{888A85}
+\definecolor{oblivionnumber}{HTML}{CC0000}
+\definecolor{oblivionpreproc}{HTML}{75507B}
+\definecolor{oblivionnamespace}{HTML}{75507B}
+\definecolor{codegreen}{HTML}{888A85}
+\definecolor{codegray}{HTML}{888A85}
+\definecolor{codepurple}{HTML}{C4A000}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
 \definecolor{shadecolor}{RGB}{0,140,69}      
@@ -272,32 +281,84 @@
 }
 
 % ====== lstlisting environment =======
+% Token colors inspired by Geany "Oblivion 2" (on light listing background).
+% Built-in language keywords -> green. Custom types/namespaces use emph (morekeywords
+% inside a style are cleared when language=C++/Python is set on a listing).
 \lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},   
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize\color{obliviondefault},
+    keywordstyle={\color{oblivionkeyword}\bfseries},
+    commentstyle={\color{oblivioncomment}\itshape},
+    stringstyle={\color{oblivionstring}},
     numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
-    breakatwhitespace=false,         
-    breaklines=true,                 
-    captionpos=b,                    
-    keepspaces=true,                 
-    numbers=left,                    
-    numbersep=5pt,                  
-    showspaces=false,                
+    alsoletter={_},
+    % Types / typedefs (add new names here as examples need them)
+    emph={bool,char,short,int,long,float,double,void,unsigned,signed,const,volatile,auto,
+          size_t,ssize_t,pid_t,uint8_t,uint16_t,uint32_t,uint64_t,
+          int8_t,int16_t,int32_t,int64_t,char8_t,char16_t,char32_t,byte,nullptr_t,
+          string,string_view,wstring_view,thread,jthread,vector,array,map,unordered_map,span,optional,variant,any,
+          mutex,atomic,atomic_flag,unique_ptr,shared_ptr,weak_ptr,lock_guard,unique_lock,
+          condition_variable,future,promise,pair,initializer_list,
+          cpu_set_t,sched_param,pthread_t,enable_if_t,remove_reference_t,is_same_v,integer_sequence,
+          steady_clock,system_clock,high_resolution_clock,time_point,duration,complex,path,iostream,
+          True,False,None,str,list,dict,set,tuple,bytes},
+    emphstyle={\color{obliviontype}\bfseries},
+    % Namespaces (std::thread -> std purple, thread blue above)
+    emph={[2]std,this_thread,chrono,filesystem},
+    emphstyle={[2]\color{oblivionnamespace}\bfseries},
+    % Methods / free functions you care to highlight in examples
+    emph={[3]get_id,native_handle,getpid,pthread_self,syscall,make_unique,make_shared},
+    emphstyle={[3]\color{obliviontype}},
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=8pt,
+    numberfirstline=true,
+    frame=single,
+    framerule=0.4pt,
+    rulecolor=\color{codegray},
+    framesep=4pt,
+    xleftmargin=1.6em,
+    xrightmargin=0.4em,
+    aboveskip=\medskipamount,
+    belowskip=\medskipamount,
+    showspaces=false,
     showstringspaces=false,
-    showtabs=false,                  
+    showtabs=false,
     tabsize=2
 }
 
 \lstdefinelanguage{C+++}{%
   language     = C++,
-  morekeywords = {std, string, template,constexpr,noexcept,lref,rref},
   otherkeywords = {::, *, &, &&},
 }
 
 \lstset{style=mystyle}
+
+% Re-apply emph after each language=... switch (listings drops style morekeywords).
+\makeatletter
+\lst@AddToHook{SetLanguage}{%
+  \lstset{%
+    alsoletter={_},%
+    emph={bool,char,short,int,long,float,double,void,unsigned,signed,const,volatile,auto,
+          size_t,ssize_t,pid_t,uint8_t,uint16_t,uint32_t,uint64_t,
+          int8_t,int16_t,int32_t,int64_t,char8_t,char16_t,char32_t,byte,nullptr_t,
+          string,string_view,wstring_view,thread,jthread,vector,array,map,unordered_map,span,optional,variant,any,
+          mutex,atomic,atomic_flag,unique_ptr,shared_ptr,weak_ptr,lock_guard,unique_lock,
+          condition_variable,future,promise,pair,initializer_list,
+          cpu_set_t,sched_param,pthread_t,enable_if_t,remove_reference_t,is_same_v,integer_sequence,
+          steady_clock,system_clock,high_resolution_clock,time_point,duration,complex,path,iostream,
+          True,False,None,str,list,dict,set,tuple,bytes},%
+    emphstyle={\color{obliviontype}\bfseries},%
+    emph={[2]std,this_thread,chrono,filesystem},%
+    emphstyle={[2]\color{oblivionnamespace}\bfseries},%
+    emph={[3]get_id,native_handle,getpid,pthread_self,syscall,make_unique,make_shared},%
+    emphstyle={[3]\color{obliviontype}},%
+  }%
+}
+\makeatother
 
 % ========= Example Boxes =============
 \tcbset{
