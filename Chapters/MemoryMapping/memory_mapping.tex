@@ -1,32 +1,99 @@
 \chapter{Memory Mapping and Shared Memory}
 \label{chap:memorymapping}
 
+Processes do not share heap pointers across address spaces (Chapter~\ref{chap:linuxprocesses}). 
+They still need fast ways to move bytes: classic \texttt{read}/\texttt{write}, or 
+\highlight{map} pages into the virtual address space with \texttt{mmap}. 
+Mapped regions matter for IPC, large files, and low-copy data paths; page behavior ties to the 
+TLB (Section~\ref{sec:tlb}) and NUMA first-touch (Chapter~\ref{chap:numa}).
+
 \section{File I/O}
 \label{sec:file-io}
+The traditional path copies between kernel buffers and user buffers on every call. 
+Fine for configuration and logs; often too heavy for hot market-data or shared state.
 
 \subsection{\texttt{open()}}
 \label{subsec:open}
+\texttt{open(2)}~\cite{man-open} returns a file descriptor for a path. Flags select access 
+(\texttt{O\char`_RDONLY}, \texttt{O\char`_RDWR}, \ldots) and behavior (\texttt{O\char`_CREAT}, 
+\texttt{O\char`_CLOEXEC}, \ldots). Always check for \texttt{-1} / \texttt{errno}.
 
 \subsection{\texttt{read()}}
 \label{subsec:read}
+Copies up to \texttt{count} bytes from the fd into a user buffer. May return fewer bytes than 
+requested (partial read). Return 0 means end-of-file for regular files.
 
 \subsection{\texttt{write()}}
 \label{subsec:write}
+Copies from a user buffer toward the fd. May be partial; loop until all intended bytes are 
+queued (same discipline as \texttt{send} in Chapter~\ref{chap:linuxnetworking}).
 
 \subsection{\texttt{close()}}
 \label{subsec:close-file-io}
+Drops the fd. After the last close, kernel resources for that open file description are released. 
+Mapped pages that still reference the file can outlive the fd until \texttt{munmap}.
 
 \subsection{\texttt{lseek()}}
 \label{subsec:lseek}
+Moves the file offset used by subsequent \texttt{read}/\texttt{write}. Irrelevant for 
+\texttt{mmap} access (you index the mapped pointer instead), but still used when mixing 
+mapped and unmapped I/O on the same file.
+
+\begin{lstlisting}[language=C++]
+#include <fcntl.h>
+#include <unistd.h>
+
+int fd = open("feed.bin", O_RDONLY);
+if (fd < 0) { /* handle error */ }
+char buf[4096];
+ssize_t n = read(fd, buf, sizeof(buf));
+close(fd);
+\end{lstlisting}
 
 \section{Memory Mapping}
 \label{sec:memory-mapping}
+\texttt{mmap} maps a file (or anonymous memory) into the calling process's virtual address space. 
+After success you touch memory with ordinary loads/stores; the kernel fills pages on demand.
 
 \subsection{\texttt{mmap()}}
 \label{subsec:mmap}
+\texttt{mmap(2)}~\cite{man-mmap}:
+\begin{lstlisting}[language=C++]
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int fd = open("book.bin", O_RDWR);
+void* p = mmap(/* addr */ nullptr,
+               /* length */ 4096,
+               PROT_READ | PROT_WRITE,
+               MAP_SHARED,
+               fd,
+               /* offset */ 0);
+if (p == MAP_FAILED) { /* handle error */ }
+// use p as a typed pointer into the file
+close(fd);  // mapping can outlive the fd
+\end{lstlisting}
+Important flags:
+\begin{itemize}
+    \item \highlightbf{\texttt{PROT\char`_READ} / \texttt{PROT\char`_WRITE} / \texttt{PROT\char`_EXEC}} 
+          --- allowed access; mismatches fault.
+    \item \highlightbf{\texttt{MAP\char`_SHARED}} --- writes are visible to other mappers of the 
+          same object and (for files) can be written back to the file.
+    \item \highlightbf{\texttt{MAP\char`_PRIVATE}} --- copy-on-write private view; writes do not 
+          update the underlying file or other processes.
+    \item \highlightbf{\texttt{MAP\char`_ANONYMOUS}} --- no file; pages backed by RAM/swap 
+          (fd is typically \texttt{-1}). Used for large private arenas or, with care, shared 
+          anonymous maps via inheritance after \texttt{fork}.
+\end{itemize}
+Offset and length should be page-aligned where the man page requires it. Prefer 
+\texttt{MAP\char`_FAILED} checks --- never compare only to \texttt{nullptr}.
 
 \subsection{\texttt{munmap()}}
 \label{subsec:munmap}
+\texttt{munmap(2)}~\cite{man-munmap} removes the mapping. Accessing the old pointer afterward is 
+undefined (likely \texttt{SIGSEGV}). For file-backed \texttt{MAP\char`_SHARED} data you need on 
+disk, \texttt{msync} can flush dirty pages before unmap if durability matters.
 
 \section{Concepts}
 \label{sec:memory-mapping-concepts}
@@ -34,15 +101,68 @@ See Section~\ref{sec:address-space} for virtual address space and pages.
 
 \subsection{Memory-Mapped Files}
 \label{subsec:memory-mapped-files}
+A file-backed map lets you treat file contents as a byte array (or struct overlay) in memory. 
+Benefits versus repeated \texttt{read}:
+\begin{itemize}
+    \item Fewer explicit syscalls on the hot path (page faults still enter the kernel when cold).
+    \item OS page cache and your process share physical frames for the same file pages.
+    \item Natural fit for large read-mostly datasets (reference data, sometimes capture files).
+\end{itemize}
+Costs: harder error handling (faults instead of \texttt{read} return codes), alignment/struct-layout 
+care, and accidental large working sets that thrash the TLB/cache.
 
 \subsection{Shared Memory}
 \label{subsec:shared-memory}
+To share a region between unrelated processes, map the \highlight{same} object with 
+\texttt{MAP\char`_SHARED}:
+\begin{itemize}
+    \item \highlightbf{POSIX shared memory:} \texttt{shm\char`_open}~\cite{man-shm-open} creates/opens 
+          a name under \texttt{/dev/shm}; then \texttt{ftruncate} + \texttt{mmap(..., MAP\char`_SHARED, ...)}.
+    \item \highlightbf{File-backed:} both processes \texttt{mmap} the same path with 
+          \texttt{MAP\char`_SHARED}.
+\end{itemize}
+\begin{lstlisting}[language=C++]
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int fd = shm_open("/hft_ring", O_CREAT | O_RDWR, 0600);
+ftruncate(fd, 4096);
+void* p = mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+\end{lstlisting}
+Readers and writers still need a \highlight{protocol} (atomics, seqlocks, SPSC rings --- 
+Chapter~\ref{chap:memorymodel}). Mapping alone does not make concurrent access safe.
+\newline
+HFT use: publisher maps a ring or book snapshot region; consumers map read-only or shared and 
+poll without socket copies. Pin producers/consumers with NUMA in mind (Chapter~\ref{chap:numa}).
 
 \subsection{Lazy Loading}
 \label{subsec:lazy-loading}
+\texttt{mmap} usually does \highlight{not} pull the whole file into RAM up front. The kernel 
+establishes virtual mappings; physical pages appear when first touched (\highlight{demand paging}). 
+That keeps startup cheap and RAM use proportional to the working set --- until you touch 
+everything and fault it all in.
 
 \subsection{Page Faults}
 \label{subsec:page-faults}
+A \highlight{page fault} occurs when the CPU accesses a virtual address that is not currently 
+resident (or lacks permission). The kernel may:
+\begin{itemize}
+    \item Load the page from file/swap (major fault --- slow),
+    \item Map an already-cached page (minor fault --- cheaper),
+    \item Or deliver \texttt{SIGSEGV} on illegal access.
+\end{itemize}
+On a latency-critical path, unexpected major faults are jitter. Warm important maps 
+(touch pages at startup), size for the working set, and watch TLB pressure 
+(Section~\ref{sec:tlb}).
 
 \subsection{Copy-on-Write}
 \label{subsec:copy-on-write}
+With \texttt{MAP\char`_PRIVATE}, the first write to a shared-looking page allocates a 
+\highlight{private} copy for that process; other mappers keep the old contents. 
+\texttt{fork} uses the same idea for the child's address space: pages stay shared read-only 
+until either side writes.
+\newline
+Interview line: \texttt{MAP\char`_SHARED} shares updates; \texttt{MAP\char`_PRIVATE} is COW and 
+does not update the file. Shared memory still needs synchronization on top of the map.
