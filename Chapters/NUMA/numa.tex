@@ -1,28 +1,107 @@
 \chapter{NUMA Architectures}
 \label{chap:numa}
 
+On a laptop with one CPU socket, almost all RAM is ``local.'' On multi-socket servers, 
+each socket has its own memory controllers: accessing \highlight{local} RAM is faster than 
+crossing to another socket's RAM. That design is \highlight{NUMA} 
+(\emph{Non-Uniform Memory Access}). HFT boxes are often multi-socket; interviews expect 
+you to keep \highlight{threads, memory, and NICs} on the same node when it matters.
+
 \section{NUMA Fundamentals}
 \label{sec:numa-fundamentals}
+A \highlight{NUMA node} is typically one CPU socket plus the DRAM attached to it. 
+Cores on that socket reach local DRAM with lower latency (and often higher bandwidth) 
+than DRAM attached to another socket. Inter-socket links (e.g.\ Intel UPI / older QPI) 
+carry remote traffic and add delay.
 
 \subsection{Local Memory}
 \label{subsec:numa-local-memory}
+\highlight{Local memory} is RAM attached to the same node as the core executing the load/store. 
+Prefer allocating hot structures (order books, ring buffers, decode scratch) on the node 
+where the owning thread runs.
 
 \subsection{Remote Memory}
 \label{subsec:numa-remote-memory}
+\highlight{Remote memory} is RAM on another node. Every remote access pays the interconnect 
+tax and can increase jitter. Cross-node false sharing / coherence traffic is especially costly 
+(Chapter~\ref{chap:cacheperformance}).
 
 \section{NUMA Performance}
 \label{sec:numa-performance}
 
 \subsection{Memory Access Latency}
 \label{subsec:numa-memory-latency}
+Rule of thumb for interviews: remote DRAM can be on the order of 
+\highlight{$\sim$1.5$\times$--2$\times+$} local latency (platform-dependent; measure on the box). 
+Bandwidth can suffer too when many cores hammer the interconnect.
+\newline
+Classic failure mode: thread pinned on node 0, but \texttt{malloc}/\texttt{new} first-touched 
+pages on node 1 (or the OS placed them poorly) $\Rightarrow$ every hot access is remote.
 
 \section{NUMA-Aware Programming}
 \label{sec:numa-aware-programming}
+Goals:
+\begin{enumerate}
+    \item Run the thread on the right node (CPU binding).
+    \item Allocate its hot memory on that same node (allocation locality).
+    \item Prefer the NIC that sits on that node (PCI proximity; Chapter~\ref{chap:linuxprocesses} topology notes).
+\end{enumerate}
 
 \subsection{Allocation Locality}
 \label{subsec:numa-allocation-locality}
+Linux often uses \highlight{first-touch}: the node of the CPU that first writes a page 
+owns that page. Patterns:
+\begin{itemize}
+    \item Pin the thread first, then allocate / initialise large buffers on that thread.
+    \item Or allocate explicitly with \texttt{libnuma} / \texttt{numactl}.
+\end{itemize}
+Command-line control (process-wide):
+\begin{lstlisting}[language=bash]
+# Run on CPUs of node 0; prefer allocating on node 0
+numactl --cpunodebind=0 --membind=0 ./trading_engine
+
+# Show topology
+numactl --hardware
+lscpu | grep NUMA
+\end{lstlisting}
+Library sketch (link with \texttt{-lnuma}; package \texttt{libnuma-dev} on Debian/Ubuntu):
+\begin{lstlisting}[language=C++]
+#include <numa.h>
+
+void* alloc_on_node(std::size_t bytes, int node)
+{
+    if (numa_available() < 0) {
+        return nullptr;  // not a NUMA system / lib unavailable
+    }
+    return numa_alloc_onnode(bytes, node);
+}
+
+void free_numa(void* p, std::size_t bytes)
+{
+    numa_free(p, bytes);
+}
+\end{lstlisting}
+On a \highlight{single-node} machine (common laptops), \texttt{numactl --hardware} shows one node; 
+NUMA tuning still matters less than pinning and IRQ isolation, but the vocabulary remains 
+interview-relevant for servers.
 
 \subsection{NUMA Thread and CPU Binding}
 \label{subsec:numa-thread-cpu-binding}
-For core-level pinning with \texttt{sched\char`_setaffinity()}, see Section~\ref{subsec:cpu-affinity-thread-pinning}. 
-This section covers \texttt{numactl}, \texttt{libnuma}, and placing threads on the same NUMA node as their data.
+For core-level pinning with \texttt{sched\char`_setaffinity()} / \texttt{pthread\char`_setaffinity\char`_np}, 
+see Section~\ref{subsec:cpu-affinity-thread-pinning}. 
+This section covers placing threads on CPUs \highlight{within a NUMA node} so they stay next 
+to their data (and often next to the NIC).
+\newline
+Workflow:
+\begin{enumerate}
+    \item Find the NIC's node: \texttt{/sys/bus/pci/devices/<addr>/numa\char`_node} 
+          (\texttt{-1} often means ``unspecified,'' treat as node 0 on single-node hosts).
+    \item List CPUs on that node: \texttt{/sys/devices/system/node/nodeN/cpulist}.
+    \item Pin trading threads to those CPUs (avoid core 0 when IRQs land there).
+    \item Allocate hot memory on the same node (\texttt{membind} / first-touch / \texttt{numa\char`_alloc\char`_onnode}).
+\end{enumerate}
+\texttt{libnuma} helpers such as \texttt{numa\char`_run\char`_on\char`_node(node)} restrict the calling 
+thread to that node's CPUs; combine with explicit affinity when you need a \highlight{specific} core.
+\newline
+Interview one-liner: \highlight{pin compute next to memory next to the NIC} --- same NUMA node --- 
+unless you have measured that another layout wins.
