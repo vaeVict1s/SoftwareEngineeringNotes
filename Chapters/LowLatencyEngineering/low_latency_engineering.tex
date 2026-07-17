@@ -1,34 +1,119 @@
 \chapter{Low Latency Engineering}
 \label{chap:lowlatency}
 
+Earlier chapters give the building blocks: pinning and scheduling 
+(Chapter~\ref{chap:linuxprocesses}), caches and false sharing 
+(Chapter~\ref{chap:cacheperformance}), NUMA (Chapter~\ref{chap:numa}), 
+non-blocking I/O and \texttt{epoll} (Chapters~\ref{chap:linuxnetworking} 
+and~\ref{chap:eventdrivenio}), and kernel bypass when the stack itself is the limit 
+(Chapter~\ref{chap:kernelbypass}). 
+This chapter is the \highlight{ops checklist}: isolate cores, poll instead of sleep, 
+keep the hot path cache-friendly and allocation-free, and optimize for latency even when 
+that hurts bulk throughput.
+
 \section{CPU Isolation}
 \label{sec:cpu-isolation}
 Assumes per-thread pinning from Section~\ref{subsec:sched-setaffinity}. 
 This section covers kernel boot parameters that isolate cores from general scheduler noise.
+\newline
+Pinning alone is not enough if the kernel still steals your core for timers, RCU callbacks, 
+or unrelated threads. Isolation makes a core \highlight{mostly yours}.
 
 \subsection{\texttt{isolcpus}}
 \label{subsec:isolcpus}
+Boot parameter that removes listed CPUs from the general scheduler's regular balancing pool 
+(exact semantics depend on kernel version and flags)~\cite{kernel-isolcpus}. 
+You then \texttt{sched\char`_setaffinity} your hot threads onto those CPUs.
+\newline
+Typical pattern: housekeeping on CPUs 0--$N$, strategy/feed on isolated CPUs $N{+}1$ onward. 
+Without also pinning IRQs and other noise away, isolation is incomplete 
+(Chapter~\ref{chap:linuxprocesses}).
 
 \subsection{\texttt{nohz\_full}}
 \label{subsec:nohz-full}
+\texttt{nohz\char`_full=}~\cite{kernel-nohz} reduces scheduler timer ticks on listed CPUs when 
+only one runnable task is present --- less periodic interruption on a quiet isolated core. 
+Needs a kernel built with full dynticks support; validate on your distro. 
+Pair with \texttt{isolcpus} and a single pinned busy-loop or poll thread per core.
 
 \subsection{\texttt{rcu\_nocbs}}
 \label{subsec:rcu-nocbs}
+\texttt{rcu\char`_nocbs=}~\cite{kernel-rcu} (and related \texttt{rcu\char`_nocb\char`_poll}) moves 
+RCU callback processing off the listed CPUs onto housekeeping cores. 
+Otherwise RCU softirqs can inject jitter on your ``isolated'' CPU. 
+Treat isolation as a \highlight{set}: \texttt{isolcpus} + \texttt{nohz\char`_full} + 
+\texttt{rcu\char`_nocbs} + IRQ affinity + pinned threads.
 
 \section{Busy Polling}
 \label{sec:busy-polling}
 Builds on non-blocking sockets (Section~\ref{sec:blocking-vs-nonblocking-io}) and \texttt{epoll} 
 (Chapter~\ref{chap:eventdrivenio}). Trades CPU usage for lower wake-up latency.
+\newline
+Blocking \texttt{epoll\char`_wait} / \texttt{recv} sleeps the thread; wake-up adds 
+unpredictable delay. Alternatives on the critical path:
+\begin{itemize}
+    \item \texttt{epoll\char`_wait} with timeout \texttt{0} in a tight loop (spin until ready).
+    \item Socket \highlight{busy poll} options (\texttt{SO\char`_BUSY\char`_POLL} and related 
+          sysctls) so \texttt{recv}/\texttt{poll} spin briefly in the kernel networking stack 
+          before sleeping~\cite{man-busy-poll}.
+    \item User-space poll loops on bypass rings (Chapter~\ref{chap:kernelbypass}).
+\end{itemize}
+Cost: a core at $\sim$100\% for as long as you spin. Only do this on isolated CPUs dedicated 
+to that job. Interview line: sleep = jitter; busy poll = latency for watts and opportunity cost.
 
 \section{Cache Optimization}
 \label{sec:lowlatency-cache-optimization}
 See Chapter~\ref{chap:cacheperformance} for cache hierarchy, false sharing, and 
 \texttt{perf}-based profiling. This section covers operational cache tuning only.
+\begin{itemize}
+    \item Keep hot structures within few cache lines; align and pad to avoid false sharing.
+    \item Prefer sequential access and preallocated contiguous buffers (rings, arenas).
+    \item Pin thread and memory on the same NUMA node as the NIC (Chapter~\ref{chap:numa}).
+    \item Warm critical code and data at startup (touch pages, run a dry path) to avoid 
+          cold-cache and major-fault surprises (Chapter~\ref{chap:memorymapping}).
+    \item Measure with \texttt{perf} --- do not guess which miss hurts the tick-to-trade path.
+\end{itemize}
 
 \section{Avoiding Allocations}
 \label{sec:avoiding-allocations}
 See Section~\ref{sec:spsc-ring-buffer} for pre-allocated SPSC ring buffers. 
 This section covers general allocation avoidance on hot paths.
+\newline
+\texttt{new}/\texttt{malloc}, \texttt{std::string} growth, and hidden temporaries cause:
+\begin{itemize}
+    \item Unbounded latency (allocator locks, syscalls, page faults),
+    \item Cache/TLB disruption,
+    \item Jitter under load that never shows in a quiet unit test.
+\end{itemize}
+Practices:
+\begin{itemize}
+    \item Preallocate pools and rings at startup; recycle objects.
+    \item Fixed-size messages; no unbounded buffering on the hot thread.
+    \item Defer logging, formatting, and allocations to a colder thread via a lock-free queue.
+    \item Prefer stack/static storage or arenas with LIFO free for short-lived data.
+\end{itemize}
 
 \section{Latency vs Throughput}
 \label{sec:latency-vs-throughput}
+\begin{center}
+\begin{tabular}{|l|p{5.8cm}|p{5.8cm}|}
+\hline
+\textbf{Goal} & \textbf{Optimize for} & \textbf{Often sacrifices} \\
+\hline
+Latency & Median and tail response time; 
+  predictable wake-ups; short paths & CPU utilization, batching efficiency, 
+  multi-tenant density \\
+\hline
+Throughput & Messages/sec or bandwidth; 
+  batching, coalescing, deep queues & Per-message delay; tail latency under load \\
+\hline
+\end{tabular}
+\end{center}
+HFT market-data and order paths are usually \highlight{latency-first}: busy poll, 
+\texttt{TCP\char`_NODELAY}, shallow queues, one connection per hot thread, isolation. 
+A bulk file transfer or analytics job is throughput-first: large buffers, interrupts 
+coalesced, sleep when idle.
+\newline
+Interview line: know which axis you are on. Techniques that maximize packets/sec 
+(Nagle, interrupt coalescing, shared noisy cores) often \highlight{hurt} tick-to-trade 
+latency --- and the reverse wastes capacity if you only care about bulk bandwidth.
