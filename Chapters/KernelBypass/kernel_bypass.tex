@@ -1,42 +1,126 @@
 \chapter{Kernel Bypass and Low Latency Networking}
 \label{chap:kernelbypass}
 
+Chapters~\ref{chap:linuxnetworking}--\ref{chap:eventdrivenio} stay inside the 
+\highlight{kernel networking stack}: sockets, skbs, interrupts, and syscalls. 
+That path is correct and portable --- and often too slow or too jittery for the hottest 
+market-data and order paths. \highlight{Kernel bypass} moves packet I/O into user space 
+(or a thin driver path) so the trading process touches buffers with far fewer kernel 
+transitions.
+\newline
+This chapter is conceptual: interviewers want \highlight{why} bypass exists and 
+\highlight{when} it is justified, not a full DPDK tutorial.
+
 \section{Why Kernel Bypass}
 \label{sec:why-kernel-bypass}
 
 \subsection{Kernel Networking Overhead}
 \label{subsec:kernel-networking-overhead}
+A typical UDP/TCP receive on Linux roughly does:
+\begin{enumerate}
+    \item NIC DMA into kernel memory; interrupt or NAPI softirq runs.
+    \item Protocol processing (Ethernet/IP/UDP or TCP) and socket buffer enqueue.
+    \item Your thread wakes (or polls) and \texttt{recv} \highlight{copies} into a user buffer 
+          (unless you use specialized zero-copy APIs).
+\end{enumerate}
+Each stage adds latency and \highlight{variance}: scheduling, cache misses, lock contention 
+in the stack, interrupt coalescing, and noisy neighbors on the same core 
+(Chapter~\ref{chap:linuxprocesses}). Throughput can still be high; 
+\highlight{tail latency} is what HFT cares about.
 
 \subsection{System Call Overhead}
 \label{subsec:syscall-overhead}
 See Section~\ref{sec:user-kernel-mode} for user mode vs kernel mode. 
 Here, syscall overhead is framed as a networking latency cost.
+\newline
+Every \texttt{recv}/\texttt{send}/\texttt{epoll\char`_wait} crosses into the kernel: mode 
+switch, validation, possible sleep/wake. Even a non-blocking \texttt{recv} that returns 
+\texttt{EAGAIN} paid for the round trip. Busy-polling sockets 
+(Chapter~\ref{chap:lowlatency}) reduces wake-ups but still uses the kernel path. 
+Bypass aims to \highlight{remove} those syscalls from the packet hot path: the app polls 
+NIC rings (or a user-space stack) directly.
 
 \subsection{Context Switches}
 \label{subsec:kernel-bypass-context-switches}
 See Section~\ref{subsec:context-switch} for the general OS definition. 
 Here, context switches are a latency cost of kernel networking and syscall-heavy I/O paths.
+\newline
+Interrupt handlers and softirqs can preempt your hot thread; blocking I/O forces a full 
+deschedule. Isolating CPUs and pinning 
+(Chapter~\ref{chap:lowlatency}, Chapter~\ref{chap:linuxprocesses}) help, but the cleanest 
+fix for NIC noise is often: dedicated cores, IRQ affinity away from the strategy core, 
+and a bypass stack that does not bounce through the kernel for every packet.
 
 \section{Technologies}
 \label{sec:kernel-bypass-technologies}
+Vendors and open-source stacks differ in API and hardware support. The shared idea: 
+\highlight{user-space packet I/O} + poll mode, often with huge pages and pinned memory.
 
 \subsection{DPDK}
 \label{subsec:dpdk}
+The \highlight{Data Plane Development Kit}~\cite{dpdk-docs} is a widely cited open stack for 
+poll-mode drivers (PMDs), memory pools (mbufs), and run-to-completion loops on dedicated 
+cores. The application owns RX/TX rings; the kernel is largely out of the data path for 
+those NICs/ports.
+\newline
+Interview points: poll mode (no interrupt per packet on the hot path), huge pages, NUMA-aware 
+pools (Chapter~\ref{chap:numa}), and the operational cost (you become the network stack for 
+that interface --- routing, filtering, and safety are your problem).
 
 \subsection{Solarflare OpenOnload}
 \label{subsec:openonload}
+\highlight{OpenOnload} (Solarflare / Xilinx / AMD lineage)~\cite{openonload-docs} accelerates 
+\highlight{existing} Berkeley sockets via an LD\char`_PRELOAD user-space stack for supported 
+NICs. Many apps keep \texttt{socket}/\texttt{recv}/\texttt{send} while the library short-circuits 
+into user space when possible.
+\newline
+Appeal for trading firms: less rewrite than a full DPDK port; still hardware-specific and 
+ops-heavy. Exact product names evolve; the interview idea is 
+\highlight{sockets API + user-space acceleration}, not memorizing version strings.
 
 \subsection{AF\_XDP}
 \label{subsec:af-xdp}
+\texttt{AF\char`_XDP}~\cite{af-xdp-docs} is a Linux socket family for high-performance packet 
+I/O into user-space \highlight{UMEM} rings, with optional zero-copy paths and XDP programs in 
+the driver/NIC. It sits between ``full kernel stack'' and ``leave Linux entirely'': you still 
+integrate with the kernel's XDP/AF\char`_XDP machinery, but the hot path can avoid sk\_buff 
+copies and heavy protocol processing.
+\newline
+Useful vocabulary: XDP for early drop/redirect in-kernel; \texttt{AF\char`_XDP} when a 
+user process must consume raw/fast packet streams with lower overhead than classic sockets.
 
 \section{When To Use Them}
 \label{sec:kernel-bypass-when-to-use}
+Bypass is not free: hardware lock-in, harder debugging, security/ops burden, and often a 
+dedicated team. Use it when measurements say the kernel path dominates your latency budget.
 
 \subsection{Trading}
 \label{subsec:kernel-bypass-trading}
+\begin{itemize}
+    \item \highlightbf{Market data} --- UDP/multicast firehose where microseconds and jitter 
+          matter; classic \texttt{recv} + softirqs show up in profiles.
+    \item \highlightbf{Order entry} --- sometimes still kernel TCP with careful tuning 
+          (\texttt{TCP\char`_NODELAY}, pinned cores); bypass when the tick-to-trade path is 
+          NIC-bound and proven.
+    \item Prefer proving the bottleneck (Chapter~\ref{chap:cacheperformance} profiling mindset) 
+          before rewriting the I/O layer.
+\end{itemize}
 
 \subsection{HPC}
 \label{subsec:kernel-bypass-hpc}
+High-performance computing and storage fabrics use similar ideas (RDMA, user-space drivers, 
+poll mode) for message rates and latency between nodes. Same trade-off: performance vs 
+complexity and portability.
 
 \subsection{Ultra-Low Latency Systems}
 \label{subsec:kernel-bypass-ultra-low-latency}
+When the SLA is ``kernel networking is already too slow even when tuned,'' combine:
+\begin{itemize}
+    \item Bypass or accelerated sockets on the NIC path,
+    \item CPU isolation and busy poll (Chapter~\ref{chap:lowlatency}),
+    \item Careful NUMA placement of threads and buffers (Chapter~\ref{chap:numa}),
+    \item Preallocated rings and no hot-path allocations (Chapter~\ref{chap:memorymodel}).
+\end{itemize}
+Interview line: kernel sockets copy and syscall; bypass polls user-space rings for lower 
+median and tail latency at the cost of complexity. Name DPDK (PMD), OpenOnload-style 
+socket acceleration, and \texttt{AF\char`_XDP} as the Linux-native middle ground.
