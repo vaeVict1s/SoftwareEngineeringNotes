@@ -1,32 +1,210 @@
 \chapter{Event Driven I/O}
 \label{chap:eventdrivenio}
 
+Non-blocking sockets (Chapter~\ref{chap:linuxnetworking}) return immediately with 
+\texttt{EAGAIN} when there is nothing to do. That alone is not enough: you still need a way to 
+\highlight{wait until an fd is ready} without spinning forever or blocking on one socket at a time.
+\newline
+\highlightbf{I/O multiplexing} answers ``which of my fds can I read/write now?'' Classic APIs are 
+\texttt{select} and \texttt{poll}; Linux's scalable answer is \texttt{epoll}. Busy-polling and 
+kernel bypass come later (Chapters~\ref{chap:lowlatency} and~\ref{chap:kernelbypass}).
+
 \section{\texttt{select()}}
 \label{sec:select}
+\texttt{select(2)}~\cite{man-select} is the oldest portable multiplexer. Interviewers still ask 
+about it to contrast with \texttt{epoll}.
 
 \subsection{How It Works}
 \label{subsec:select-how-it-works}
+You pass three bitmasks (\texttt{fd\char`_set}): readable, writable, and exceptional conditions, 
+plus an optional timeout. The kernel blocks (or returns after the timeout) and \highlight{rewrites} 
+the sets so only ready fds remain set.
+\begin{lstlisting}[language=C++]
+#include <sys/select.h>
+
+fd_set rd;
+FD_ZERO(&rd);
+FD_SET(listen_fd, &rd);
+int nfds = listen_fd + 1;
+
+timeval tv{};
+tv.tv_sec = 0;
+tv.tv_usec = 1000;  // 1 ms
+
+int n = select(nfds, &rd, nullptr, nullptr, &tv);
+if (n > 0 && FD_ISSET(listen_fd, &rd)) {
+    // accept / recv is safe to attempt
+}
+\end{lstlisting}
+You must \highlight{rebuild} the \texttt{fd\char`_set} before every call (the kernel mutates it). 
+\texttt{nfds} is one past the highest fd number you care about.
 
 \subsection{Limits}
 \label{subsec:select-limits}
+\begin{itemize}
+    \item \highlightbf{\texttt{FD\char`_SETSIZE}} --- typically 1024. Fds above that cannot be 
+          tracked without rebuilding libc / using non-portable tricks.
+    \item \highlightbf{Linear cost} --- the kernel walks your interest set (cost linear in the 
+          number of fds); user space also copies and scans bitmasks. Cost grows with the 
+          \highlight{number of monitored fds}, not only with ready ones.
+    \item \highlightbf{Stateful rebuild} --- every wait starts from scratch; no persistent 
+          interest list in the kernel.
+\end{itemize}
+Fine for tiny tools; the wrong model for thousands of connections.
 
 \section{\texttt{poll()}}
 \label{sec:poll}
+\texttt{poll(2)}~\cite{man-poll} replaces bitmasks with an array of \texttt{pollfd} 
+(\texttt{fd}, \texttt{events}, \texttt{revents}).
 
 \subsection{Improvements over \texttt{select()}}
 \label{subsec:poll-improvements}
+\begin{itemize}
+    \item No \texttt{FD\char`_SETSIZE} hard limit (array length is yours).
+    \item Clearer event flags (\texttt{POLLIN}, \texttt{POLLOUT}, \texttt{POLLERR}, \ldots).
+    \item Input \texttt{events} and output \texttt{revents} are separate --- you do not rebuild 
+          interest from scratch the same awkward way as \texttt{select}.
+\end{itemize}
+\begin{lstlisting}[language=C++]
+#include <poll.h>
+
+pollfd pfd{};
+pfd.fd = sock;
+pfd.events = POLLIN | POLLOUT;
+
+int n = poll(&pfd, 1, /* timeout_ms */ 1);
+if (n > 0 && (pfd.revents & POLLIN)) {
+    // readable
+}
+\end{lstlisting}
+
+\subsection{Still Linear}
+\label{subsec:poll-still-linear}
+\texttt{poll} still scales linearly in the number of fds: each wait copies/scans the whole 
+array. Better than \texttt{select} for large fd numbers, but not the HFT/server default on Linux.
 
 \section{\texttt{epoll()}}
 \label{sec:epoll}
+\texttt{epoll}~\cite{man-epoll} is Linux-specific and built for many fds. Interest is registered 
+\highlight{once} and stored in the kernel; waits return only \highlight{ready} events.
+\newline
+Three syscalls:
+\begin{itemize}
+    \item \texttt{epoll\char`_create1} --- create an epoll instance (returns an epoll fd).
+    \item \texttt{epoll\char`_ctl} --- add/mod/del interest for a target fd.
+    \item \texttt{epoll\char`_wait} --- block until events (or timeout).
+\end{itemize}
 
-\subsection{Edge Triggered}
-\label{subsec:epoll-edge-triggered}
+\begin{lstlisting}[language=C++]
+#include <sys/epoll.h>
+#include <unistd.h>
+
+int epfd = epoll_create1(0);
+epoll_event ev{};
+ev.events = EPOLLIN;
+ev.data.fd = sock;
+epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
+
+epoll_event out[64];
+int n = epoll_wait(epfd, out, 64, /* timeout_ms */ 1);
+for (int i = 0; i < n; ++i) {
+    if (out[i].events & EPOLLIN) {
+        // handle out[i].data.fd
+    }
+}
+\end{lstlisting}
+\texttt{ev.data} is a union (\texttt{fd}, pointer, \texttt{u64}, \ldots) --- store whatever your 
+event loop needs to dispatch without another lookup.
 
 \subsection{Level Triggered}
 \label{subsec:epoll-level-triggered}
+\highlightbf{Default} mode (no \texttt{EPOLLET}). While the condition remains true 
+(e.g.\ data still in the receive buffer), \texttt{epoll\char`_wait} keeps reporting the fd.
+\newline
+Pros: easier to use; missing a byte once does not permanently silence the fd. 
+Cons: if you do not drain carefully, you can get woken repeatedly for the same readiness 
+(extra wake-ups). Pair with non-blocking I/O and read until \texttt{EAGAIN}.
+
+\subsection{Edge Triggered}
+\label{subsec:epoll-edge-triggered}
+Add \texttt{EPOLLET}: you are notified on a \highlight{state transition} (e.g.\ went from 
+empty to readable), not continuously while ready.
+\newline
+Rules that interviewers expect:
+\begin{itemize}
+    \item Fds \highlight{must} be non-blocking.
+    \item On notification, \highlight{drain} until \texttt{EAGAIN}/\texttt{EWOULDBLOCK} 
+          (read/write loops). Stopping early can leave data buffered with \highlight{no further 
+          edge} until more arrives --- classic ET bug.
+    \item Often combined with \texttt{EPOLLONESHOT} (re-arm explicitly after handling) in 
+          multi-threaded reactors.
+\end{itemize}
+LT is safer for learning; ET is common in high-performance loops once the drain discipline 
+is solid.
 
 \subsection{Epoll Scalability}
 \label{subsec:epoll-scalability}
+\begin{itemize}
+    \item Interest list lives in the kernel --- \texttt{epoll\char`_ctl} is roughly constant 
+          time per registration change; not rebuilt every wait.
+    \item \texttt{epoll\char`_wait} cost tracks \highlight{ready} fds (plus your userspace 
+          handling), not the full interest set size.
+    \item One thread can monitor tens of thousands of sockets; the limit becomes your 
+          processing, not the wait API.
+\end{itemize}
+That is why Linux network servers and many trading gateways use \texttt{epoll} (or go further 
+with kernel bypass). \texttt{select}/\texttt{poll} remain useful vocabulary and for tiny 
+portability niches.
 
 \section{Event Loop Architecture}
 \label{sec:event-loop-architecture}
+A typical \highlight{reactor} loop:
+\begin{enumerate}
+    \item Create \texttt{epfd}; register listening and connected sockets (non-blocking).
+    \item \texttt{epoll\char`_wait} (timeout 0 for pure poll, small ms, or \texttt{-1} to sleep).
+    \item For each ready event: \texttt{accept} new clients, or \texttt{recv}/\texttt{send} 
+          on existing ones; on ET, loop until \texttt{EAGAIN}.
+    \item Handle \texttt{EPOLLERR} / \texttt{EPOLLHUP}: close and \texttt{EPOLL\char`_CTL\char`_DEL}.
+    \item Repeat.
+\end{enumerate}
+Design notes for low-latency stacks:
+\begin{itemize}
+    \item Keep the hot path on a \highlight{pinned} core (Chapter~\ref{chap:linuxprocesses}); 
+          avoid blocking syscalls inside the loop.
+    \item Prefer \highlight{one} epoll thread owning the sockets, or shard by connection with 
+          clear ownership --- shared epoll across many threads needs oneshot/re-arm discipline.
+    \item Timeout 0 + spinning is busy-poll territory (Chapter~\ref{chap:lowlatency}); a small 
+          positive timeout trades a bit of latency for less wasted power when idle.
+    \item Still kernel-mediated I/O: packet path goes through the networking stack. Cutting 
+          that cost is Chapter~\ref{chap:kernelbypass}.
+\end{itemize}
+
+\begin{lstlisting}[language=C++]
+// Sketch: single-threaded LT epoll loop (errors omitted)
+void run_loop(int epfd)
+{
+    epoll_event out[64];
+    for (;;) {
+        const int n = epoll_wait(epfd, out, 64, 1);
+        for (int i = 0; i < n; ++i) {
+            const int fd = out[i].data.fd;
+            if (out[i].events & (EPOLLERR | EPOLLHUP)) {
+                epoll_ctl(epfd, EPOLL_CTL_DEL, fd, nullptr);
+                close(fd);
+                continue;
+            }
+            if (out[i].events & EPOLLIN) {
+                // read until EAGAIN if using EPOLLET; else one or more reads
+                handle_readable(fd);
+            }
+            if (out[i].events & EPOLLOUT) {
+                handle_writable(fd);
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+Interview line: \texttt{select}/\texttt{poll} scan all interest (linear in fds); \texttt{epoll} keeps 
+interest in-kernel and returns ready set. Prefer LT until you need ET; with ET always use 
+non-blocking fds and drain to \texttt{EAGAIN}.
