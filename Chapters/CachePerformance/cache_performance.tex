@@ -1,68 +1,212 @@
 \chapter{Cache Coherence and Performance}
 \label{chap:cacheperformance}
 
+Modern CPUs are fast; \highlight{DRAM} is slow. Caches hide that gap. 
+For HFT and systems interviews, you must explain why two threads touching 
+\highlight{nearby} memory can destroy performance (\highlight{false sharing}), 
+how coherence protocols move ownership of cache lines, and how to 
+\highlight{measure} misses with \texttt{perf}.
+
 \section{CPU Cache Hierarchy}
 \label{sec:cpu-cache-hierarchy}
+Caches store recently used data and instructions in small, fast SRAM. 
+Capacity grows and latency worsens as you go down the hierarchy. Typical 
+orders of magnitude on a server CPU (rough; learn the story, not exact ns):
+\begin{itemize}
+    \item L1: $\sim$1--4 cycles, tens of KiB per core.
+    \item L2: $\sim$10+ cycles, hundreds of KiB per core.
+    \item L3: tens of cycles, shared across cores on a socket, MBs.
+    \item DRAM: hundreds of cycles.
+\end{itemize}
+A \highlight{cache line} is the transfer unit (commonly 64 bytes on current x86-64 CPUs). 
+The hardware loads/invalidates whole lines, not single \texttt{int}s.
 
 \subsection{L1}
 \label{subsec:cache-l1}
+\highlight{L1} is split into instruction (L1i) and data (L1d) on most cores. 
+It is private to the core, tiny, and the first place a hot trading loop 
+should keep its working set. A miss in L1 often hits L2 next.
 
 \subsection{L2}
 \label{subsec:cache-l2}
+\highlight{L2} is larger and still typically \highlight{per-core} (or lightly shared). 
+It absorbs what does not fit in L1. Pinning a thread to one core 
+(Chapter~\ref{chap:linuxprocesses}) helps keep L1/L2 \highlight{warm}.
 
 \subsection{L3}
 \label{subsec:cache-l3}
+\highlight{L3} (LLC) is usually \highlight{shared} by cores on the same socket. 
+It helps when threads on the same socket share read-mostly data. 
+It does \highlight{not} remove false sharing: two cores writing the same line 
+still bounce ownership through the coherence protocol.
 
 \section{Cache Coherence}
 \label{sec:cache-coherence}
+When multiple cores cache the same physical line, they must agree on its 
+contents. \highlight{Cache coherence} protocols maintain that agreement. 
+Without them, core A could keep a stale copy while core B wrote a new value.
 
 \subsection{MESI}
 \label{subsec:mesi}
+\highlight{MESI} is a classic write-invalidate protocol. Each cached line is in one of:
+\begin{itemize}
+    \item \highlightbf{M (Modified)} --- this core has the only copy; it is dirty (differs from DRAM).
+    \item \highlightbf{E (Exclusive)} --- this core has the only copy; clean.
+    \item \highlightbf{S (Shared)} --- several cores may hold a read-only copy.
+    \item \highlightbf{I (Invalid)} --- not present / must not be used.
+\end{itemize}
+A write typically requires \highlight{Exclusive} or \highlight{Modified} ownership: 
+other cores' copies are invalidated first.
 
 \subsubsection{Cache Invalidation}
 \label{subsec:cache-invalidation}
+When core A writes a line held as Shared elsewhere, it sends 
+\highlight{invalidations}. Other cores mark their copies Invalid. 
+Their next access \highlight{misses} and must refetch. 
+Frequent invalidations across cores = \highlight{coherence traffic} and latency spikes.
 
 \section{False Sharing}
 \label{sec:false-sharing}
+False sharing is one of the highest-yield interview topics in this chapter.
 
 \subsection{What It Is}
 \label{subsec:false-sharing-definition}
+\highlight{False sharing} happens when two threads update \highlight{different variables} 
+that live on the \highlight{same cache line}. Logically there is no shared data race 
+on one variable; physically the line is shared and bounced between cores.
+
+\begin{lstlisting}[language=C++]
+#include <atomic>
+#include <thread>
+
+struct SharedCounters {
+    std::atomic<long> a{0};
+    std::atomic<long> b{0};  // may share a cache line with a
+};
+
+void false_sharing_demo(SharedCounters& c)
+{
+    std::thread t1([&] {
+        for (int i = 0; i < 100000000; ++i) c.a.fetch_add(1, std::memory_order_relaxed);
+    });
+    std::thread t2([&] {
+        for (int i = 0; i < 100000000; ++i) c.b.fetch_add(1, std::memory_order_relaxed);
+    });
+    t1.join();
+    t2.join();
+}
+\end{lstlisting}
 
 \subsection{Why It Slows Things Down}
 \label{subsec:false-sharing-why-slow}
+Each store may force the other core to \highlight{invalidate} and reload the line. 
+You pay coherence traffic even though \texttt{a} and \texttt{b} are independent. 
+Symptoms: poor scaling when adding threads, high cache-miss / remote-hit counters, 
+time spent in what looks like ``simple atomics.''
 
 \subsection{Cache-Line Ping-Pong}
 \label{subsec:cache-line-ping-pong}
+The line oscillates (``\highlight{ping-pong}'') between cores: M on core 0, then M on core 1, 
+and so on. Hot SPSC indices without padding show the same pathology 
+(Section~\ref{subsec:spsc-cache-line-layout}).
 
 \subsection{Solutions}
 \label{subsec:false-sharing-solutions}
+\begin{itemize}
+    \item \highlightbf{Pad / align} so hot fields sit on different lines. 
+          Examples below use \texttt{alignas(64)} because 64 bytes is the usual 
+          line size on x86-64 and keeps listings readable. Prefer the portable 
+          C++17 constant \texttt{std::hardware\char`_destructive\char`_interference\char`_size} 
+          (\texttt{<new>}) in production code --- it is the destructive interference size 
+          (padding to \highlight{avoid} sharing a line). The related 
+          \texttt{std::hardware\char`_constructive\char`_interference\char`_size} is for 
+          packing data that \highlight{should} share a line.
+\end{itemize}
+\begin{lstlisting}[language=C++]
+#include <atomic>
+
+struct PaddedCounters {
+    alignas(64) std::atomic<long> a{0};
+    alignas(64) std::atomic<long> b{0};
+};
+\end{lstlisting}
+\begin{itemize}
+    \item Give each thread its \highlight{own} counter (or shard), then reduce infrequently.
+    \item Keep writers on the \highlight{same core} if they must share a line (often worse than padding).
+    \item Verify with \texttt{perf} (Section~\ref{sec:cache-profiling}).
+\end{itemize}
 
 \section{Profiling}
 \label{sec:cache-profiling}
+Guessing is expensive; \highlight{measure}. On Linux, \texttt{perf} is the standard first tool.
 
 \subsection{\texttt{perf stat}}
 \label{subsec:perf-stat}
+High-level counters for a whole run:
+\begin{lstlisting}[language=bash]
+perf stat -e cycles,instructions,cache-misses,cache-references ./my_bench
+\end{lstlisting}
+Look at \texttt{cache-misses} relative to \texttt{cache-references}, and 
+instructions per cycle (IPC). A sudden miss rate jump after a ``harmless'' 
+structural change often points at layout / false sharing.
 
 \subsection{\texttt{perf record} and \texttt{perf annotate}}
 \label{subsec:perf-record-annotate}
+\begin{lstlisting}[language=bash]
+perf record -e cache-misses -g ./my_bench
+perf report
+perf annotate
+\end{lstlisting}
+\texttt{record} samples where misses occur; \texttt{annotate} maps them to 
+instructions / source. Use this when \texttt{stat} says misses are high but 
+you do not know \highlight{which} line of code.
 
 \subsection{Cache Miss Events}
 \label{subsec:cache-miss-events}
+Useful event names vary by CPU; common ones include 
+\texttt{cache-misses}, \texttt{cache-references}, and more specific L1/LLC 
+miss events from \texttt{perf list}. On Intel, also watch for 
+remote DRAM / cross-socket accesses when NUMA is in play 
+(Chapter~\ref{chap:numa}).
 
 \subsection{Interpreting Results}
 \label{subsec:profiling-interpretation}
+\begin{itemize}
+    \item High misses + poor scaling with thread count $\rightarrow$ suspect sharing / false sharing.
+    \item High misses in a single-threaded scan $\rightarrow$ suspect layout, random access, or working set $>$ cache.
+    \item Good IPC and low misses $\rightarrow$ look elsewhere (syscalls, locks, I/O).
+\end{itemize}
 
 \subsection{Detecting False Sharing}
 \label{subsec:profiling-false-sharing}
+Practical recipe:
+\begin{enumerate}
+    \item Benchmark the contended structure; note throughput / \texttt{perf stat}.
+    \item Apply \texttt{alignas(64)} (or pad) between hot fields; see the note in 
+          Section~\ref{subsec:false-sharing-solutions} on 
+          \texttt{std::hardware\char`_destructive\char`_interference\char`_size}.
+    \item Re-run: large improvement with the same logic $\Rightarrow$ false sharing was likely.
+\end{enumerate}
+Some toolchains expose \texttt{perf c2c} (cache-to-cache) analysis on supported platforms --- 
+useful on real servers when available.
 
 \section{Cache Locality}
 \label{sec:cache-locality}
+Locality is why contiguous, predictable access patterns beat pointer-chasing.
 
 \subsection{Spatial Locality}
 \label{subsec:spatial-locality}
+\highlight{Spatial locality}: using address $X$ makes nearby addresses ($X+64$, \ldots) cheap 
+because they may already be in the same line or prefetched. 
+Prefer \highlight{arrays of structs} laid out for the hot scan order; avoid scattering 
+hot fields across the heap.
 
 \subsection{Temporal Locality}
 \label{subsec:temporal-locality}
+\highlight{Temporal locality}: reusing the same data soon keeps it in L1/L2. 
+Tight loops over a small working set win; thrashing a huge working set 
+forces DRAM traffic. Pinning (Chapter~\ref{chap:linuxprocesses}) protects 
+temporal locality from migration.
 
 \section{TLB}
 \label{sec:tlb}
@@ -70,6 +214,14 @@ See Section~\ref{sec:address-space} for virtual address space and pages.
 
 \subsection{Translation Lookaside Buffer}
 \label{subsec:translation-lookaside-buffer}
+The \highlight{TLB} caches virtual$\rightarrow$physical translations. 
+Every load/store needs a translation; a TLB hit is cheap compared to a page-table walk.
 
 \subsection{TLB Misses}
 \label{subsec:tlb-misses}
+A \highlight{TLB miss} walks page tables (and may incur further cache misses). 
+Large, sparsely accessed working sets or many small pages increase TLB pressure. 
+Mitigations used in low-latency systems include tighter layouts, 
+\highlight{huge pages} (fewer translations), and avoiding touch-many-pages patterns 
+on the hot path. Page faults and demand paging are covered in 
+Section~\ref{subsec:page-faults}.

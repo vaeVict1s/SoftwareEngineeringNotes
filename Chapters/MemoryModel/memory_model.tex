@@ -171,7 +171,8 @@ Never let producer and consumer update the \highlight{same} index.
 See Section~\ref{subsec:false-sharing-solutions} for padding and alignment as a general technique. 
 This subsection covers SPSC-specific head/tail placement only.
 \newline
-Put \texttt{head} and \texttt{tail} on \highlight{separate cache lines} (\texttt{alignas(64)}) so the 
+Put \texttt{head} and \texttt{tail} on \highlight{separate cache lines} (\texttt{alignas(64)}; 
+see Section~\ref{subsec:false-sharing-solutions} for the portable constant) so the 
 producer's stores to \texttt{tail} do not invalidate the consumer's line for \texttt{head} 
 (false sharing).
 
