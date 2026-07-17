@@ -1,0 +1,51 @@
+% TCP socket lifecycle: server (left) vs client (right)
+\centering
+\begin{tikzpicture}[
+    font=\sffamily,
+    box/.style={
+        draw=black,
+        thick,
+        rectangle,
+        minimum width=2.6cm,
+        minimum height=0.72cm,
+        align=center,
+        text=oblivionkeyword
+    },
+    title/.style={
+        text=oblivionkeyword,
+        font=\sffamily\bfseries\large
+    },
+    arr/.style={-{Stealth[length=2.2mm]}, thick, black}
+]
+    % --- titles ---
+    \node[title] (srvtitle) at (0,0) {Server};
+    \node[title] (cltitle) at (5.2,0) {Client};
+
+    % --- server column ---
+    \node[box] (ssocket) at (0,-1.0) {Socket};
+    \node[box] (ssetsockopt) at (0,-2.1) {setsockopt};
+    \node[box] (sbind) at (0,-3.2) {Bind};
+    \node[box] (slisten) at (0,-4.3) {Listen};
+    \node[box] (saccept) at (0,-5.4) {Accept};
+    \node[box] (ssendrecv) at (0,-6.5) {Send/Recv};
+
+    \draw[arr] (ssocket) -- (ssetsockopt);
+    \draw[arr] (ssetsockopt) -- (sbind);
+    \draw[arr] (sbind) -- (slisten);
+    \draw[arr] (slisten) -- (saccept);
+    \draw[arr] (saccept) -- (ssendrecv);
+
+    % --- client column ---
+    \node[box] (csocket) at (5.2,-1.0) {Socket};
+    % Connect between Listen and Accept
+    \node[box] (cconnect) at (5.2,-4.85) {Connect};
+    \node[box] (csendrecv) at (5.2,-6.5) {send/Recv};
+
+    \draw[arr] (csocket) -- (cconnect);
+    \draw[arr] (cconnect) -- (csendrecv);
+
+    % --- interactions ---
+    \draw[arr, bend right=28] (cconnect.north west) to (slisten.east);
+    \draw[{Stealth[length=2.2mm]}-{Stealth[length=2.2mm]}, thick, black]
+        (ssendrecv) -- (csendrecv);
+\end{tikzpicture}

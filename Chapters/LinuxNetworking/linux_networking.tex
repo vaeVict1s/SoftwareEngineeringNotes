@@ -1,56 +1,245 @@
 \chapter{Linux Networking Fundamentals}
 \label{chap:linuxnetworking}
 
+From user space, networking starts with the \highlight{Berkeley sockets} API. 
+HFT stacks care about \highlight{which} protocol carries market data versus orders, 
+and whether a call can \highlight{block} the hot thread (unpredictable wake-ups). 
+Multiplexing with \texttt{epoll} is Chapter~\ref{chap:eventdrivenio}; kernel bypass is 
+Chapter~\ref{chap:kernelbypass}.
+\newline
+Do \highlight{not} memorize every flag and \texttt{errno}. Use \texttt{man 2 <call>} and 
+\texttt{man 7 socket} / \texttt{man 7 tcp}. Interviewers care that you know which calls 
+block, how non-blocking I/O fails with \texttt{EAGAIN}, and latency knobs such as 
+\texttt{TCP\char`_NODELAY}.
+
 \section{TCP vs UDP}
 \label{sec:tcp-vs-udp}
+\begin{itemize}
+    \item \highlightbf{TCP} --- connection-oriented, reliable, ordered byte stream. 
+          Handshake, retransmission, congestion control. Common for order/execution 
+          sessions where loss is unacceptable. Cost: more kernel work and latency variance.
+    \item \highlightbf{UDP} --- datagrams, no connection, no delivery guarantee. 
+          Common for \highlight{market data} (including multicast feeds): the app handles 
+          gaps/seq numbers. Lower overhead; you own reliability.
+\end{itemize}
+Interview line: pick TCP when you need a reliable session; UDP when you need 
+firehose throughput and can tolerate/detect loss yourself.
+
+\section{Which Calls Block?}
+\label{sec:socket-blocking-matrix}
+By default a new socket is \highlight{blocking}. \texttt{O\char`_NONBLOCK} (via \texttt{fcntl} or 
+\texttt{SOCK\char`_NONBLOCK} / \texttt{accept4}) changes that.
+\begin{center}
+\begin{tabular}{|l|l|p{7.5cm}|}
+\hline
+\textbf{Call} & \textbf{Default} & \textbf{Notes} \\
+\hline
+\texttt{socket} & non-blocking & Local kernel alloc only. \\
+\hline
+\texttt{bind} & non-blocking & Local name binding. \\
+\hline
+\texttt{listen} & non-blocking & Marks socket passive; sets backlog. \\
+\hline
+\texttt{accept} & \highlight{blocking} & Sleeps if no pending connection; 
+  non-blocking $\rightarrow$ \texttt{EAGAIN}. \\
+\hline
+\texttt{connect} & \highlight{blocking} & Waits for TCP handshake; 
+  non-blocking $\rightarrow$ \texttt{EINPROGRESS}. \\
+\hline
+\texttt{send} & \highlight{blocking} & Sleeps if send buffer full; may send \highlight{partially}. \\
+\hline
+\texttt{recv} & \highlight{blocking} & Sleeps if no data; return 0 = peer closed cleanly. \\
+\hline
+\texttt{close} & usually not & Returns quickly; kernel finishes teardown async. 
+  Can block with \texttt{SO\char`_LINGER}. \\
+\hline
+\end{tabular}
+\end{center}
 
 \section{Socket Lifecycle}
 \label{sec:socket-lifecycle}
+A socket is an endpoint (an \texttt{fd}). Typical TCP server path: 
+\texttt{socket} $\rightarrow$ \texttt{setsockopt} $\rightarrow$ \texttt{bind} $\rightarrow$ 
+\texttt{listen} $\rightarrow$ \texttt{accept} loop $\rightarrow$ \texttt{recv}/\texttt{send} 
+$\rightarrow$ \texttt{close}. 
+Client path: \texttt{socket} $\rightarrow$ \texttt{connect} $\rightarrow$ I/O $\rightarrow$ \texttt{close}. 
+UDP often skips \texttt{listen}/\texttt{accept} and uses \texttt{sendto}/\texttt{recvfrom} 
+(or \texttt{connect} on UDP to fix a peer).
+
+\begin{figure}[H]
+    \input{./Chapters/LinuxNetworking/TikzInclude/socket_lifecycle.tex}
+    \caption{TCP socket lifecycle: server setup versus client \texttt{connect}, then bidirectional I/O.}
+    \label{fig:socket-lifecycle}
+\end{figure}
 
 \subsection{\texttt{socket()}}
 \label{subsec:socket}
+Creates an endpoint. Example: \texttt{socket(AF\char`_INET, SOCK\char`_STREAM, 0)} for TCP IPv4; 
+\texttt{SOCK\char`_DGRAM} for UDP. Returns a file descriptor or \texttt{-1} on error 
+(e.g.\ \texttt{EMFILE} if the process is out of fds). Not a blocking wait on the network.
 
 \subsection{\texttt{bind()}}
 \label{subsec:bind}
+Assigns a local address (IP + port). Servers bind before listening; 
+\texttt{INADDR\char`_ANY} means ``all interfaces.'' Not a network wait.
+\newline
+\highlightbf{\texttt{EADDRINUSE} / \texttt{TIME\char`_WAIT}:} after a restart, \texttt{bind} often fails 
+because the port is still reserved while TCP finishes delayed segments. Set 
+\texttt{SO\char`_REUSEADDR} with \texttt{setsockopt} \highlight{before} \texttt{bind} so the address 
+can be reused. This is a standard interview pitfall.
 
 \subsection{\texttt{listen()}}
 \label{subsec:listen}
+Marks a TCP socket as passive. The \texttt{backlog} limits the queue of connections that 
+finished the handshake but are not yet taken by \texttt{accept}. If the queue is full, 
+clients may see \texttt{ECONNREFUSED}. System cap: \texttt{/proc/sys/net/core/somaxconn}.
 
 \subsection{\texttt{accept()}}
 \label{subsec:accept}
+Dequeues a completed connection and returns a \highlight{new} fd for that client. 
+Blocking \texttt{accept} sleeps until a client arrives. Non-blocking: \texttt{-1} with 
+\texttt{EAGAIN}/\texttt{EWOULDBLOCK}. Optional Linux \texttt{accept4} can set 
+\texttt{SOCK\char`_NONBLOCK} / \texttt{SOCK\char`_CLOEXEC} atomically on the new fd.
 
 \subsection{\texttt{connect()}}
 \label{subsec:connect}
+TCP client: starts the three-way handshake. Blocking \texttt{connect} may wait a long time 
+on failure/timeout. Non-blocking: returns \texttt{-1} / \texttt{EINPROGRESS}; completion is 
+detected by polling for \highlight{writability} (\texttt{epoll}/\texttt{poll}), then checking 
+socket error via \texttt{getsockopt(SO\char`_ERROR)}. If the client did not \texttt{bind}, the 
+kernel picks an ephemeral local port.
 
 \subsection{\texttt{send()}}
 \label{subsec:send}
+Copies bytes into the kernel send buffer (TCP stream or connected UDP). May accept 
+\highlight{fewer} bytes than requested --- loop until all data is queued. Blocking sleeps when 
+the buffer is full; non-blocking yields \texttt{EAGAIN}.
+\newline
+\highlightbf{\texttt{MSG\char`_NOSIGNAL}:} writing to a closed peer can raise \texttt{SIGPIPE} and 
+\highlight{kill} the process. Pass \texttt{MSG\char`_NOSIGNAL} so failure becomes \texttt{-1} / 
+\texttt{EPIPE} instead --- critical for trading processes that must not die on a dropped session.
 
 \subsection{\texttt{recv()}}
 \label{subsec:recv}
+\begin{itemize}
+    \item \texttt{> 0} --- bytes read (may be partial).
+    \item \texttt{0} --- peer closed cleanly (\texttt{close}/\texttt{shutdown}).
+    \item \texttt{-1} --- error (\texttt{EAGAIN} if non-blocking and empty; \texttt{ECONNRESET} if peer aborted).
+\end{itemize}
 
 \subsection{\texttt{close()}}
 \label{subsec:close}
+Drops one reference on the fd. TCP teardown usually continues in the kernel without 
+blocking your thread. With \texttt{SO\char`_LINGER}, \texttt{close} can block until data is flushed 
+or a timeout expires. After \texttt{fork}, the connection stays up until \highlight{all} processes 
+that hold the fd call \texttt{close}; use \texttt{shutdown} when you need to signal end-of-stream 
+regardless of refcount.
+
+\begin{lstlisting}[language=C++]
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <unistd.h>
+
+// Minimal TCP listen socket (error checks omitted for brevity)
+int make_tcp_listener(uint16_t port)
+{
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    int yes = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port);
+
+    bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+    listen(fd, 128);
+    return fd;
+}
+\end{lstlisting}
 
 \section{Blocking vs Non-Blocking I/O}
 \label{sec:blocking-vs-nonblocking-io}
+This is the HFT-critical distinction in this chapter.
 
 \subsection{Blocking Sockets}
 \label{subsec:blocking-sockets}
+By default, \texttt{recv}/\texttt{accept}/\texttt{connect}/\texttt{send} may \highlight{sleep} in the kernel. 
+The thread is descheduled; wake-up latency is unpredictable 
+(Chapter~\ref{chap:linuxprocesses}). Fine for tools; dangerous on a pinned strategy core.
 
 \subsection{Non-Blocking Sockets}
 \label{subsec:nonblocking-sockets}
+Operations return immediately. If they cannot complete, you get \texttt{EAGAIN} / 
+\texttt{EWOULDBLOCK} (or \texttt{EINPROGRESS} for \texttt{connect}) and try later --- typically after 
+\texttt{epoll} says the fd is ready (Chapter~\ref{chap:eventdrivenio}), or in a busy-poll loop 
+(Chapter~\ref{chap:lowlatency}).
 
 \subsection{\texttt{O\_NONBLOCK}}
 \label{subsec:o-nonblock}
+Set the file status flag so all I/O on that fd is non-blocking:
+\begin{lstlisting}[language=C++]
+#include <fcntl.h>
+
+bool set_nonblocking(int fd)
+{
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) return false;
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0;
+}
+\end{lstlisting}
 
 \subsection{\texttt{MSG\_DONTWAIT}}
 \label{subsec:msg-dontwait}
+Per-call non-blocking for \texttt{recv}/\texttt{send} without changing the socket's default mode: 
+pass \texttt{MSG\char`_DONTWAIT} in the flags argument. Useful when only some reads must not block.
+
+\section{Latency Knobs}
+\label{sec:tcp-latency-knobs}
+
+\subsection{\texttt{TCP\_NODELAY}}
+\label{subsec:tcp-nodelay}
+By default TCP may use \highlight{Nagle's algorithm}: small writes can be delayed to coalesce 
+packets (better bandwidth, worse latency). In HFT that delay is unacceptable.
+\begin{lstlisting}[language=C++]
+int one = 1;
+setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+\end{lstlisting}
+Disabling Nagle sends ASAP at the cost of more packets. Classic interview question.
+
+\subsection{\texttt{MSG\_NOSIGNAL}}
+\label{subsec:msg-nosignal}
+See \texttt{send} above: avoid \texttt{SIGPIPE} killing the process; prefer handling \texttt{EPIPE}.
 
 \section{Common Errors}
 \label{sec:network-common-errors}
+Always check return values; use \texttt{perror} / \texttt{strerror(errno)} while debugging. 
+Know these by \highlight{name and meaning}, not numeric codes:
 
-\subsection{\texttt{EAGAIN}}
+\subsection{\texttt{EAGAIN} / \texttt{EWOULDBLOCK}}
 \label{subsec:eagain}
-
-\subsection{\texttt{EWOULDBLOCK}}
 \label{subsec:ewouldblock}
+``Try again'' on a non-blocking socket (no data / no send buffer space). On Linux they are 
+the same value for sockets. Normal in event-driven loops --- not a fatal error.
+
+\subsection{\texttt{EINPROGRESS}}
+\label{subsec:einprogress}
+Non-blocking \texttt{connect} started; wait for completion via I/O multiplexing.
+
+\subsection{\texttt{EADDRINUSE}}
+\label{subsec:eaddrinuse}
+Address/port still busy (often \texttt{TIME\char`_WAIT}). Use \texttt{SO\char`_REUSEADDR} before \texttt{bind}.
+
+\subsection{\texttt{ECONNREFUSED}}
+\label{subsec:econnrefused}
+Peer actively refused (nothing listening, or listen backlog full).
+
+\subsection{\texttt{ETIMEDOUT}}
+\label{subsec:etimedout}
+No timely response (path/firewall/server down) --- different from an active refuse.
+
+\subsection{\texttt{EPIPE} / \texttt{ECONNRESET}}
+\label{subsec:epipe}
+Peer gone. With \texttt{MSG\char`_NOSIGNAL}, broken writes surface as \texttt{EPIPE} instead of 
+\texttt{SIGPIPE}. \texttt{ECONNRESET} often means an abrupt abort.
