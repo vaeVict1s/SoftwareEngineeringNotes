@@ -1,46 +1,355 @@
 \chapter{Linux Processes and Threads}
 \label{chap:linuxprocesses}
-\vspace{10.5cm}
+
+From a C++ program, concurrency starts with \texttt{std::thread} (Chapter~\ref{chap:concurrency}). 
+Underneath, the operating system still sees \highlight{processes} and \highlight{threads}: separate 
+schedulable entities with PIDs, address spaces, and CPU time. 
+This chapter connects the C++ view to the Linux view, which matters for latency tuning 
+(affinity, scheduling classes, syscall cost).
 
 \section{Processes vs Threads}
 \label{sec:processes-vs-threads}
 
 \subsection{Processes}
 \label{subsec:processes}
+A \highlight{program} is an executable file on disk. A \highlight{process} is that program 
+\highlightit{loaded into memory and running}: the OS gives it a \highlightbf{PID} 
+(\emph{process identifier}), private resources, and its own virtual address space 
+(Section~\ref{sec:address-space}).
+\newline
+Creating a new process (e.g.\ via \texttt{fork(2)}~\cite{man-fork}) duplicates the address 
+space: the child gets a new PID and a copy-on-write view of memory. 
+Multiprocess designs (separate feed handler and strategy engine) communicate via IPC 
+(pipes, shared memory --- Chapter~\ref{chap:memorymapping}), not by sharing heap pointers.
+\newline
+Every C++ program starts as \highlight{one process}. \texttt{main()} runs on the process's 
+\highlight{initial thread} (also called the \highlight{main thread}).
 
 \subsection{Threads}
 \label{subsec:threads}
-See Chapter~\ref{chap:concurrency} for the C++ thread API (\texttt{std::thread} and related types). 
-This section covers the OS view of threads inside a process.
+See Chapter~\ref{chap:concurrency} for the C++ thread API (\texttt{std::thread}, \texttt{std::jthread}, 
+and related types). Here we focus on what the \highlight{kernel} sees.
+\newline
+A \highlight{thread} is a unit of execution \highlightit{inside} a process. 
+Threads in the same process \highlight{share} the virtual address space (heap, globals, code); 
+each thread has its own stack, registers, and program counter. 
+The kernel schedules threads (Linux treats each thread as a \highlight{task} with its own TID).
+\newline
+On Linux, \texttt{std::thread} is typically implemented with \highlight{pthreads}. 
+Pthread creation ultimately uses the \texttt{clone(2)}~\cite{man-clone} system call with 
+flags that share memory with the parent --- a new thread, not a new process.
+\newline
+You do \highlight{not} need to learn the full pthread API (\texttt{pthread\_create}, \texttt{void*}, 
+attributes). Use \texttt{std::thread} for structure and lifetime; use \texttt{native\_handle()} 
+only for Linux-specific tuning (affinity, real-time priority) in Section~\ref{sec:thread-affinity}.
+
+\begin{lstlisting}[language=C++]
+#include <iostream>
+#include <thread>
+#include <unistd.h>  // getpid()
+
+int main()
+{
+    const pid_t pid = getpid();
+    std::cout << "Process PID: " << pid << "\n";
+    std::cout << "Main std::thread::id: " << std::this_thread::get_id() << "\n";
+
+    std::thread worker([pid] {
+        std::cout << "Worker std::thread::id: "
+                  << std::this_thread::get_id() << "\n";
+        std::cout << "Worker sees same PID: " << getpid()
+                  << " (expected " << pid << ")\n";
+    });
+    worker.join();
+}
+\end{lstlisting}
+
+\noindent
+\texttt{std::thread::get\_id()} is a C++ identifier; \texttt{getpid()}~\cite{man-getpid} returns 
+the OS process ID. All threads print the \highlight{same PID} because they belong to one process.
 
 \section{Address Space}
 \label{sec:address-space}
-Virtual address space and pages are introduced here. For translation cost, see Section~\ref{sec:tlb}. 
+Each process has its own \highlight{virtual address space}: a range of virtual addresses mapped 
+by the MMU to physical RAM (or swap). The layout usually includes:
+\begin{itemize}
+    \item \highlightbf{Code} (\texttt{.text}) --- machine instructions, often read-only.
+    \item \highlightbf{Data} --- globals and statics; \highlightbf{heap} (dynamic allocation); 
+          \highlightbf{stack} per thread (function frames, local variables).
+    \item \highlightbf{Kernel space} --- not directly accessible from user code; entered on syscalls.
+\end{itemize}
+Memory is managed in \highlight{pages} (commonly 4~KiB on x86-64). 
+\highlight{All threads of a process share the same virtual mapping} for heap and globals; 
+each thread's stack grows in the same address space but on separate stacks.
+\newline
+For translation cost (TLB), see Section~\ref{sec:tlb}. 
 For demand paging and page faults, see Section~\ref{subsec:page-faults}.
 
 \section{User Mode vs Kernel Mode}
 \label{sec:user-kernel-mode}
+The CPU runs in \highlight{user mode} when executing your C++ code. 
+Sensitive operations (I/O, scheduling, memory mapping, locking in the kernel) require a 
+\highlight{system call}: the CPU switches to \highlight{kernel mode}, runs the kernel handler, 
+and returns to user mode.
+\newline
+Examples that trap into the kernel from a typical trading stack:
+\begin{itemize}
+    \item \texttt{read}/\texttt{recv} on a socket (Chapter~\ref{chap:linuxnetworking}).
+    \item \texttt{mmap} for shared memory (Chapter~\ref{chap:memorymapping}).
+    \item \texttt{pthread\_setaffinity\_np} / \texttt{sched\_setaffinity} to pin threads (Section~\ref{subsec:sched-setaffinity}).
+    \item Blocking mutex or I/O wait --- the thread may be descheduled inside the kernel.
+\end{itemize}
+Each user/kernel transition has \highlight{latency cost} (flush pipeline, TLB effects, cache coldness). 
+Low-latency paths minimize syscalls and blocking on hot paths; kernel bypass (Chapter~\ref{chap:kernelbypass}) 
+exists partly to avoid this stack for networking.
 
 \section{Linux Scheduler}
 \label{sec:linux-scheduler}
+The \highlight{scheduler} decides \highlight{which thread runs on which CPU core} and for how long. 
+You do not pick this in portable C++; the kernel does, unless you influence it with affinity, 
+scheduling policy, or isolation (Sections~\ref{sec:thread-affinity} and~\ref{sec:cpu-isolation}).
 
 \subsection{Context Switch}
 \label{subsec:context-switch}
+A \highlight{context switch} occurs when the CPU stops running one thread and runs another:
+\begin{itemize}
+    \item Save the current thread's registers and program counter into its \highlight{task struct}.
+    \item Restore another thread's saved state.
+    \item Optionally migrate execution to a different core ( \highlight{cache cold start} --- Chapter~\ref{chap:cacheperformance}).
+\end{itemize}
+Context switches are \highlight{expensive} compared to a function call: microseconds, not nanoseconds, 
+and they add \highlight{jitter} --- a problem for HFT latency budgets. 
+Pinning threads (Section~\ref{sec:thread-affinity}) reduces \highlight{migration} between cores.
 
 \subsection{Scheduling Classes}
 \label{subsec:scheduling-classes}
+Linux exposes several scheduling policies~\cite{man-sched}:
+\begin{itemize}
+    \item \highlightbf{SCHED\_OTHER} (default) --- CFS (\emph{Completely Fair Scheduler}). 
+          General-purpose, time-sharing; good throughput, \highlight{not} hard latency guarantees.
+    \item \highlightbf{SCHED\_BATCH}, \highlightbf{SCHED\_IDLE} --- lower priority background work.
+    \item \highlightbf{SCHED\_FIFO}, \highlightbf{SCHED\_RR} --- real-time classes (Section~\ref{subsec:realtime-scheduling}).
+\end{itemize}
+Most C++ threads run under CFS unless you explicitly request a real-time policy with 
+\texttt{sched\_setscheduler(2)}~\cite{man-sched-setscheduler}.
 
 \subsection{Real-Time Scheduling}
 \label{subsec:realtime-scheduling}
+\highlight{SCHED\_FIFO} and \highlight{SCHED\_RR} run at higher priority than normal threads. 
+\highlight{SCHED\_FIFO} runs until it blocks or yields; \highlight{SCHED\_RR} adds a time quantum 
+among equal-priority RT threads.
+\newline
+\highlight{Use with care}: a busy RT thread can \highlight{starve} the rest of the system (including 
+housekeeping and logging). Typical HFT setups combine \highlight{RT policy on dedicated cores} with 
+\highlight{isolcpus} (Section~\ref{sec:cpu-isolation}) rather than marking every thread RT.
+\newline
+To raise priority on an existing \texttt{std::thread}, use \texttt{pthread\_setschedparam}~\cite{man-pthread-setschedparam} on 
+\texttt{native\_handle()} (requires appropriate privileges):
+\begin{lstlisting}[language=C++]
+#include <pthread.h>
+#include <sched.h>
+
+void set_fifo_priority(std::thread& t, int priority)
+{
+    sched_param param{};
+    param.sched_priority = priority;  // 1..99 for SCHED_FIFO on Linux
+    pthread_setschedparam(t.native_handle(), SCHED_FIFO, &param);
+}
+\end{lstlisting}
 
 \section{Thread Affinity}
 \label{sec:thread-affinity}
 
 \subsection{CPU Affinity and Thread Pinning}
 \label{subsec:cpu-affinity-thread-pinning}
-Per-thread core pinning with \texttt{sched\char`_setaffinity()} is covered in the next subsection. 
-For NUMA node placement, see Section~\ref{subsec:numa-thread-cpu-binding}. 
-For OS-level core isolation (\texttt{isolcpus}), see Section~\ref{sec:cpu-isolation}.
+\highlight{CPU affinity} restricts \highlight{which cores} a thread may run on. 
+\highlight{Thread pinning} means setting affinity to a \highlight{single core} (or a small fixed set) 
+so the thread stays cache-hot and avoids scheduler migration.
+\newline
+By default, Linux may \highlight{migrate} threads across cores to balance load. That causes:
+\begin{itemize}
+    \item \highlight{Cache loss} --- data warmed in L1/L2 on the old core is not reused on the new one 
+          (Chapter~\ref{chap:cacheperformance}).
+    \item \highlight{Extra context switches} --- bad for microsecond-scale budgets 
+          (Section~\ref{subsec:context-switch}).
+\end{itemize}
+Why it matters for HFT:
+\begin{itemize}
+    \item \highlight{Less jitter} --- fewer context switches and core hops.
+    \item \highlight{Warmer caches} --- L1/L2 data stays valid on one core.
+    \item \highlight{Predictable layout} --- dedicate cores to feed, strategy, and gateway roles.
+\end{itemize}
 
-\subsection{\texttt{sched\_setaffinity()}}
+\highlightbf{Avoid pinning hot paths to core 0} on typical Linux servers: core 0 often handles many 
+hardware interrupts (IRQs), timers, and kernel housekeeping, which adds \highlight{non-deterministic jitter}. 
+Prefer cores reserved for the application (Section~\ref{sec:cpu-isolation}).
+\newline
+\highlightbf{Hyper-threading (HT):} two logical CPUs may share one physical core (siblings). 
+For maximum isolation, pin latency-critical threads to \highlight{one logical CPU per physical core} 
+(or disable HT in BIOS on dedicated trading boxes). Inspect topology with \texttt{lscpu -e} 
+(Section~\ref{subsec:cpu-topology}).
+\newline
+Pinning APIs are in the next subsection. 
+For NUMA node placement and \texttt{libnuma}, see Section~\ref{subsec:numa-thread-cpu-binding}. 
+For OS-level core isolation (\texttt{isolcpus}), see Section~\ref{sec:cpu-isolation}. 
+For moving NIC interrupts off trading cores, see Section~\ref{subsec:irq-affinity-overview}.
+
+\subsection[Topology]{Machine Topology and Core Selection}
+\label{subsec:cpu-topology}
+Before pinning, inspect the machine. Useful commands:
+\begin{itemize}
+    \item \texttt{lscpu -e} --- table of logical CPUs with \texttt{NODE}, \texttt{SOCKET}, \texttt{CORE}.
+    \item \texttt{lstopo} (hwloc) --- visual map of cores, caches, and NUMA nodes.
+    \item \texttt{lspci | grep -i ether} --- locate the \highlight{NIC} 
+          (\emph{Network Interface Card}, the Ethernet hardware).
+\end{itemize}
+On a single-socket laptop, all CPUs often share \texttt{NODE 0}; multi-socket servers need the thread 
+and its memory on the \highlight{same NUMA node} as the NIC (Chapter~\ref{chap:numa}).
+\newline
+Example workflow for a PCI Ethernet device at \texttt{05:00.0}:
+\begin{enumerate}
+    \item Read NUMA node: \texttt{cat /sys/bus/pci/devices/0000:05:00.0/numa\_node}.
+    \item If the value is \texttt{-1}, the kernel reports no specific node (common on consumer hardware); 
+          treat as node \texttt{0} on single-node systems.
+    \item List CPUs on that node: \texttt{cat /sys/devices/system/node/node0/cpulist} 
+          (may show ranges such as \texttt{0-15}).
+    \item Pin trading threads to cores in that list, usually \highlight{avoiding core 0} and HT siblings.
+\end{enumerate}
+Typical role split on a tuned server: one core for \highlight{network IRQ / RX}, separate cores for 
+\highlight{strategy logic}, with generic OS work kept off isolated cores.
+
+\subsection[IRQ Overview]{Network Interrupts}
+\label{subsec:irq-affinity-overview}
+When a packet arrives, the NIC raises an \highlight{interrupt (IRQ)}. The kernel runs an interrupt 
+handler, often on a core that may \highlight{preempt} your trading thread --- another source of jitter.
+\newline
+Inspect distribution with \texttt{cat /proc/interrupts} (look for your driver name, e.g.\ \texttt{eth0}). 
+Columns are per-CPU interrupt counts. If core 0 handles most NIC interrupts, consider moving IRQ affinity 
+(\texttt{/proc/irq/<N>/smp\_affinity\_list}) to a \highlight{dedicated non-trading core}. 
+This requires root and careful validation; combine with \texttt{isolcpus} (Section~\ref{sec:cpu-isolation}) 
+and busy polling (Section~\ref{sec:busy-polling}) where appropriate.
+
+\subsection[Pinning APIs]{Pinning with \texttt{pthread\_setaffinity\_np} and \texttt{sched\_setaffinity}}
 \label{subsec:sched-setaffinity}
+There are two common Linux APIs for the same idea:
+\begin{itemize}
+    \item \highlightbf{\texttt{pthread\_setaffinity\_np(3)}}~\cite{man-pthread-setaffinity} --- 
+          pthread layer; natural fit with \texttt{std::thread::native\_handle()}.
+    \item \highlightbf{\texttt{sched\_setaffinity(2)}}~\cite{man-sched-setaffinity} --- 
+          scheduler syscall; takes a kernel \highlight{TID} (\emph{thread ID}). 
+          On Linux, \texttt{pthread\_setaffinity\_np} typically wraps this call.
+\end{itemize}
+Both use \texttt{cpu\_set\_t} and macros \texttt{CPU\_ZERO}, \texttt{CPU\_SET}, etc. 
+Compile with \texttt{\#define \_GNU\_SOURCE} before includes for the pthread extension.
+\newline
+\texttt{cpu\_set\_t} is a \highlight{bitmask}: bit \texttt{n} set means the thread \highlight{may} run on 
+logical CPU \texttt{n}. \texttt{CPU\_ZERO} clears all bits; each \texttt{CPU\_SET(core, \&cpuset)} 
+\highlight{sets} one bit (calling it in a loop \highlight{accumulates} allowed cores --- it does not replace 
+the whole set). \texttt{pthread\_setaffinity\_np} tells the kernel the allowed mask for that thread.
+
+\begin{lstlisting}[language=C++]
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <sched.h>
+
+#include <vector>
+
+bool pin_current_thread_to_cpus(const std::vector<int>& cores)
+{
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    for (int core : cores) {
+        CPU_SET(core, &cpuset);
+    }
+    return pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset) == 0;
+}
+
+// Example: allow cores 4-7 only (avoid core 0 on a 16-logical-CPU box)
+// pin_current_thread_to_cpus({4, 5, 6, 7});
+\end{lstlisting}
+
+\begin{lstlisting}[language=C++]
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <sched.h>
+
+#include <cerrno>
+#include <cstring>
+#include <iostream>
+#include <thread>
+
+// Pin the calling pthread to a single CPU (0-based index).
+bool pin_current_pthread_to_cpu(int cpu)
+{
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpu, &cpuset);
+
+    const int rc = pthread_setaffinity_np(
+        pthread_self(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << "pthread_setaffinity_np: " << std::strerror(rc) << "\n";
+        return false;
+    }
+    return true;
+}
+
+// Pin an existing std::thread (call after thread is running).
+bool pin_std_thread_to_cpu(std::thread& t, int cpu)
+{
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpu, &cpuset);
+
+    const int rc = pthread_setaffinity_np(
+        t.native_handle(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << "pthread_setaffinity_np: " << std::strerror(rc) << "\n";
+        return false;
+    }
+    return true;
+}
+
+int main()
+{
+    std::thread worker([] {
+        if (!pin_current_pthread_to_cpu(2)) {
+            return;
+        }
+        // Hot loop: strategy or feed handler work on core 2...
+    });
+
+    worker.join();
+}
+\end{lstlisting}
+
+\noindent
+The same pinning via the syscall directly (useful when you have a TID or no pthread handle):
+
+\begin{lstlisting}[language=C++]
+#include <sched.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
+#include <cstdint>
+
+pid_t linux_tid()
+{
+    return static_cast<pid_t>(syscall(SYS_gettid));
+}
+
+bool pin_current_thread_via_sched(int cpu)
+{
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpu, &cpuset);
+    return sched_setaffinity(linux_tid(), sizeof(cpu_set_t), &cpuset) == 0;
+}
+\end{lstlisting}
+
+\noindent
+Verify affinity with \texttt{sched\_getaffinity(2)}~\cite{man-sched-getaffinity} or 
+by reading \texttt{/proc/self/task/<tid>/status} (\texttt{Cpus\_allowed\_list}). 
+In production, pinning is combined with \highlight{dedicated cores} (\texttt{isolcpus}, 
+Section~\ref{sec:cpu-isolation}) and \highlight{NUMA-local} memory (Chapter~\ref{chap:numa}) 
+so the pinned thread's data stays on the same socket.

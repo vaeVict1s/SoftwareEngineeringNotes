@@ -142,9 +142,9 @@
     }
     
 % =====================================
-\renewcommand{\thesection}{\arabic{section}}
-\renewcommand{\thechapter}{\arabic{chapter}} % added to change the titleformat
-                                             % from section to chapter
+\renewcommand{\thechapter}{\arabic{chapter}}
+\renewcommand{\thesection}{\thechapter.\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 \newcommand\sectionnumfont{% font specification for the number
 	\fontsize{380}{130}\color{myblueii}\selectfont}
 \newcommand\sectionnamefont{% font specification for the name "PART"
@@ -258,6 +258,9 @@
     {\parbox{.7\textwidth}{\raggedleft#1}};
 \end{tikzpicture}%
 }
+
+% Chapter titles use a TikZ overlay banner; push body text below it globally.
+\titlespacing*{\chapter}{0pt}{0pt}{10.5cm}
 
 
 % ============= Hyper Ref =============
