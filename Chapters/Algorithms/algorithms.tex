@@ -232,23 +232,128 @@ There are three methods for solving recurrences:
 
 \section{Order Book}
 \label{sec:order-book}
+An \highlight{order book} stores resting interest: buy and sell orders waiting to trade. 
+Exchanges and many trading systems publish incremental updates (add / modify / cancel / trade); 
+your process rebuilds a local book and reads \highlight{best bid/offer} (BBO) and depth for 
+decisions. Interview focus: data layout, price-time priority, and hot-path cost --- not exchange 
+matching-engine internals.
 
 \subsection{Price Levels and Market Depth}
 \label{subsec:order-book-price-levels}
+Orders at the \highlight{same price} aggregate into a \highlight{price level}: typically 
+price + total quantity (+ optional order count or per-order queue).
+\newline
+\highlightbf{Market depth} is how many levels you keep on each side (top of book only vs 
+$N$ levels vs full book). In market-data vocabulary that lines up roughly with 
+\highlightbf{L1} (top of book / BBO), \highlightbf{L2} (depth by price: aggregated quantity 
+per level), and \highlightbf{L3} (depth by order: each resting order id). Exact feed labels 
+vary by venue; you can also subscribe to L2/L3 and still \highlight{store} only L1 locally. 
+Deeper books cost more memory, more update work, and worse cache behavior; many strategies 
+only need top-of-book or a small depth window.
 
 \subsection{Bids and Asks}
 \label{subsec:order-book-bids-asks}
+\begin{itemize}
+    \item \highlightbf{Bid} --- buy interest. Best bid = \highlight{highest} buy price.
+    \item \highlightbf{Ask} (offer) --- sell interest. Best ask = \highlight{lowest} sell price.
+\end{itemize}
+A healthy book has best bid $<$ best ask. The difference is the \highlight{spread}; 
+midpoint is often $(\mathrm{best\ bid} + \mathrm{best\ ask})/2$. 
+Crossed or locked books (bid $\ge$ ask) usually mean a bad feed, race, or auction state --- 
+worth detecting in production.
 
 \subsection{Data Structures}
 \label{subsec:order-book-data-structures}
 See Chapter~\ref{chap:containers} for container APIs. 
 This subsection compares order-book-specific representations only.
+\newline
+You need: fast \highlight{find level by price}, fast \highlight{BBO}, and (often) 
+walk levels in price order. Common choices:
+\begin{itemize}
+    \item \highlightbf{Ordered map} (\texttt{std::map} / flat map): price $\rightarrow$ level. 
+          Logarithmic update; natural ordered iteration. Simple; often fine for interview 
+          sketches and moderate update rates.
+    \item \highlightbf{Hash map + sorted structure}: \texttt{unordered\char`_map} for 
+          price $\rightarrow$ level, plus a heap or side tree for best price. Faster random 
+          price lookup; more moving parts to keep consistent.
+    \item \highlightbf{Price-indexed array / sparse ladder}: if the instrument has a discrete 
+          tick grid and a bounded price range, index by tick. Best-case $O(1)$ level access; 
+          careful with range and memory.
+    \item \highlightbf{Per-level order queue}: if you need individual order ids (modify/cancel 
+          by id), each level holds a FIFO list (price-time priority). Aggregate-only books 
+          store quantity per price and skip per-order lists.
+\end{itemize}
+\begin{lstlisting}[language=C++]
+#include <cstdint>
+#include <map>
+
+struct Level {
+    int64_t qty{0};
+    uint32_t orders{0};
+};
+
+// Bids: highest price first. Asks: lowest price first.
+std::map<int64_t, Level, std::greater<int64_t>> bids;
+std::map<int64_t, Level, std::less<int64_t>>    asks;
+\end{lstlisting}
+Interview line: say \highlight{what} you optimize (BBO vs deep book vs cancel-by-id) before 
+picking the structure.
 
 \subsection{Add, Update, and Remove}
 \label{subsec:order-book-operations}
+Feed handlers typically apply:
+\begin{itemize}
+    \item \highlightbf{Add} --- new order at a price (create level or increase qty / enqueue order).
+    \item \highlightbf{Modify} / replace --- change qty or price (often cancel+add semantics).
+    \item \highlightbf{Cancel} / delete --- remove qty or whole order; drop empty levels.
+    \item \highlightbf{Trade} / execute --- reduce resting qty when a fill hits the book 
+          (depending on whether the feed already netted that into cancel/modify).
+\end{itemize}
+Maintain invariants: no empty levels left in the maps; BBO caches invalidated or updated when 
+the top level changes; order-id index consistent if you track individual orders.
+\newline
+Sequence numbers / gaps: market-data feeds are often UDP; detect gaps and rebuild from snapshot 
+(Chapter~\ref{chap:linuxnetworking}).
 
 \subsection{Best Bid and Offer}
 \label{subsec:order-book-bbo}
+\highlightbf{BBO} = best bid price/qty and best ask price/qty. Hot strategies read this every 
+tick. Keep it as an explicit cached pair updated on each top-of-book change rather than 
+re-scanning the book.
+\begin{lstlisting}[language=C++]
+struct BBO {
+    int64_t bid_px{0}, bid_qty{0};
+    int64_t ask_px{0}, ask_qty{0};
+};
+
+BBO top(const std::map<int64_t, Level, std::greater<int64_t>>& bids,
+        const std::map<int64_t, Level, std::less<int64_t>>& asks)
+{
+    BBO b{};
+    if (!bids.empty()) {
+        b.bid_px = bids.begin()->first;
+        b.bid_qty = bids.begin()->second.qty;
+    }
+    if (!asks.empty()) {
+        b.ask_px = asks.begin()->first;
+        b.ask_qty = asks.begin()->second.qty;
+    }
+    return b;
+}
+\end{lstlisting}
 
 \subsection{Hot-Path Design}
 \label{subsec:order-book-performance}
+\begin{itemize}
+    \item \highlightbf{No allocations} on the update path --- pre-sized maps/pools, recycled 
+          nodes (Section~\ref{sec:avoiding-allocations}).
+    \item \highlightbf{Contiguous levels} and stable layout beat pointer-chasing lists when 
+          depth walks matter (Chapter~\ref{chap:cacheperformance}).
+    \item \highlightbf{Single writer} for a given instrument book when possible (SPSC into the 
+          book thread --- Section~\ref{sec:spsc-ring-buffer}); avoid locking inside the decode 
+          loop.
+    \item \highlightbf{NUMA / pinning}: build the book on the core that consumes it 
+          (Chapters~\ref{chap:numa},~\ref{chap:lowlatency}).
+    \item Measure update latency and cache misses under realistic burst rates; asymptotic 
+          map cost is not enough if allocation jitter dominates.
+\end{itemize}
