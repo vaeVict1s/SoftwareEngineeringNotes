@@ -26,7 +26,17 @@ nothing and copy constructor/assignment operator performs a
 "shallow copy" (copy the value of the handle, without duplicating the 
 underlying resource).
 
-%~ \textbf{CODE EXAMPLE HERE}
+\begin{lstlisting}[language=C++]
+class Buffer {
+    char* data_;
+    std::size_t size_;
+public:
+    explicit Buffer(std::size_t n);
+    ~Buffer();                          // free data_
+    Buffer(const Buffer& other);        // deep copy
+    Buffer& operator=(const Buffer& other); // deep copy / self-assign safe
+};
+\end{lstlisting}
 
 Classes that manage non-copyable resources through copyable handles 
 may have to declare copy assignment and copy constructor private 
@@ -43,7 +53,19 @@ move constructor and the move assignment operator, \highlightit{any class
 for which move semantics are desirable}, has to declare all five special 
 member functions.
 
-%~ \textbf{CODE EXAMPLE HERE}
+\begin{lstlisting}[language=C++]
+class Buffer {
+    char* data_;
+    std::size_t size_;
+public:
+    explicit Buffer(std::size_t n);
+    ~Buffer();
+    Buffer(const Buffer&);
+    Buffer& operator=(const Buffer&);
+    Buffer(Buffer&&) noexcept;            // steal pointer
+    Buffer& operator=(Buffer&&) noexcept; // steal pointer
+};
+\end{lstlisting}
 
 Unlike Rule of Three, 
 failing to provide move constructor and move assignment 
@@ -2176,7 +2198,7 @@ A&  r1 = v1;    // r1 is an lvalue
 A&  f();        // f() is an lvalue
 \end{lstlisting}
 
-Accessing memebers of objects through pointers or references yields 
+Accessing members of objects through pointers or references yields 
 \highlightit{lvalues}. For example, with the following code
 \begin{lstlisting}[language=C+++]
 struct Foo
@@ -2190,7 +2212,7 @@ Foo* p2;
 Foo  v2;
 \end{lstlisting}
 \texttt{f2().a}, \texttt{p2->b} and \texttt{v2.a} are all 
-\highlightit{lvalues} if type A.
+\highlightit{lvalues} of type \texttt{Bar}.
 \newline
 \highlightbf{String literals} are \highlightit{lvalues} of type array.
 \newline
@@ -2232,7 +2254,7 @@ because \texttt{v1} is an \textbf{lvalue}.
 \highlight{\textbf{P}ure} \highlightit{rvalue} is an \highlightit{rvalue} 
 which is not an \highlightit{xvalue}
 \newline
-Literals other than string literals are \highlightit{pvalues}. For example, 
+Literals other than string literals are \highlightit{prvalues}. For example, 
 $42$ is a \highlightit{prvalue} of type \texttt{int} and $3.141f$ is a 
 \highlightit{prvalue} of type \texttt{float}
 \newline
@@ -2254,7 +2276,7 @@ reference} used for the function parameter since the temporary is a
 \href{https://en.cppreference.com/w/cpp/language/reference}{cppreference documentation} 
 about reference declaration.
 \newline
-The \highlightit{main difference} between \highlightit{lavalues} and \highlightit{rvalues} is 
+The \highlightit{main difference} between \highlightit{lvalues} and \highlightit{rvalues} is 
 the way they bind to references. The differences in type deduction rules 
 can have a big impact too.
 
@@ -2318,63 +2340,34 @@ less used but behave as expected: volatile \texttt{T\&} bind to a volatile or
 non-volatile, non-const lvalue of type T or a class derived from T. 
 However, volatile const lvalue references do not bind to rvalues.
 
-
-
-\section{C++11 New Features - legacy section to remove}
-
 \subsection{Reference Collapsing}
-In C++ it is possible to form reference to reference in 
-\highlightit{templates} and \highlighttt{typedef} expressions. In this context, 
-the refefrence collapsing rule apply: rvalue reference to rvalue 
-reference collapses to an rvalue reference, all the others collapse to 
-lvaue references.
-\begin{lstlisting}[language=C+++]
-typedef int&  lref;
-typedef int&& rref;
+\label{subsubsec:reference-collapsing}
+In templates and \texttt{typedef}/\texttt{using} aliases it is possible to form a 
+``reference to reference.'' The \highlight{reference collapsing} rules then apply: 
+an rvalue reference to an rvalue reference collapses to an rvalue reference; 
+every other combination collapses to an lvalue reference.
+\begin{lstlisting}[language=C++]
+using lref = int&;
+using rref = int&&;
 int n;
- 
-lref&  r1 = n; // type of r1 is int&
-lref&& r2 = n; // type of r2 is int&
-rref&  r3 = n; // type of r3 is int&
-rref&& r4 = 1; // type of r4 is int&&
+
+lref&  r1 = n; // int&
+lref&& r2 = n; // int&
+rref&  r3 = n; // int&
+rref&& r4 = 1; // int&&
 \end{lstlisting}
-
-\toclessnparagraph{Implicit conversion}
-A reference-to-A can be initialized with any D object which has an 
-inplicit conversion operator that returns \texttt{A\&}. In this case 
-the reference is bound to the result of the conversion operator.
-\newline
-A const lvalue-reference-to-E will bind only to objects implicitly 
-convertible to E. The reference is bound to the temporary resulting 
-from the conversion.
-
-\toclessnparagraph{General properties}
-In general, \highlightit{rvalues} can't be modified and their address can't 
-be taken.
-\newline
-However, as long as class \texttt{X} has a member function 
-named \highlighttt{do\char`_something}, the expression 
-\highlighttt{X().do\char`_something} is valid.
-\newline
-\highlightit{ref qualifiers} along with \texttt{const} can be used to tag 
-different overloads of class member functions, to indicate they can be 
-applied to only \textit{lvalues} or to only \textit{rvaules}.
-\newline
-When the type of a variable or function template parameter is deduce 
-from its initializer, whether the initializer is an lvalue or rvalue 
-can affect the deduced type.
-
-%~ \section{C++20 New Features}
-%~ https://www.geeksforgeeks.org/features-of-c-20/
-%~ https://en.cppreference.com/w/cpp/20
-%~ \subsection{Concepts}
-%~ https://en.cppreference.com/w/cpp/concepts
-%~ \subsection{Coroutines}
-%~ https://en.cppreference.com/w/cpp/coroutine
-%~ \subsection{Modules}
+This is the mechanism behind forwarding references (\texttt{T\&\&} in a deduced context) 
+and \texttt{std::forward}. See also Section~\ref{subsubsec:value-categories}.
 
 \newpage
 \section{Contemporary C++: new language and library features}
+\label{sec:contemporary-cpp}
+This section summarizes language and library features by standard (C++11 onward). 
+Entries are adapted from the open cheatsheet 
+\href{https://github.com/AnthonyCalandra/modern-cpp-features}{AnthonyCalandra/modern-cpp-features}, 
+with links back to the source for full detail. 
+Where this book has a dedicated chapter (smart pointers, concurrency, containers), 
+prefer that chapter for depth and use the entries here as a standard-by-standard index.
 
 \subsection{C++11 new language features}
 Following a summary of the new language features introduced with C++11.
@@ -2760,13 +2753,17 @@ deduce the type depending on what type the expression \texttt{x + y} yields.
 Notice that the trailing return type has access to its parameters, 
 and this when appropriate.
 
+\newpage
 %~ LAMBDA EXXPRESSIONS
 \subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#lambda-expressions}
                     {lambda expressions}}
 \vspace{-0.3cm}
 \href{https://en.cppreference.com/w/cpp/language/lambda}{Cppreference about \textbf{lambda expressions}}
 \newline
-A \highlight{lambda expression} is a closure, i.e. an unnamed 
+A \highlight{lambda expression} produces a \highlight{closure}, i.e.\ an unnamed 
+function object of a unique compiler-generated class type that can capture 
+variables from the enclosing scope.
+
 \vspace{-0.3cm}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{l|X}
@@ -2821,9 +2818,32 @@ A \highlight{lambda expression} is a closure, i.e. an unnamed
 \subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#decltype}
                     {decltype}}
 \highlighttt{decltype} inspects the declared type of an entity or the 
-type and value category of an expression. 
+type and value category of an expression.
 
-\highlightbf{Explain difference between parenthesized}
+Parentheses matter:
+\begin{itemize}
+    \item \texttt{decltype(entity)} --- if the operand is an unparenthesized 
+          id-expression or class member access naming an entity, the result is 
+          the \emph{declared} type of that entity (including references and 
+          cv-qualifiers as declared).
+    \item \texttt{decltype((expression))} --- if the operand is any other 
+          expression (including a parenthesized id-expression), the result 
+          follows the expression's value category:
+          \begin{itemize}
+              \item lvalue $\rightarrow$ \texttt{T\&}
+              \item xvalue $\rightarrow$ \texttt{T\&\&}
+              \item prvalue $\rightarrow$ \texttt{T}
+          \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[language=C++]
+int a = 1;
+decltype(a) b = a;       // int  (declared type of a)
+decltype((a)) c = a;     // int& (a is an lvalue expression)
+const int& r = a;
+decltype(r) d = a;       // const int&
+decltype((r)) e = a;     // const int&  (still an lvalue)
+\end{lstlisting}
 
 See~\cite{cppreference-decltype}
 
@@ -3187,7 +3207,7 @@ class Human {
 };
 \end{lstlisting}
 
-\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#right-angle-brakets}
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#right-angle-brackets}
                     {right angle brackets}}
 C++11 is now able to infer when a series of right angle brackets is used 
 as an operator or as a closing statement of typedef, without having to add whitespace.
@@ -3228,7 +3248,7 @@ std::move(foo2).getBar(); // calls `Bar Foo::getBar() const&&`
 \end{lstlisting}
 
 %~ TRAILING RETURN TYPE
-\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#trailing-return-type}
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#trailing-return-types}
                     {trailing return types}}
 C++11 allows functions and lambdas an alternative syntax for specifying their return types.
 \begin{lstlisting}[language=C++]
@@ -3436,7 +3456,8 @@ now becomes deprecated and then eventually removed in C++17.
 \texttt{std::unique\char`_ptr} is a non-copyable, movable pointer that 
 manages its own heap-allocated memory. Note: Prefer using the \texttt{std::make\char`_X} 
 helper functions as opposed to using constructors. 
-See the sections for \texttt{std::make\char`_unique} and \texttt{std::make\char`_shared}.
+See~\S\ref{sec:std-make-unique} (\texttt{std::make\char`_unique}) and 
+\S\ref{sec:std-make-shared} (\texttt{std::make\char`_shared}).
 \begin{lstlisting}[language=C++]
 std::unique_ptr<Foo> p1 { new Foo{} };  // `p1` owns `Foo`
 if (p1) {
@@ -3551,6 +3572,7 @@ These containers maintain average constant-time complexity for search, insert, a
 %~ MAKE SHARED
 \subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#stdmake_shared}
                     {std::make\char`_shared}}
+\label{sec:std-make-shared}
 \texttt{std::make\char`_shared} is the recommended way to create instances 
 of \texttt{std::shared\char`_ptrs} due to the following reasons:
 \begin{itemize}
@@ -3847,8 +3869,9 @@ decltype(auto) a2t(const std::array<T, N>& a) {
 }
 \end{lstlisting}
 
-\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#}
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#stdmake_unique}
                     {std::make\char`_unique}}
+\label{sec:std-make-unique}
 \texttt{std::make\char`_unique} is the recommended way to create instances 
 of \texttt{std::unique\char`_ptrs} due to the following reasons:
 \begin{itemize}
@@ -3871,7 +3894,7 @@ construction of a T, we have introduced a leak here.
 With \highlighttt{std::make\char`_unique}, we are given exception-safety:
 
 \begin{lstlisting}[language=C++]
-foo(std:make_unique<T>(), function_that_throws(),
+foo(std::make_unique<T>(), function_that_throws(),
     std::make_unique<T>());
 \end{lstlisting}
 See the section on smart pointers (C++11) for more information on 
@@ -4644,6 +4667,18 @@ if (ec == std::errc{}) { std::cout << n << std::endl; } // 123
 else { /* handle failure */ }
 \end{lstlisting}
 
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#rounding-functions-for-chrono-durations-and-timepoints}
+                    {rounding functions for chrono durations and timepoints}}
+Provides \texttt{abs}, \texttt{round}, \texttt{ceil}, and \texttt{floor} helper 
+functions for \texttt{std::chrono::duration} and \texttt{std::chrono::time\char`_point}.
+\begin{lstlisting}[language=C++]
+std::chrono::milliseconds a{ -5500 };
+std::chrono::milliseconds d = std::chrono::abs(a); // == 5500ms
+std::chrono::round<seconds>(d); // == 6s
+std::chrono::ceil<seconds>(d); // == 6s
+std::chrono::floor<seconds>(d); // == 5s
+\end{lstlisting}
+
 \newpage
 \subsection{C++20 new language features}
 Following a summary of the new language features introduced with C++20.
@@ -4719,6 +4754,7 @@ cppcoro library to compile these examples.
 
 \subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#concepts}
                     {concepts}}
+\label{sec:cpp20-concepts}
 Concepts are named compile-time predicates which constrain types. They take the following form:
 
 \begin{lstlisting}[language=C++]
@@ -4809,18 +4845,17 @@ template <typename T>
 T add(T a, T b) {
   return a + b;
 }
+\end{lstlisting}
 
-Note that the parameter list in a requires expression is optional. Each requirement in a requires expression are one of the following:
-
-    Simple requirements - asserts that the given expression is valid.
-
+Note that the parameter list in a requires expression is optional. Each requirement in a requires expression is one of the following:
+\begin{itemize}
+    \item Simple requirements --- asserts that the given expression is valid.
 \begin{lstlisting}[language=C++]
 template <typename T>
 concept callable = requires (T f) { f(); };
 \end{lstlisting}
 
-    Type requirements - denoted by the typename keyword followed by a type name, asserts that the given type name is valid.
-
+    \item Type requirements --- denoted by the \texttt{typename} keyword followed by a type name, asserts that the given type name is valid.
 \begin{lstlisting}[language=C++]
 struct foo {
   int foo;
@@ -4859,8 +4894,7 @@ g(bar{}); // ERROR: Fails requirement B.
 g(baz{}); // PASS.
 \end{lstlisting}
 
-    Compound requirements - an expression in braces followed by a trailing return type or type constraint.
-
+    \item Compound requirements --- an expression in braces followed by a trailing return type or type constraint.
 \begin{lstlisting}[language=C++]
 template <typename T>
 concept C = requires(T x) {
@@ -4868,17 +4902,74 @@ concept C = requires(T x) {
   {x + 1} -> std::same_as<int>; // the expression `x + 1` satisfies `std::same_as<decltype((x + 1))>`
   {x * 1} -> std::convertible_to<T>; // the type of the expression `x * 1` is convertible to `T`
 };
+\end{lstlisting}
 
-    Nested requirements - denoted by the requires keyword, specify additional constraints (such as those on local parameter arguments).
-
+    \item Nested requirements --- denoted by the \texttt{requires} keyword, specify additional constraints (such as those on local parameter arguments).
 \begin{lstlisting}[language=C++]
 template <typename T>
 concept C = requires(T x) {
   requires std::same_as<sizeof(x), size_t>;
 };
 \end{lstlisting}
+\end{itemize}
 
-See also: concepts library.
+See also~\S\ref{sec:cpp20-concepts-library} (concepts library).
+
+%~ THREE-WAY COMPARISON
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#three-way-comparison}
+                    {three-way comparison}}
+C++20 introduces the spaceship operator (\texttt{<=>}) as a way to write comparison 
+functions that reduce boilerplate and help define clearer comparison semantics. 
+Defining a three-way comparison operator can autogenerate the other comparison 
+operators (\texttt{==}, \texttt{!=}, \texttt{<}, etc.).
+
+Three orderings are introduced:
+\begin{itemize}
+    \item \texttt{std::strong\char`_ordering}: distinguishes items being equal 
+          (identical and interchangeable). Provides \texttt{less}, \texttt{greater}, 
+          \texttt{equivalent}, and \texttt{equal}. Examples: integers, case-sensitive strings.
+    \item \texttt{std::weak\char`_ordering}: distinguishes items being equivalent 
+          (not identical, but interchangeable for comparison). Provides \texttt{less}, 
+          \texttt{greater}, and \texttt{equivalent}. Examples: case-insensitive strings.
+    \item \texttt{std::partial\char`_ordering}: like weak ordering but includes the 
+          case when an ordering isn't possible. Provides \texttt{less}, \texttt{greater}, 
+          \texttt{equivalent}, and \texttt{unordered}. Examples: floating-point values (e.g.\ \texttt{NaN}).
+\end{itemize}
+
+A defaulted three-way comparison operator does a member-wise comparison:
+\begin{lstlisting}[language=C++]
+struct foo {
+  int a;
+  bool b;
+  char c;
+
+  // Compare `a` first, then `b`, then `c` ...
+  friend auto operator<=>(const foo&) const = default;
+};
+
+foo f1{0, false, 'a'}, f2{0, true, 'b'};
+f1 < f2; // == true
+f1 == f2; // == false
+f1 >= f2; // == false
+\end{lstlisting}
+
+You can also define your own comparisons:
+\begin{lstlisting}[language=C++]
+struct foo {
+  int x;
+  bool b;
+  char c;
+
+  friend std::strong_ordering operator<=>(const foo& other) const {
+      return x <=> other.x;
+  }
+};
+
+foo f1{0, false, 'a'}, f2{0, true, 'b'};
+f1 < f2; // == false
+f1 == f2; // == true
+f1 >= f2; // == true
+\end{lstlisting}
 
 \subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#designated-initializers}
                     {designated initializers}}
@@ -5121,41 +5212,50 @@ constinit const char* c = f(true); // OK
 constinit const char* d = f(false); // ERROR: `g` is not constexpr, so `d` cannot be evaluated at compile-time.
 \end{lstlisting}
 
-
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#__va_opt__}
+                    {\char`_\char`_VA\char`_OPT\char`_\char`_}}
+Helps support variadic macros by evaluating to the given argument if the 
+variadic macro is non-empty.
+\begin{lstlisting}[language=C++]
+#define F(...) f(0 __VA_OPT__(,) __VA_ARGS__)
+F(a, b, c) // replaced by f(0, a, b, c)
+F()        // replaced by f(0)
+\end{lstlisting}
 
 \subsection{C++20  new library features}
 Following a summary of the new library features introduced with C++20.
 \subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#concepts-library}
                     {concepts library}}
+\label{sec:cpp20-concepts-library}
 Concepts are also provided by the standard library for building more complicated concepts. Some of these include:
 
 Core language concepts:
-
-    same\char`_as - specifies two types are the same.
-    derived\char`_from - specifies that a type is derived from another type.
-    convertible\char`_to - specifies that a type is implicitly convertible to another type.
-    common\char`_with\char` - specifies that two types share a common type.
-    integral - specifies that a type is an integral type.
-    default\char`_constructible - specifies that an object of a type can be default-constructed.
-
+  \begin{itemize}
+    \item \texttt{same\char`_as} --- specifies two types are the same.
+    \item \texttt{derived\char`_from} --- specifies that a type is derived from another type.
+    \item \texttt{convertible\char`_to} --- specifies that a type is implicitly convertible to another type.
+    \item \texttt{common\char`_with} --- specifies that two types share a common type.
+    \item \texttt{integral} --- specifies that a type is an integral type.
+    \item \texttt{default\char`_constructible} --- specifies that an object of a type can be default-constructed.
+  \end{itemize}
 Comparison concepts:
-
-    boolean - specifies that a type can be used in Boolean contexts.
-    equality\char`_comparable - specifies that operator== is an equivalence relation.
-
+  \begin{itemize}
+    \item \texttt{boolean} --- specifies that a type can be used in Boolean contexts.
+    \item \texttt{equality\char`_comparable} --- specifies that \texttt{operator==} is an equivalence relation.
+  \end{itemize}
 Object concepts:
-
-    movable - specifies that an object of a type can be moved and swapped.
-    copyable - specifies that an object of a type can be copied, moved, and swapped.
-    semiregular - specifies that an object of a type can be copied, moved, swapped, and default constructed.
-    regular - specifies that a type is regular, that is, it is both semiregular and equality\char`_comparable.
-
+  \begin{itemize}
+    \item \texttt{movable} --- specifies that an object of a type can be moved and swapped.
+    \item \texttt{copyable} --- specifies that an object of a type can be copied, moved, and swapped.
+    \item \texttt{semiregular} --- specifies that an object of a type can be copied, moved, swapped, and default constructed.
+    \item \texttt{regular} --- specifies that a type is regular, that is, it is both \texttt{semiregular} and \texttt{equality\char`_comparable}.
+  \end{itemize}
 Callable concepts:
-
-    invocable - specifies that a callable type can be invoked with a given set of argument types.
-    predicate - specifies that a callable type is a Boolean predicate.
-
-See also: concepts.
+  \begin{itemize}
+    \item \texttt{invocable} --- specifies that a callable type can be invoked with a given set of argument types.
+    \item \texttt{predicate} --- specifies that a callable type is a Boolean predicate.
+  \end{itemize}
+See also~\S\ref{sec:cpp20-concepts} (concepts).
 
 \subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#synchronized-buffered-outputstream}
                     {synchronized buffered outputstream}}
@@ -5307,4 +5407,133 @@ int a[] = {1, 2, 3};
 std::to_array(a); // returns `std::array<int, 3>`
 \end{lstlisting}
 
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#text-formatting}
+                    {text formatting}}
+Provides a compile-time checked string formatting library via \texttt{std::format}. 
+Runtime formatting uses \texttt{std::vformat} and related helpers.
+
+\begin{lstlisting}[language=C++]
+std::format("{}", 123); // OK -- returns "123"
+std::format("{} {}", 123); // ERROR -- not enough arguments
+std::format("{} {}", "Here's a number:", 123); // OK
+\end{lstlisting}
+
+Formatting a string based on a formatter created at runtime:
+\begin{lstlisting}[language=C++]
+std::string fmt = "{} {}";
+fmt += "{}{}";
+std::vformat(fmt, std::make_format_args("Here's a number:", 1, 2, 3));
+// OK -- returns "Here's a number: 123"
+\end{lstlisting}
+
+When formatting fails (such as an invalid format string), \texttt{std::vformat} 
+throws \texttt{std::format\char`_error}.
+
+To format custom types:
+\begin{lstlisting}[language=C++]
+struct fraction {
+  int numerator;
+  int denominator;
+};
+
+template <>
+struct std::formatter<fraction> {
+  constexpr auto parse(std::format_parse_context& ctx) {
+    return ctx.begin();
+  }
+
+  auto format(const fraction& f, std::format_context& ctx) const {
+    return std::format_to(ctx.out(), "{0:d}/{1:d}", f.numerator, f.denominator);
+  }
+};
+
+fraction f{1, 2};
+std::format("{}", f); // == "1/2"
+\end{lstlisting}
+
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#stdbind_front}
+                    {std::bind\char`_front}}
+Binds the first $N$ arguments to a given free function, lambda, or member function.
+\begin{lstlisting}[language=C++]
+const auto f = [](int a, int b, int c) { return a + b + c; };
+const auto g = std::bind_front(f, 1, 1);
+g(1); // == 3
+\end{lstlisting}
+
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#uniform-container-erasure}
+                    {uniform container erasure}}
+Provides \texttt{std::erase} and/or \texttt{std::erase\char`_if} for STL containers 
+such as string, list, vector, map, etc. Both return the number of erased elements.
+\begin{lstlisting}[language=C++]
+std::vector v{0, 1, 0, 2, 0, 3};
+std::erase(v, 0); // v == {1, 2, 3}
+std::erase_if(v, [](int n) { return n == 0; }); // v == {1, 2, 3}
+\end{lstlisting}
+
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#three-way-comparison-helpers}
+                    {three-way comparison helpers}}
+Helper functions for naming comparison results:
+\begin{lstlisting}[language=C++]
+std::is_eq(0 <=> 0); // == true
+std::is_lteq(0 <=> 1); // == true
+std::is_gt(0 <=> 1); // == false
+\end{lstlisting}
+
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#stdlexicographical_compare_three_way}
+                    {std::lexicographical\char`_compare\char`_three\char`_way}}
+Lexicographically compares two ranges using three-way comparison and produces 
+a result of the strongest applicable comparison category type.
+\begin{lstlisting}[language=C++]
+std::vector a{0, 0, 0}, b{0, 0, 0}, c{1, 1, 1};
+
+auto cmp_ab = std::lexicographical_compare_three_way(
+    a.begin(), a.end(), b.begin(), b.end());
+std::is_eq(cmp_ab); // == true
+
+auto cmp_ac = std::lexicographical_compare_three_way(
+    a.begin(), a.end(), c.begin(), c.end());
+std::is_lt(cmp_ac); // == true
+\end{lstlisting}
+
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#stdjthread}
+                    {std::jthread}}
+A thread of execution (like \texttt{std::thread}) that joins on destruction and 
+can be signaled to stop. Unlike \texttt{std::thread}, you need not check 
+\texttt{joinable()} before joining --- the destructor joins automatically.
+Request a stop via \texttt{request\char`_stop} or the thread's \texttt{stop\char`_source}:
+\begin{lstlisting}[language=C++]
+std::jthread t{
+    [](std::stop_token stoken) {
+        while (!stoken.stop_requested()) {
+            std::this_thread::sleep_for(1s);
+        }
+    }
+};
+
+t.request_stop();
+// OR, through the stop source:
+std::stop_source stopSource = t.get_stop_source();
+stopSource.request_stop();
+\end{lstlisting}
+
+\subsubsection{\href{https://github.com/AnthonyCalandra/modern-cpp-features/tree/master\#safe-integral-comparisons}
+                    {safe integral comparisons}}
+Compare integers, including those of distinct types, without the dangers of 
+integer conversion.
+\begin{lstlisting}[language=C++]
+-1 > 0U; // == true
+std::cmp_greater(-1, 0U); // == false
+
+std::cmp_equal(0U, 0); // == true
+std::cmp_less_equal(-1, 1U); // == true
+
+std::in_range<unsigned>(-1); // == false
+std::in_range<char>(999999); // == false
+\end{lstlisting}
+
+\subsection{C++23 (to expand)}
+\label{subsec:cpp23-planned}
+C++23 material will be added selectively later (e.g.\ \texttt{std::expected},
+\texttt{std::print}, deducing \texttt{this}, flat containers / \texttt{mdspan} as relevant). 
+Until then, use the upstream cheatsheet and cppreference. C++26 waits until the standard is stable.
 
