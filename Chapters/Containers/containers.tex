@@ -1,44 +1,49 @@
 \chapter{Containers}
 \label{chap:containers}
-The \href{https://en.cppreference.com/w/cpp/container}{Containers library} 
-is a \highlightit{generic collection of class templates and algorithms} 
+See~\cite{cppreference-containerslib}.
+\newline
+The Containers library is a \highlightit{generic collection of class templates and algorithms} 
 that allow programmers \highlightit{to easily implement 
 common data structures} like queues, lists and stacks.
 \newline
 The container classes are:
 \begin{itemize}
-    \item \highlightit{sequence containers}
-    \newline
-    implement data structures which can be accessed sequentially.
-    \item \highlightit{associative containers},
-    \newline    
-    can be searched in $O(\log{n})$.
-    \item \highlightit{unordered associative containers}
-    \newline
-    can be searched in $O(1)$ on average and in $O(n)$ in the worst one.
+    \item \highlightit{sequence containers} ---
+          data structures that can be accessed sequentially.
+    \item \highlightit{associative containers} ---
+          searchable in $O(\log n)$ (typically tree-based, ordered by key).
+    \item \highlightit{unordered associative containers} ---
+          searchable in $O(1)$ on average and $O(n)$ in the worst case (hash-based).
+    \item \highlightit{container adaptors} ---
+          provide a restricted interface on top of an underlying container 
+          (\texttt{stack}, \texttt{queue}, \texttt{priority\char`_queue}, and the C++23 \texttt{flat\char`_*} family).
 \end{itemize}
 
-\vfill
+% Keep the decision-chart heading with the figures (avoid an orphaned title).
+\newpage
+\toclessnparagraph{Decision Charts}
+% Non-floating graphics so the heading cannot be stranded on the previous page.
+\begin{center}
+\includegraphics[width=\textwidth]{Containers/sequence_and_ordered_containers_decision_chart}
+\captionof{figure}{Decision Chart: Sequence And Ordered Containers}
+\label{fig:containers-seq-ordered}
 
+\vspace{2ex}
 
-\nparagraph{Decision Charts}
-\begin{figure}
-\includegraphics[scale=0.5]{Containers/sequence_and_ordered_containers_decision_chart}
-\caption{Decision Chart: Sequence And Ordered Containers}
-\label{fig:}
-\end{figure}
-
-\begin{figure}    
-\includegraphics[scale=0.5]{Containers/adaptative_and_unordered_containers_decision_chart}
-\caption{Decision Chart: Adaptative And Unordered Containers}
-\label{fig:}
-\end{figure}
+\includegraphics[width=\textwidth]{Containers/adaptative_and_unordered_containers_decision_chart}
+\captionof{figure}{Decision Chart: Adaptive And Unordered Containers}
+\label{fig:containers-adapt-unordered}
+\end{center}
 
 \newpage
-\section{Links to the CPP Reference documentation}
-%~ \end{document}
+\section{Container catalog}
+\label{sec:container-catalog}
+Quick reference to the standard containers (with cppreference links in the tables).
+Choice guidance and a few idioms follow each family.
+
 \subsection{Sequence Containers}
-\begin{table}[h]
+\label{subsec:sequence-containers}
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \href{https://en.cppreference.com/w/cpp/container/array}{array} & \highlightit{static contiguous} array \\
@@ -53,15 +58,34 @@ The container classes are:
         \hline
     \end{tabularx}
 \end{table}
-%~ \href{https://en.cppreference.com/w/cpp/container/array}{array}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/vector}{vector}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/deque}{deque}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/forward_{list}}{forward\char`_list}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/list}{list}
-%~ \end{document}
+
+\toclessnparagraph{When to use which}
+\begin{itemize}
+    \item Default to \texttt{std::vector} --- contiguous storage, best cache behaviour, random access $O(1)$.
+    \item Use \texttt{std::array} for a fixed size known at compile time (no heap).
+    \item Use \texttt{std::deque} when you need efficient push/pop at \textbf{both} ends 
+          (not truly one contiguous block).
+    \item Use \texttt{std::list} / \texttt{forward\char`_list} when you need stable iterators 
+          under insert/erase in the middle, or splicing --- at the cost of locality.
+\end{itemize}
+
+\toclessnparagraph{\texttt{vector} capacity}
+Growth may reallocate: all iterators/references are invalidated when capacity changes.
+Prefer \texttt{reserve} when the final size is known (fewer allocations; ties to 
+Chapter~\ref{chap:memmag} and Section~\ref{sec:avoiding-allocations}).
+
+\begin{lstlisting}[language=C++]
+std::vector<int> v;
+v.reserve(1024);          // capacity >= 1024, size still 0
+for (int x : data)
+    v.push_back(x);       // no reallocation if data.size() <= 1024
+
+v.shrink_to_fit();        // non-binding request to release unused capacity
+\end{lstlisting}
 
 \subsection{Associative Containers}
-\begin{table}[h]
+\label{subsec:associative-containers}
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
     \hline
     \href{https://en.cppreference.com/w/cpp/container/set}{set} & collection of \highlightit{unique keys, sorted by keys} \\
@@ -74,13 +98,24 @@ The container classes are:
     \hline
     \end{tabularx}
 \end{table}
-%~ \href{https://en.cppreference.com/w/cpp/container/set}{set}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/map}{map}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/multiset}{multiset}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/multimap}{multimap}
+
+\toclessnparagraph{When to use which}
+\begin{itemize}
+    \item Need ordered iteration or predecessor/successor by key $\rightarrow$ \texttt{map}/\texttt{set}.
+    \item Multiple equivalent keys $\rightarrow$ \texttt{multi*}.
+    \item Lookup/insert typically $O(\log n)$; iterators stay valid except for erased elements.
+\end{itemize}
+
+\begin{lstlisting}[language=C++]
+std::map<std::string, int> ages{{"Ann", 30}, {"Bob", 25}};
+ages["Ann"] = 31;                 // insert or assign
+if (auto it = ages.find("Bob"); it != ages.end())
+    ++it->second;
+\end{lstlisting}
 
 \subsection{Unordered Associative Containers}
-\begin{table}[h]
+\label{subsec:unordered-associative-containers}
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
     \hline
     \href{https://en.cppreference.com/w/cpp/container/unordered_set}{unordered\char`_set} & collection of \highlightit{unique keys, hashed by keys} \\        
@@ -93,13 +128,25 @@ The container classes are:
     \hline
     \end{tabularx}
 \end{table}
-%~ \href{https://en.cppreference.com/w/cpp/container/unordered_set}{unordered\char`_set}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/unordered_map}{unordered\char`_map}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/unordered_multiset}{unordered\char`_multiset}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/unordered_multimap}{unordered\char`_multimap}
+
+\toclessnparagraph{When to use which}
+\begin{itemize}
+    \item Prefer when you care about average $O(1)$ lookup and do \textbf{not} need order.
+    \item Provide a good hash and equality for custom keys; watch load factor / rehash 
+          (rehash invalidates iterators --- see Section~\ref{sec:iterator-invalidation}).
+    \item Worst case $O(n)$ (pathological hashing / attacks); ordered trees are more predictable.
+\end{itemize}
+
+\begin{lstlisting}[language=C++]
+std::unordered_map<std::string, int> hist;
+++hist["buy"];
+hist.reserve(1024);   // buckets; can avoid rehash during fill
+\end{lstlisting}
+
 \newpage
 \subsection{Container Adaptors}
-\begin{table}[h]
+\label{subsec:container-adaptors}
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
     \hline
     \href{https://en.cppreference.com/w/cpp/container/stack}{stack} & adapts a container to provide stack (\highlightit{LIFO data structure}) \\
@@ -110,15 +157,26 @@ The container classes are:
     \hline
     \end{tabularx}
 \end{table}
-%~ \href{https://en.cppreference.com/w/cpp/container/stack}{stack}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/queue}{queue}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/priority_queue}{priority\char`_queue}\quad | \quad
 
+Default underlying containers: \texttt{deque} for \texttt{stack}/\texttt{queue}, 
+\texttt{vector} for \texttt{priority\char`_queue}. They expose a narrow interface 
+(\texttt{push}/\texttt{pop}/\texttt{top} or \texttt{front}), not full random access.
 
-\subsubsection{C++23 New Container Adaptors}
-With C++23, the following four Container Adaptors were introduced:
+\begin{lstlisting}[language=C++]
+std::priority_queue<int> pq;
+pq.push(3); pq.push(10); pq.push(1);
+int best = pq.top();   // 10
+pq.pop();
+\end{lstlisting}
+
+\subsubsection{C++23 flat associative adaptors}
+\label{subsubsec:flat-adaptors}
+See~\cite{cppreference-containerflat_map},~\cite{cppreference-containerflat_set}.
 \newline
-\begin{table}[h]
+With C++23, flat adaptors store keys (and values) in contiguous sorted containers 
+--- excellent locality; inserts in the middle are $O(n)$.
+
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
     \hline
     \href{https://en.cppreference.com/w/cpp/container/flat_set}{flat\char`_set} & adapts a container to provide a collection of \\ 
@@ -136,46 +194,55 @@ With C++23, the following four Container Adaptors were introduced:
 \end{table}
 
 \subsection{Views}
+\label{subsec:container-views}
+See~\cite{cppreference-span},~\cite{cppreference-string-view}.
+\newline
+Views are \textbf{non-owning}: they refer to existing contiguous data (or a string) 
+without allocating. Prefer them for function parameters that should not force a copy.
+(Also covered in Contemporary C++: \texttt{std::string\char`_view}, \texttt{std::span}.)
 
-%~ \href{https://en.cppreference.com/w/cpp/container/flat_set}{flat\char`_set}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/flat_map}{flat\char`_map}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/flat_multiset}{flat\char`_multiset}\quad | \quad
-%~ \href{https://en.cppreference.com/w/cpp/container/flat_multimap}{flat\char`_multimap}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-    %~ \textbf{C++98} & \texttt{std::map}, \texttt{std::set}, \texttt{std::multimap}, \texttt{std::multiset} \\
-    %~ \hline
-    %~ \multirow{2}{*}{\textbf{C++11}} 
-    %~ & \texttt{std::unordered\char`_map}, \texttt{std::unordered\char`_set} \\
-    %~ & \texttt{std::unordered\char`_multimap}, \texttt{std::unordered\char`_multiset} \\
-    %~ \hline
-    %~ {\textbf{C++23}} & \texttt{flat\char`_map}, \quad \texttt{flat\char`_multimap}, 
-                       %~ \quad \texttt{flat\char`_set}, \quad \texttt{flat\char`_multiset} \\
-    %~ \hline
-    %~ \end{tabularx}
-%~ \end{table}
+\begin{table}[H]
+    \begin{tabularx}{\textwidth}{|l|X|}
+    \hline
+    \href{https://en.cppreference.com/w/cpp/container/span}{span} & non-owning view over a contiguous sequence (C++20) \\
+    \hline
+    \href{https://en.cppreference.com/w/cpp/string/basic_string_view}{string\char`_view} & non-owning view over a character sequence (C++17) \\
+    \hline
+    \end{tabularx}
+\end{table}
 
-%~ \section{Containers' Access Time}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{X|c|c|c|c}
-    % \begin{tabular}{l|c|c|c|c}
-        %~ \multirow{2}{*}{Associative Container} & \multirow{2}{*}{Sorted} & \multirow{2}{*}{Value} & Multiple Identical & \multirow{2}{*}{Access Time} \\
-                                               %~ &        &       & Keys & \\
-        %~ \hline
-        %~ \texttt{std::set} & yes & no & no & logarithmic \\
-        %~ \texttt{std::map} & yes & yes & no & logarithmic \\
-        %~ \texttt{std::multiset} & yes & no & yes & logarithmic\\
-        %~ \texttt{std::multimap} & yes & yes & yes & logarithmic\\
-        %~ \texttt{std::unordered\char`_set} & no & no & no & constant \\
-        %~ \texttt{std::unordered\char`_map} & no & yes & no & constant \\
-        %~ \texttt{std::unordered\char`_multiset} & no & no & yes & constant\\
-        %~ \texttt{std::unordered\char`_multimap} & no & yes & yes & constant\\
-    %~ \end{tabularx}
-    % \end{tabular}
-%~ \end{table}
+\begin{lstlisting}[language=C++]
+void sum(std::span<const int> s);     // works for array, vector, C array, ...
+
+std::vector<int> v{1, 2, 3, 4};
+sum(v);
+sum(std::span{v}.subspan(1, 2));      // view into the middle
+
+void print(std::string_view sv);      // no std::string allocation at the boundary
+print("literal");
+print(std::string{"temp"});           // OK while the temporary lives for the full call
+\end{lstlisting}
+
+\textbf{Caution:} do not return a \texttt{string\char`_view}/\texttt{span} that refers to a 
+temporary or locals that are about to die.
+
 \newpage
 \section{Invalidation of Iterators and References}
-\begin{table}[ht]
+\label{sec:iterator-invalidation}
+Rules of thumb:
+\begin{itemize}
+    \item \texttt{vector}: reallocation invalidates \textbf{everything}; without reallocation, 
+          insert/erase invalidates at/after the modified point.
+    \item \texttt{deque}: inserting/erasing at ends keeps references to other elements 
+          (iterators may still be invalidated --- treat carefully); modifying the middle 
+          is more destructive.
+    \item \texttt{list} / \texttt{forward\char`_list}: insert/erase does not invalidate other iterators/references.
+    \item Associative (ordered): only erased elements are invalidated.
+    \item Unordered: \textbf{rehash} invalidates iterators (references to elements typically remain); 
+          without rehash, only erased iterators are invalidated.
+\end{itemize}
+
+\begin{table}[H]
 \footnotesize{}
     \begin{tabular}{|c|c|c|c|c|c|c|}
         \hline
@@ -216,7 +283,3 @@ With C++23, the following four Container Adaptors were introduced:
     \label{tab:iterator-reference-validity}
 \end{table}
 \normalsize
-
-
-
-\newpage{}
