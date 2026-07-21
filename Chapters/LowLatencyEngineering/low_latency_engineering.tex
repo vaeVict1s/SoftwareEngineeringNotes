@@ -87,7 +87,8 @@ This section covers general allocation avoidance on hot paths.
 \end{itemize}
 Practices:
 \begin{itemize}
-    \item Preallocate pools and rings at startup; recycle objects.
+    \item Preallocate pools and rings at startup; recycle objects 
+          (Section~\ref{subsec:memory-pools}).
     \item Fixed-size messages; no unbounded buffering on the hot thread.
     \item Defer logging, formatting, and allocations to a colder thread via a lock-free queue.
     \item Prefer stack/static storage or arenas with LIFO free for short-lived data.

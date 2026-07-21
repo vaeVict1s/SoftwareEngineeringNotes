@@ -106,5 +106,158 @@ Deallocation is meant to be done by one of the following:
     \end{table}
 
 \subsubsection{placement \texttt{new}}
+\label{subsec:placement-new}
+See~\cite{cppreference-newexpression}.
+\newline
+A normal \texttt{new}-expression does two things: it \textbf{allocates} storage 
+(via \texttt{operator new}) and then \textbf{constructs} an object in that storage.
+\newline
+\textbf{Placement \texttt{new}} skips allocation: you supply a suitably sized and 
+aligned address, and it only runs the constructor there. This is the basis of 
+object pools, arena allocators, and constructing into a preallocated buffer.
 
+\begin{lstlisting}[language=C++]
+#include <new>   // placement new
+
+alignas(T) unsigned char buf[sizeof(T)];
+
+T* p = new (buf) T{/* args */};   // construct T in buf
+p->do_work();
+p->~T();                          // destroy manually
+// do NOT delete p: buf was not allocated by operator new
+\end{lstlisting}
+
+Rules of thumb:
+\begin{itemize}
+    \item Storage must be at least \texttt{sizeof(T)} and properly aligned 
+          (e.g.\ \texttt{alignas(T)}, \texttt{std::aligned\char`_storage}, or memory 
+          from an allocator that guarantees alignment).
+    \item Lifetime ends with an explicit destructor call \texttt{p->\char`~T()}, 
+          or by reusing/releasing the storage only after destruction.
+    \item Pairing: if memory came from \texttt{malloc}/\texttt{operator new}/a pool, 
+          free it with the matching deallocator --- never \texttt{delete} a pointer 
+          whose storage was not obtained from a matching allocating \texttt{new}.
+    \item Arrays: placement \texttt{new[]} is rarely what you want; construct 
+          elements one by one (or use an allocator/\texttt{uninitialized\char`_*} 
+          helpers).
+\end{itemize}
+
+Typical uses: memory pools, \texttt{std::vector} reallocation/growth, 
+\texttt{optional}/variant storage, shared-memory objects, and Fast PImpl-style 
+embedded buffers (see~\S\ref{subsec:fast-pimpl}).
+
+\subsubsection{Memory pools}
+\label{subsec:memory-pools}
+See~\cite{cppreference-unsynchronized-pool-resource},~\cite{wiki-object-pool}.
+\newline
+A \textbf{memory pool} preallocates a block (or several blocks) of storage and 
+hands out pieces of it on demand, instead of calling the global heap allocator 
+for every object. Clients typically \textbf{construct with placement \texttt{new}} 
+(Section~\ref{subsec:placement-new}) and \textbf{destroy explicitly} before 
+returning the slot to the pool.
+\newline
+Why use one:
+\begin{itemize}
+    \item Fewer (or zero) calls into \texttt{malloc}/\texttt{operator new} on the hot path.
+    \item More predictable latency --- less lock contention and fewer page faults after warm-up.
+    \item Better locality when objects of the same size live in one contiguous arena.
+\end{itemize}
+
+\paragraph*{Fixed-size free-list pool.}
+All slots have the same size (here: one \texttt{T}). Free slots are linked in a 
+singly linked list. \texttt{acquire} pops a slot and constructs; \texttt{release} 
+destroys and pushes the slot back.
+
+\begin{lstlisting}[language=C++]
+#include <cstddef>
+#include <cstdint>
+#include <new>
+#include <utility>
+
+template <class T, std::size_t N>
+class FixedPool {
+    union Slot {
+        alignas(T) unsigned char storage[sizeof(T)];
+        Slot* next;
+    };
+
+    Slot  slots_[N];
+    Slot* free_ = nullptr;
+
+public:
+    FixedPool() {
+        for (std::size_t i = 0; i + 1 < N; ++i)
+            slots_[i].next = &slots_[i + 1];
+        slots_[N - 1].next = nullptr;
+        free_ = &slots_[0];
+    }
+
+    template <class... Args>
+    T* acquire(Args&&... args) {
+        if (!free_) return nullptr;          // pool exhausted
+        Slot* s = free_;
+        free_ = s->next;
+        return new (s->storage) T(std::forward<Args>(args)...);
+    }
+
+    void release(T* p) {
+        if (!p) return;
+        p->~T();
+        auto* s = reinterpret_cast<Slot*>(p);
+        s->next = free_;
+        free_ = s;
+    }
+};
+
+// usage
+FixedPool<Message, 1024> pool;
+Message* m = pool.acquire(/* ... */);
+// ... use m ...
+pool.release(m);
+\end{lstlisting}
+
+\paragraph*{Bump / arena allocator (sketch).}
+An arena allocates by advancing a cursor in a big buffer (\textbf{bump pointer}).
+Individual frees are often omitted: you reset or destroy the whole arena at once.
+Ideal for many short-lived objects with the same lifetime (e.g.\ one request / one tick).
+
+\begin{lstlisting}[language=C++]
+class Arena {
+    char*  begin_;
+    char*  curr_;
+    char*  end_;
+public:
+    Arena(char* buf, std::size_t n)
+        : begin_{buf}, curr_{buf}, end_{buf + n} {}
+
+    void* allocate(std::size_t n, std::size_t align) {
+        auto mis = reinterpret_cast<std::uintptr_t>(curr_) % align;
+        if (mis) curr_ += align - mis;
+        if (curr_ + n > end_) return nullptr;
+        void* p = curr_;
+        curr_ += n;
+        return p;
+    }
+
+    void reset() { curr_ = begin_; }   // bulk free
+};
+
+// T* p = new (arena.allocate(sizeof(T), alignof(T))) T{...};
+\end{lstlisting}
+
+\paragraph*{Pitfalls.}
+\begin{itemize}
+    \item \textbf{Lifetime / lifetime:} always destroy before recycling storage; 
+          never \texttt{delete} a pool pointer.
+    \item \textbf{Exhaustion:} decide whether \texttt{acquire} returns 
+          \texttt{nullptr}, throws, or falls back to the heap.
+    \item \textbf{Threading:} a shared free list needs synchronization (or 
+          thread-local pools). Standard PMR offers 
+          \texttt{std::pmr::unsynchronized\char`_pool\char`_resource} (single-threaded) 
+          and \texttt{std::pmr::synchronized\char`_pool\char`_resource}.
+    \item \textbf{Fragmentation of sizes:} fixed-size pools waste space if 
+          object sizes vary; use size classes or an arena instead.
+\end{itemize}
+For low-latency hot paths, preallocate pools at startup and recycle on the 
+critical path (see Section~\ref{sec:avoiding-allocations}).
 
