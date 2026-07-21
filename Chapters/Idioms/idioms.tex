@@ -3,22 +3,24 @@
 \section{C++ Idioms}
 An idiom can be considered as the most natural way to express something 
 or to solve a problem. More specifically, an idiom is a group of code 
-fragments sharing an equivalet semantic role, which recurs frequently in 
+fragments sharing an equivalent semantic role, which recurs frequently in 
 one or more programming languages or libraries.
 \newline
-A comprehensive list of C++ Idioms can be found at~\cite{wiki-idiom-list} 
+A comprehensive list of C++ Idioms can be found at~\cite{wiki-idiom-list}.
+See also~\cite{youtube-cpp-idioms-everyone}.
 
 \subsection{PImpl Idiom}
-\href{https://en.cppreference.com/w/cpp/language/pimpl}{cppreference documentation about the \textbf{\texttt{PImple Idiom}}}.
+See~\cite{cppreference-pimpl}.
 \newline
 "Pointer to implementation" or "pImpl" is a C++ programming technique 
 that \textbf{removes implementation details of a class from its object representation} 
 by placing them in a separate class, accessed \textbf{through an opaque pointer}.
 \newline
-This idiom is also know as \textbf{\texttt{Compiler Firewall Idiom}}.
+This idiom is also known as \textbf{\texttt{Compiler Firewall Idiom}}.
+See also~\cite{wiki-pimpl},~\cite{gotw-24-compilefirewalls},~\cite{gotw-100-compilfirewalls}.
 
 \subsubsection*{Problematic Scenario}
-Whenever file class definition changes in a header, all users of that class 
+Whenever a class definition changes in a header, all users of that class 
 must be recompiled. The reason is the textual inclusion on which 
 the C++ build model is based. The user is assumed to know two features 
 which could be affected by private members: \textbf{size and layout} 
@@ -37,41 +39,387 @@ private:
 
 %%%
 \subsection{Fast PImpl Idiom}
+\label{subsec:fast-pimpl}
+See~\cite{gotw-28-pimpl}.
+\newline
+Classic PImpl pays for an extra heap allocation and an extra indirection.
+The \textbf{Fast PImpl} idea is to keep the opaque implementation, but 
+store it in a fixed-size buffer \textbf{inside} the object (or otherwise 
+avoid the heap) so that construction stays cheap while the header still 
+hides the real layout.
+\newline
+Trade-off: you must pick a buffer size/alignment large enough for 
+\texttt{impl}, and you typically still need out-of-line destructor / special 
+members because \texttt{impl} is incomplete in the header.
+
+\begin{lstlisting}[language=C++]
+#include <cstddef>
+#include <new>
+
+class Widget {
+public:
+    Widget();
+    ~Widget();
+    Widget(const Widget&) = delete;
+    Widget& operator=(const Widget&) = delete;
+
+    void draw();
+
+private:
+    struct Impl;
+    static constexpr std::size_t buf_size = 64;
+    alignas(std::max_align_t) unsigned char buf_[buf_size];
+
+    Impl* pimpl() { return reinterpret_cast<Impl*>(buf_); }
+    const Impl* pimpl() const { return reinterpret_cast<const Impl*>(buf_); }
+};
+
+// widget.cpp
+struct Widget::Impl {
+    int x = 0;
+    void draw() { /* ... */ }
+};
+
+Widget::Widget() { static_assert(sizeof(Impl) <= buf_size); new (buf_) Impl{}; }
+Widget::~Widget() { pimpl()->~Impl(); }
+void Widget::draw() { pimpl()->draw(); }
+\end{lstlisting}
 
 %%%
 \subsection{Handle/Object Idiom}
+\label{subsec:handle-object}
+See~\cite{eliens-handle-body-idiom}.
+\newline
+Separate a thin public \textbf{handle} (what clients use) from a heavy 
+\textbf{body/object} (where the real state and work live). The handle 
+usually holds a pointer/reference to the body and forwards operations.
+\newline
+This is closely related to PImpl / Bridge: clients depend on a stable 
+handle interface; the body can change, be shared, or be replaced without 
+rewriting client code.
+
+\begin{lstlisting}[language=C++]
+class StringBody;                 // heavy representation
+
+class String {                    // handle
+public:
+    String(const char* s);
+    String(const String& other);
+    String& operator=(String other); // often with copy-and-swap
+    ~String();
+
+    char operator[](std::size_t i) const;
+    void append(const char* s);
+
+private:
+    StringBody* body_;
+};
+\end{lstlisting}
+
 \subsection{Copy and Swap Idiom}
+\label{subsec:copy-and-swap}
+See~\cite{stackof-copyandswap},~\cite{gotw-59-exceptsafeclassdesI}.
+\newline
 This idiom aims at creating a strong exception-safe implementation of 
 the overloaded assignment operator. 
 \newline
 This idiom makes use of the \textbf{RAII} idiom in order to acquire 
 the new resource before it forfeits its current resource. If the 
-acquisition is successful
+acquisition is successful, the old resource is released; if it throws, 
+the object is left unchanged (\textbf{strong exception guarantee}).
+
+\begin{lstlisting}[language=C++]
+class Buffer {
+public:
+    Buffer(std::size_t n);
+    Buffer(const Buffer& other);
+    ~Buffer();
+
+    friend void swap(Buffer& a, Buffer& b) noexcept {
+        using std::swap;
+        swap(a.data_, b.data_);
+        swap(a.size_, b.size_);
+    }
+
+    Buffer& operator=(Buffer other) noexcept { // pass by value = copy/move
+        swap(*this, other);
+        return *this;
+    }
+
+private:
+    char* data_;
+    std::size_t size_;
+};
+\end{lstlisting}
 
 \subsection{RAII - Resource Acquisition is Initialization}
+\label{subsec:raii}
+See~\cite{wiki-raii}.
+\newline
+\textbf{RAII} ties a resource's lifetime to an object's lifetime: 
+acquire in the constructor, release in the destructor. Stack unwinding 
+then releases resources automatically on both success and exception paths.
+\newline
+Typical uses: locks, file handles, memory, sockets. Standard library 
+examples include \texttt{std::unique\char`_ptr}, \texttt{std::lock\char`_guard}, 
+\texttt{std::fstream}.
+
+\begin{lstlisting}[language=C++]
+class File {
+public:
+    explicit File(const char* path) : f_{std::fopen(path, "rb")} {
+        if (!f_) throw std::runtime_error("open failed");
+    }
+    ~File() { if (f_) std::fclose(f_); }
+
+    File(const File&) = delete;
+    File& operator=(const File&) = delete;
+
+    std::size_t read(void* buf, std::size_t n) {
+        return std::fread(buf, 1, n, f_);
+    }
+
+private:
+    std::FILE* f_;
+};
+
+void use() {
+    File f("data.bin");          // acquire
+    // ...                        // always released when f goes out of scope
+}
+\end{lstlisting}
 
 \subsection{DBDII - Dynamic Binding During Initialization Idiom}
 \label{subsec:dbdii}
-\href{https://isocpp.org/wiki/faq/strange-inheritance#calling-virtuals-from-ctor-idiom}{calling-virtuals-from-ctor-idiom}
+See~\cite{isocpp-calling-virtuals-from-ctor-idiom}.
+\newline
+Calling a \texttt{virtual} function from a constructor/destructor does 
+\textbf{not} dispatch to the most-derived override: the dynamic type is 
+still under construction. DBDII avoids that trap by finishing construction 
+first, then invoking a virtual ``post-constructor'' (often a factory 
+\texttt{create()} that returns a smart pointer and then calls 
+\texttt{init()}).
 
+\begin{lstlisting}[language=C++]
+class Base {
+protected:
+    Base() = default;
+public:
+    virtual ~Base() = default;
+    virtual void post_construct() = 0;   // safe: object fully constructed
+
+    template <class T, class... Args>
+    static std::unique_ptr<T> create(Args&&... args) {
+        auto p = std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+        p->post_construct();             // dynamic binding OK here
+        return p;
+    }
+};
+
+class Derived : public Base {
+    friend class Base;
+    Derived() = default;
+public:
+    void post_construct() override { /* use virtuals safely */ }
+};
+
+auto d = Base::create<Derived>();
+\end{lstlisting}
 
 \subsection{Named Constructor Idiom}
 \label{subsec:named-ctor-idiom}
-\cite{isocpp-named-ctor-idiom}
+See~\cite{isocpp-named-ctor-idiom}.
+\newline
+Make constructors private/protected and expose clearer static factory 
+functions with meaningful names. This documents intent, can enforce 
+invariants, and can return by value / smart pointer without overloading 
+ambiguity.
+
+\begin{lstlisting}[language=C++]
+class Point {
+public:
+    static Point cartesian(double x, double y) { return Point{x, y}; }
+    static Point polar(double r, double theta) {
+        return Point{r * std::cos(theta), r * std::sin(theta)};
+    }
+
+private:
+    Point(double x, double y) : x_{x}, y_{y} {}
+    double x_, y_;
+};
+
+auto p = Point::polar(1.0, 3.14159 / 4);
+\end{lstlisting}
 
 \subsection{Construct On First Use Idiom}
-\cite{isocpp-const-first-use-idiom}
+\label{subsec:construct-on-first-use}
+See~\cite{isocpp-const-first-use-idiom}.
+\newline
+Avoid the static initialization order fiasco: instead of a namespace-scope 
+object whose constructor may run before another translation unit is ready, 
+wrap the object in a function-local \texttt{static} so it is constructed 
+on first call (and destroyed at program exit in a well-defined way for 
+that object).
+
+\begin{lstlisting}[language=C++]
+// Bad across TUs: relative init order of a and b is undefined
+// extern Log log;
+// Log& get_log() { return log; }
+
+Log& get_log() {
+    static Log log;   // constructed on first call
+    return log;
+}
+
+void f() { get_log().write("hi"); }
+\end{lstlisting}
 
 \subsection{Nifty Counter Idiom}
-\cite{isocpp-nifty-counter-idiom}
+\label{subsec:nifty-counter}
+See~\cite{isocpp-nifty-counter-idiom},~\cite{wikibook-nifty-counter-idiom}.
+\newline
+Used by the standard streams (\texttt{std::cout} \& co.): each translation 
+unit that includes the iostream header gets a static object whose 
+constructor/destructor bump a shared counter. The first construction 
+initializes the stream objects; the last destruction tears them down. 
+That way streams are usable during dynamic initialization of other 
+statics in TUs that included the header.
+
+\begin{lstlisting}[language=C++]
+// Simplified sketch of the idea (not the real library code)
+class IostreamInit {
+public:
+    IostreamInit() {
+        if (count_++ == 0) { /* construct cin/cout/cerr */ }
+    }
+    ~IostreamInit() {
+        if (--count_ == 0) { /* destroy cin/cout/cerr */ }
+    }
+private:
+    static int count_;
+};
+
+static IostreamInit iostream_init;  // in each TU that includes the header
+\end{lstlisting}
 
 \subsection{Named Parameter Idiom}
 \label{subsec:named-parameter-idiom}
-\cite{isocpp-named-parameter-idiom}
+See~\cite{isocpp-named-parameter-idiom}.
+\newline
+Emulate named/defaulted arguments by returning \texttt{*this} from chainable 
+setters (a lightweight builder). Call sites read as a sequence of named 
+options instead of a long positional argument list.
+
+\begin{lstlisting}[language=C++]
+class Game {
+public:
+    Game& windowSize(int w, int h) { w_ = w; h_ = h; return *this; }
+    Game& fullscreen(bool v) { full_ = v; return *this; }
+    Game& title(std::string t) { title_ = std::move(t); return *this; }
+
+private:
+    int w_ = 800, h_ = 600;
+    bool full_ = false;
+    std::string title_ = "game";
+};
+
+Game g;
+g.windowSize(1920, 1080).fullscreen(true).title("Demo");
+\end{lstlisting}
 
 \subsection{Virtual Friend Function Idiom}
 \label{subsec:virtual-friend-function}
-\cite{isocpp-virtual-friend-function}
+See~\cite{isocpp-virtual-friend-function}.
+\newline
+Friends are not virtual. To get polymorphic behavior for operators like 
+\texttt{operator<<}, provide a public non-virtual friend that forwards to 
+a private/protected virtual member.
+
+\begin{lstlisting}[language=C++]
+class Shape {
+public:
+    virtual ~Shape() = default;
+    friend std::ostream& operator<<(std::ostream& os, const Shape& s) {
+        return s.print(os);          // virtual dispatch
+    }
+protected:
+    virtual std::ostream& print(std::ostream& os) const = 0;
+};
+
+class Circle : public Shape {
+protected:
+    std::ostream& print(std::ostream& os) const override {
+        return os << "Circle";
+    }
+};
+
+void f(const Shape& s) { std::cout << s << '\n'; }
+\end{lstlisting}
 
 \subsection{CRTP - Curiously recurring template pattern}
+\label{subsec:crtp}
+See~\cite{wiki-crtp},~\cite{cppreference-crtp}.
+\newline
+A class \texttt{Derived} inherits from \texttt{Base<Derived>}. The base 
+can \texttt{static\char`_cast} to \texttt{Derived} and call derived members 
+\textbf{without virtual functions} (static polymorphism). Common uses: 
+mixins, compile-time interfaces, \texttt{enable\char`_shared\char`_from\char`_this}-style 
+helpers.
+
+\begin{lstlisting}[language=C++]
+template <typename D>
+struct Comparable {
+    bool operator==(const D& other) const {
+        return static_cast<const D*>(this)->value()
+            == other.value();
+    }
+    bool operator!=(const D& other) const { return !(*this == other); }
+};
+
+struct Point : Comparable<Point> {
+    int x, y;
+    int value() const { return x ^ y; }  // used by Comparable
+};
+
+Point a{1, 2}, b{1, 2};
+bool same = (a == b);   // resolved at compile time
+\end{lstlisting}
+
 \subsection{Type Erasure}
+\label{subsec:type-erasure}
+See~\cite{wikibook-type-erasure}.
+\newline
+Hide a concrete type behind a uniform interface while retaining behaviour 
+(virtuals, function pointers, or a small-buffer-optimized wrapper). Clients 
+depend on the erased handle; the real type is known only at the construction 
+site. \texttt{std::function}, \texttt{std::any}, and polymorphic allocators 
+are standard examples.
+
+\begin{lstlisting}[language=C++]
+class Drawable {                 // type-erased handle
+public:
+    template <class T>
+    Drawable(T x) : self_{std::make_shared<Model<T>>(std::move(x))} {}
+
+    void draw() const { self_->draw(); }
+
+private:
+    struct Concept {
+        virtual ~Concept() = default;
+        virtual void draw() const = 0;
+    };
+    template <class T>
+    struct Model : Concept {
+        explicit Model(T x) : data_{std::move(x)} {}
+        void draw() const override { data_.draw(); }
+        T data_;
+    };
+    std::shared_ptr<const Concept> self_;
+};
+
+struct Circle { void draw() const { /* ... */ } };
+struct Square { void draw() const { /* ... */ } };
+
+std::vector<Drawable> scene{Circle{}, Square{}};
+for (const auto& d : scene) d.draw();
+\end{lstlisting}
