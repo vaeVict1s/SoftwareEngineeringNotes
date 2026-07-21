@@ -5,15 +5,17 @@ set -euo pipefail
 DO_BUILD=false
 DO_CLEAN_AFTER=false
 DO_ONLY_CLEAN=false
+DO_REMAKE_TIKZ=false
 TEX_FILE=""
 
 # --- Usage ---
 usage() {
   echo "Usage:"
-  echo "  $0 --build <file.tex>           Compile LaTeX file (no cleanup)"
-  echo "  $0 --build <file.tex> --clean   Compile and cleanup after build"
-  echo "  $0 --only-clean <file.tex>      Cleanup temporary LaTeX files for this file only"
-  echo "  $0 --help                       Show this help"
+  echo "  $0 --build <file.tex>              Compile LaTeX file (no cleanup)"
+  echo "  $0 --build <file.tex> --clean      Compile and cleanup after build"
+  echo "  $0 --build <file.tex> --remake-tikz  Force rebuild of cached TikZ diagrams"
+  echo "  $0 --only-clean <file.tex>         Cleanup temporary LaTeX files (keeps tikz-cache/)"
+  echo "  $0 --help                          Show this help"
   exit 1
 }
 
@@ -26,11 +28,13 @@ cleanup() {
 
   local OLD_PWD="$PWD"
   echo "Cleaning auxiliary LaTeX files recursively in: ${DIR_NAME} ..."
+  echo "   (preserving tikz-cache/ so diagrams are not rebuilt)"
   
   # Si sposta nella cartella del progetto
   cd "$DIR_NAME"
 
   # Lista di tutti i pattern di file ausiliari da cercare e distruggere
+  # Do NOT delete PDFs or tikz-cache content (externalized figures).
   local PATTERNS=(
     "*.aux" "*.bbl" "*.blg" "*.brf" "*.log" "*.nav" "*.out" "*.snm" 
     "*.toc" "*.lof" "*.lot" "*.fls" "*.fdb_latexmk" "*.synctex.gz" 
@@ -39,9 +43,10 @@ cleanup() {
     "*.bcf" "*.run.xml" "*~" "*.bak" "*.tmp" "*.swp"
   )
 
-  # Esegue una ricerca ricorsiva per ogni pattern eliminando i file trovati
+  # Esegue una ricerca ricorsiva per ogni pattern eliminando i file trovati,
+  # but never touch tikz-cache/ (figure PDFs + .md5/.dpth up-to-date markers).
   for pattern in "${PATTERNS[@]}"; do
-    find . -type f -name "$pattern" -delete
+    find . -depth \( -path './tikz-cache' -o -path './tikz-cache/*' \) -prune -o -type f -name "$pattern" -delete
   done
 
   # Ritorna alla cartella originaria
@@ -79,9 +84,19 @@ build() {
   echo "Starting compilation for: $BASE_NAME (in directory: $DIR_NAME)"
   cd "$DIR_NAME"
 
+  mkdir -p tikz-cache
+
+  # -shell-escape is required for TikZ externalization (cached diagrams).
+  local PDFLATEX_FLAGS=(-interaction=nonstopmode -shell-escape)
+  if [[ "$DO_REMAKE_TIKZ" == true ]]; then
+    echo "   [tikz] Forcing remake of externalized figures..."
+    # Empty the cache so md5 checks fail and figures are regenerated.
+    find tikz-cache -type f ! -name '.gitkeep' -delete 2>/dev/null || true
+  fi
+
   # --- PASS 1 ---
-  echo "   [1/3] Running pdflatex..."
-  pdflatex -interaction=nonstopmode "$BASE_NAME" > /dev/null 2>&1 || {
+  echo "   [1/3] Running pdflatex (with TikZ externalization)..."
+  pdflatex "${PDFLATEX_FLAGS[@]}" "$BASE_NAME" > /dev/null 2>&1 || {
     echo "Error: pdflatex failed at Pass 1. Check ${NO_EXT}.log for details."
     cd "$OLD_PWD"
     exit 5
@@ -102,7 +117,7 @@ build() {
   
   # --- PASS 2 ---
   echo "   [2/3] Running pdflatex (cross-references)..."
-  pdflatex -interaction=nonstopmode "$BASE_NAME" > /dev/null 2>&1 || {
+  pdflatex "${PDFLATEX_FLAGS[@]}" "$BASE_NAME" > /dev/null 2>&1 || {
     echo "Error: pdflatex failed at Pass 2. Check ${NO_EXT}.log."
     cd "$OLD_PWD"
     exit 6
@@ -110,18 +125,21 @@ build() {
 
   # --- PASS 3 ---
   echo "   [3/3] Running pdflatex (final assembly)..."
-  pdflatex -interaction=nonstopmode "$BASE_NAME" > /dev/null 2>&1 || {
+  pdflatex "${PDFLATEX_FLAGS[@]}" "$BASE_NAME" > /dev/null 2>&1 || {
     echo "Error: pdflatex failed at Pass 3. Check ${NO_EXT}.log."
     cd "$OLD_PWD"
     exit 7
   }
 
+  local TIKZ_COUNT
+  TIKZ_COUNT=$(find tikz-cache -name '*.pdf' 2>/dev/null | wc -l | tr -d ' ')
   echo "PDF build successfully completed: ${NO_EXT}.pdf"
+  echo "   Cached TikZ figures: ${TIKZ_COUNT} in tikz-cache/"
   cd "$OLD_PWD"
 }
 
 # --- Option parsing ---
-PARSED=$(getopt --options "" --long build:,clean,only-clean:,help --name "$0" -- "$@") || usage
+PARSED=$(getopt --options "" --long build:,clean,only-clean:,remake-tikz,help --name "$0" -- "$@") || usage
 eval set -- "$PARSED"
 
 while true; do
@@ -133,6 +151,10 @@ while true; do
       ;;
     --clean)
       DO_CLEAN_AFTER=true
+      shift
+      ;;
+    --remake-tikz)
+      DO_REMAKE_TIKZ=true
       shift
       ;;
     --only-clean)

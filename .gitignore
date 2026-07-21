@@ -28,6 +28,19 @@
 build/
 output/
 
+# TikZ externalization: keep PDFs/.md5/.dpth (compile cache); ignore logs/aux only
+tikz-cache/*.log
+tikz-cache/*.aux
+tikz-cache/*.fls
+tikz-cache/*.dvi
+tikz-cache/*.ps
+tikz-cache/*.run.xml
+tikz-cache/*.bcf
+tikz-cache/*.blg
+tikz-cache/*.bbl
+tikz-cache/*.out
+tikz-cache/*.toc
+
 # MacOS
 .DS_Store
 

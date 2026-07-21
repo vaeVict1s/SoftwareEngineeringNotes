@@ -1543,6 +1543,7 @@ help being more confident with this choice.
 \noindent{}
 \begin{wrapfigure}{L}{0.4\textwidth}% adapt widths of minipages to your needs
 \centering{}
+    \tikzfig{dreaded_diamond}
     \begin{tikzpicture}%[>=triangle 45,font=\sffamily]
         \node (X) at (0,1.5) [rectangle,draw] {\textbf{Base}};
         \node (Y) at (-1.5,0) [rectangle,draw] {\textbf{Der1}};
@@ -1581,6 +1582,7 @@ there is a better solution though.
 
 \begin{wrapfigure}{L}{0.4\textwidth}% adapt widths of minipages to your needs
 \begin{center}
+    \tikzfig{virtual_inheritance}
     \begin{tikzpicture}%[>=triangle 45,font=\sffamily]
         \node (X) at (0,1.5) [rectangle,draw] {\textbf{Base}};
         \node (Y) at (-1.5,0) [rectangle,draw] {\textbf{Der1}};
@@ -1594,7 +1596,7 @@ there is a better solution though.
         
         \node at (2,0.5) {\highlighttt{virtual}};
         \node at (-2,0.5) {\highlighttt{virtual}};
-=    \end{tikzpicture}
+    \end{tikzpicture}
     \caption{A Nicer Diamond.}
     \label{fig:undreaded-diamond}
 \end{center}

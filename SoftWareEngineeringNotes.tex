@@ -68,6 +68,29 @@
 	\usepackage{fancyref}
 	\usepackage{hyperref}
 	\usepackage{cleveref}
+
+% TikZ externalization: cache diagrams under tikz-cache/ (requires -shell-escape).
+% Load AFTER hyperref. Chapter/part banners use remember picture+overlay and are
+% excluded via export next=false below.
+\usepackage{pdftexcmds}
+\makeatletter
+\ifnum\pdf@shellescape=1
+  \usetikzlibrary{external}
+  \tikzexternalize[
+    prefix=tikz-cache/,
+    only named=true
+  ]
+  % optimize=false avoids broken interactions with tcolorbox while generating figures
+  \tikzset{external/optimize=false}
+  \newcommand{\tikzskipexternal}{\tikzset{external/export next=false}}
+  % Prefer: \tikzfig{name} ... \end{tikzpicture}  (only named figures are cached)
+  \newcommand{\tikzfig}[1]{\tikzsetnextfilename{#1}}
+\else
+  \newcommand{\tikzskipexternal}{}
+  \newcommand{\tikzfig}[1]{}
+  \typeout{WARNING: shell-escape disabled; TikZ figures will not be externalized.}
+\fi
+\makeatother
 	\usepackage{listings}
 	\usepackage{varwidth}
 	\usepackage{longfbox}
@@ -208,7 +231,7 @@
 {\normalfont\huge\filleft}
 {}
 {20pt}
-{\begin{tikzpicture}[remember picture,overlay]
+{\tikzskipexternal\begin{tikzpicture}[remember picture,overlay]
     \fill[myblueiii]
     (current page.north west) rectangle ([yshift=-13cm]current page.north east);
 \node[
@@ -240,7 +263,7 @@
 {\normalfont\huge\filleft}
 {}
 {20pt}
-{\begin{tikzpicture}[remember picture,overlay]
+{\tikzskipexternal\begin{tikzpicture}[remember picture,overlay]
     \fill[myblueiii] 
     (current page.north west) rectangle ([yshift=-13cm]current page.north east);   
 \node[
