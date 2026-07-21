@@ -2,74 +2,109 @@
 \label{chap:smartpoint}
 
 \section{Smart Pointers in C++}
-\href{https://en.cppreference.com/w/cpp/memory}{Cppreference documentation about \textbf{dynamic memory management}}. 
+See~\cite{cppreference-dynmemmanagement}.
 \newline
 \highlight{Smart pointers} enable \highlightit{automatic, exception-safe, object 
 lifetime management}.
 \newline
 Generally speaking, a smart pointer is a \highlightit{data type whose value 
 can be used like a pointer}, with the \highlightit{additional feature of 
-memory management}, that \highlightit{frees the memory when it is} \\
-\highlightit{no longer used}.
+memory management}, that \highlightit{frees the memory when it is no longer used}.
 \newline
 A smart pointer should therefore be used any time 
 the ownership of memory needs to be tracked.
 
+\toclessnparagraph{Which pointer?}
+\begin{itemize}
+    \item Prefer \texttt{std::unique\char`_ptr} --- exclusive ownership, zero overhead vs a raw pointer + delete.
+    \item Use \texttt{std::shared\char`_ptr} only when ownership is genuinely shared.
+    \item Use \texttt{std::weak\char`_ptr} to observe a \texttt{shared\char`_ptr}-managed object 
+          without extending its lifetime (break cycles, caches).
+    \item Do not use \texttt{std::auto\char`_ptr} (removed from the language).
+\end{itemize}
+
 \newpage
 %% Unique Pointer
 \subsection{\texttt{std::unique\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/unique_ptr}{cppreference documentation about \textbf{\texttt{std::unique\char`_ptr}}}.
-    \newline
-    \highlighttt{std::unique\char`_ptr} is a smart pointer that \highlightit{owns and manages} 
-    another object through a pointer and \highlightit{disposes of} that object 
-    \highlightit{when} the \highlighttt{std::unique\char`_ptr} goes \highlightit{out of scope}.
-    \newline
-    The object is disposed of, using the associated deleter when either 
-    of the following happens:
-    \begin{itemize}
-        \item the managing \texttt{std::unique\char`_ptr} object is \highlightit{destroyed}
-        \item the managing \texttt{std::unique\char`_ptr} object is \highlightit{assigned 
-        another pointer}
-        \newline 
-        via \texttt{operator=} or \texttt{reset()}. 
-    \end{itemize}
+\label{subsec:unique-ptr}
+See~\cite{cppreference-uniqueptr}.
+\newline
+\highlighttt{std::unique\char`_ptr} is a smart pointer that \highlightit{owns and manages} 
+another object through a pointer and \highlightit{disposes of} that object 
+\highlightit{when} the \highlighttt{std::unique\char`_ptr} goes \highlightit{out of scope}.
+\newline
+The object is disposed of, using the associated deleter when either 
+of the following happens:
+\begin{itemize}
+    \item the managing \texttt{std::unique\char`_ptr} object is \highlightit{destroyed}
+    \item the managing \texttt{std::unique\char`_ptr} object is \highlightit{assigned 
+          another pointer} via \texttt{operator=} or \texttt{reset()}. 
+\end{itemize}
 
 \toclessnparagraph{Notes}
-Only \highlight{\textbf{non-const} \texttt{std::unique\char`_ptr}} can 
+Only a \highlight{\textbf{non-const} \texttt{std::unique\char`_ptr}} can 
 \highlightit{transfer the ownership} of the managed object to \highlight{\textbf{another} 
-\texttt{std::unique\char`_ptr}}.
+\texttt{std::unique\char`_ptr}} (via move).
 \newline
 If an object's lifetime is managed by a 
 \highlight{\textbf{const} \texttt{std::unique\char`_ptr}}, it is \highlight{limited to 
-the scope} \highlight{in which the pointer was created}.
+the scope} in which the pointer was created.
 
 \highlight{\texttt{std::unique\char`_ptr}} is commonly used to \highlight{manage} the \highlight{lifetime 
 of objects}, including:
-    \begin{itemize}
-        \item providing \highlight{exception safety} to classes and functions 
-        that handle objects with dynamic lifetime, 
-        by \highlight{guaranteeing deletion} on both normal exit and 
-        exit through exception 
-
-        \item \highlight{passing ownership} of uniquely-owned objects with 
-        dynamic lifetime into functions 
-
-        \item \highlight{acquiring ownership} of uniquely-owned objects 
-        with dynamic lifetime from functions 
-
-        \item as the element type in move-aware containers, 
-        such as \texttt{std::vector}, which hold pointers to 
-        dynamically-allocated objects
-        (e.g. if \highlight{polymorphic behavior} is desired).             
-    \end{itemize}
+\begin{itemize}
+    \item providing \highlight{exception safety} to classes and functions 
+          that handle objects with dynamic lifetime, 
+          by \highlight{guaranteeing deletion} on both normal exit and 
+          exit through exception 
+    \item \highlight{passing ownership} of uniquely-owned objects with 
+          dynamic lifetime into functions 
+    \item \highlight{acquiring ownership} of uniquely-owned objects 
+          with dynamic lifetime from functions 
+    \item as the element type in move-aware containers, 
+          such as \texttt{std::vector}, which hold pointers to 
+          dynamically-allocated objects
+          (e.g.\ if \highlight{polymorphic behavior} is desired).             
+\end{itemize}
 
 \highlighttt{std::unique\char`_ptr} may be constructed for an
-\highlight{incomplete type} T, such as to facilitate the use as a handle 
-in the \highlight{pImpl idiom}.
-\newpage
+\highlight{incomplete type} \texttt{T}, such as to facilitate the use as a handle 
+in the \highlight{PImpl idiom} (Chapter~\ref{chap:idioms}).
+
+\begin{lstlisting}[language=C++]
+#include <memory>
+
+struct Widget { void draw(); };
+
+std::unique_ptr<Widget> p = std::make_unique<Widget>();
+p->draw();
+
+std::unique_ptr<Widget> q = std::move(p);  // ownership transferred
+// p == nullptr
+\end{lstlisting}
+
+\toclessnparagraph{\texttt{std::make\char`_unique}}
+Prefer \texttt{std::make\char`_unique} (C++14) over \texttt{new} 
+(see~\cite{cppreference-make-unique}; also~\S\ref{sec:std-make-unique}): no naked \texttt{new}, 
+less repetition of the type name, and better exception safety when 
+building function arguments.
+\begin{lstlisting}[language=C++]
+foo(std::make_unique<T>(), function_that_throws(), std::make_unique<T>());
+\end{lstlisting}
+
+\toclessnparagraph{Arrays and custom deleters}
+Array form uses \texttt{delete[]}. A custom deleter is useful for C APIs, pools, and \texttt{FILE*}.
+\begin{lstlisting}[language=C++]
+// array form: uses delete[]
+auto buf = std::make_unique<int[]>(1024);
+
+// custom deleter (e.g. C API / pool / FILE*)
+std::unique_ptr<FILE, decltype(&std::fclose)> f{
+    std::fopen("data.bin", "rb"), &std::fclose};
+\end{lstlisting}
+
 \toclessnparagraph{Member types}
-%~ \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         pointer & Must satisfy \href{https://en.cppreference.com/w/cpp/named_req/NullablePointer}{NullablePtr}\\
@@ -85,8 +120,7 @@ in the \highlight{pImpl idiom}.
 \end{table}
 
 \toclessnparagraph{Member functions}
-%~ \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/unique_ptr}{constructor}
@@ -96,31 +130,29 @@ in the \highlight{pImpl idiom}.
         & destructs the managed object if such is present\\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator\%3D}{operator=}
-        & assigns the \texttt{unique\char`_ptr} \\
+        & assigns the \texttt{unique\char`_ptr} (moves ownership)\\
         \cline{1-2}
     \end{tabularx}
 \end{table}
 
 \toclessnparagraph{Modifiers}
-%~ \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/release}{release}
-        & returns a pointer to the managed object \\
+        & releases ownership and returns the raw pointer (caller must delete)\\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/reset}{reset}
-        & returns the deleter that is used for destruction of the managed object \\
+        & replaces the managed object (deletes the old one if any)\\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/swap}{swap}
-        & checks if there is an associated managed object \\
+        & swaps the managed objects with another \texttt{unique\char`_ptr}\\
         \cline{1-2}
     \end{tabularx}
 \end{table}
 
 \toclessnparagraph{Observers}
-%~ \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/unique_ptr/get}{get}
@@ -135,9 +167,8 @@ in the \highlight{pImpl idiom}.
     \end{tabularx}
 \end{table}
 
-\toclessnparagraph{Single-object versioin, \texttt{unique\char`_ptr}}
-%~ \vspace{-8truemm}
-\begin{table}[h!t]
+\toclessnparagraph{Single-object version, \texttt{unique\char`_ptr$<$T$>$}}
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/memory/unique_ptr/operator*}{operator*} \\
@@ -147,56 +178,67 @@ in the \highlight{pImpl idiom}.
         \cline{1-2}
     \end{tabularx}
 \end{table}
-%%
-\newpage
 
+\newpage
 %% Shared Ptr
 \subsection{\texttt{std::shared\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{Cppreference documentation about \textbf{\texttt{std::shared\char`_ptr}}}.
-    \newline
-    This is a smart pointer that \highlight{retains shared ownership} of an object 
-    through a pointer.
-    \newline
-    \highlight{Several \texttt{shared\char`_ptr} objects may own the same object}.
-    \newline
-    The object is destroyed and its memory deallocated when either of 
-    the following happens:
-    \begin{itemize}
-        \item the \highlight{last remaining} \texttt{shared\char`_ptr} owning 
-        the object \highlight{is destroyed};
-        \item the \highlight{last remaining} \texttt{shared\char`_ptr} owning 
-        the object is \highlight{assigned another pointer} via \texttt{operator=} or 
-        \texttt{reset()}.             
-    \end{itemize}
-    
-    A \texttt{std::shared\char`_ptr} can share ownership of an object 
-    while storing a pointer to another object.
-    \newline
-    A \texttt{std::shared\char`_ptr} may also own no objects, 
-    in which case it is called empty (an empty 
-    \texttt{std::shared\char`_ptr} may have a non-null stored pointer 
-    if the aliasing constructor was used to create it). 
+\label{subsec:shared-ptr}
+See~\cite{cppreference-sharedptr}.
+\newline
+This is a smart pointer that \highlight{retains shared ownership} of an object 
+through a pointer.
+\newline
+\highlight{Several \texttt{shared\char`_ptr} objects may own the same object}.
+\newline
+The object is destroyed and its memory deallocated when either of 
+the following happens:
+\begin{itemize}
+    \item the \highlight{last remaining} \texttt{shared\char`_ptr} owning 
+          the object \highlight{is destroyed};
+    \item the \highlight{last remaining} \texttt{shared\char`_ptr} owning 
+          the object is \highlight{assigned another pointer} via \texttt{operator=} or 
+          \texttt{reset()}.             
+\end{itemize}
+
+A \texttt{std::shared\char`_ptr} can share ownership of an object 
+while storing a pointer to another object (aliasing constructor).
+\newline
+A \texttt{std::shared\char`_ptr} may also own no objects, 
+in which case it is called empty (an empty 
+\texttt{std::shared\char`_ptr} may have a non-null stored pointer 
+if the aliasing constructor was used to create it). 
+
+\toclessnparagraph{\texttt{std::make\char`_shared}}
+Prefer \texttt{std::make\char`_shared} (see~\cite{cppreference-make-shared}; 
+also~\S\ref{sec:std-make-shared}): 
+exception safety, and typically \textbf{one allocation} for control block + object.
+\begin{lstlisting}[language=C++]
+auto a = std::make_shared<Widget>();
+auto b = a;                 // shared ownership; use_count() == 2
+a.reset();                  // b still owns the Widget
+\end{lstlisting}
+
+Control-block bookkeeping is thread-safe; concurrent mutation of the 
+\textit{managed object} is not.
 
 \toclessnparagraph{Member functions}
-\vspace{-3truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/shared_ptr}{constructor}
-        & constructs a new \texttt{unique\char`_ptr}\\
+        & constructs a new \texttt{shared\char`_ptr}\\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/\%7Eshared_ptr}{destructor}
-        & destructs the managed object if such is present\\
+        & decrements the reference count; destroys the object if it reaches zero\\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator\%3D}{operator=}
-        & assigns the \texttt{unique\char`_ptr} \\
+        & assigns the \texttt{shared\char`_ptr} \\
         \cline{1-2}
     \end{tabularx}
 \end{table}    
 
 \toclessnparagraph{Modifiers}
-\vspace{-3truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/reset}{reset}
@@ -208,9 +250,9 @@ in the \highlight{pImpl idiom}.
     \end{tabularx}
 \end{table} 
 
+\newpage
 \toclessnparagraph{Observers}
-\vspace{-3truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/get}{get}
@@ -222,13 +264,14 @@ in the \highlight{pImpl idiom}.
         & \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator_at}{operator[]} 
-        & provides indexed access to the stored array \\
+        & provides indexed access to the stored array (C++17) \\
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/memory/shared_ptr/use_count}{use\char`_count}} 
         & returns the number of \texttt{shared\char`_ptr} objects \\ & referring to the same managed object \\
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/memory/shared_ptr/unique}{unique}}
-        & checks if the managed object is managed only by \\ & the current \texttt{shared\char`_ptr} instance \\
+        & checks if \texttt{use\char`_count() == 1} \\ 
+        & (deprecated in C++17, removed in C++20) \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/shared_ptr/operator_bool}{operator bool}
         & checks if the stored pointer is not null \\
@@ -238,29 +281,55 @@ in the \highlight{pImpl idiom}.
         \cline{1-2}
     \end{tabularx}
 \end{table} 
-%%
 
 \newpage
 %% Weak Ptr
-  \subsection{\texttt{std::weak\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/weak_ptr}{cppreference documentation about \textbf{\texttt{std::weak\char`_ptr}}}.
-    \newline
-    \texttt{std::weak\char`_ptr} is a smart pointer that holds a non-owning ("weak") reference 
-    to an object that is managed by \texttt{std::shared\char`_ptr}. 
-    It must be converted to \texttt{std::shared\char`_ptr} in order to access the referenced object. 
-    \newline
-    \texttt{std::weak\char`_ptr} models temporary ownership
+\subsection{\texttt{std::weak\char`_ptr}}
+\label{subsec:weak-ptr}
+See~\cite{cppreference-weakpointer}.
+\newline
+\texttt{std::weak\char`_ptr} is a smart pointer that holds a non-owning (``weak'') reference 
+to an object that is managed by \texttt{std::shared\char`_ptr}. 
+It must be converted to \texttt{std::shared\char`_ptr} (via \texttt{lock()}) in order to access 
+the referenced object. 
+\newline
+\texttt{std::weak\char`_ptr} models \highlight{temporary / non-owning} observation: 
+it does not keep the object alive, but can detect whether it still exists 
+(\texttt{expired()}).
+
+\toclessnparagraph{Breaking cycles}
+If two objects each hold a \texttt{shared\char`_ptr} to the other, the reference count 
+never reaches zero. Store one side as \texttt{weak\char`_ptr}.
+\begin{lstlisting}[language=C++]
+struct Node {
+    std::shared_ptr<Node> next;   // owning
+    std::weak_ptr<Node>   prev;   // non-owning: breaks the cycle
+};
+
+auto a = std::make_shared<Node>();
+auto b = std::make_shared<Node>();
+a->next = b;
+b->prev = a;
+
+if (auto p = b->prev.lock()) {    // promote to shared_ptr if still alive
+    // use *p
+}
+\end{lstlisting}
+
+Related: \texttt{std::enable\char`_shared\char`_from\char`_this$<$T$>$} 
+(see~\cite{cppreference-enable-shared-from-this}) lets a member function obtain a 
+\texttt{shared\char`_ptr} to \texttt{*this} safely when the object is already owned 
+by a \texttt{shared\char`_ptr}.
     
 \toclessnparagraph{Member functions}
-%~ \vspace{-8truemm}
-\begin{table}[ht]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/weak_ptr}{constructor}
         & creates a new \texttt{weak\char`_ptr} \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/\%7Eweak_ptr}{destructor}
-        & destroys a \texttt{weak\char`_ptr} \\
+        & destroys a \texttt{weak\char`_ptr} (does not destroy the managed object) \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/operator\%3D}{operator=}
         & assigns a \texttt{weak\char`_ptr} \\
@@ -269,21 +338,22 @@ in the \highlight{pImpl idiom}.
 \end{table}
     
 \toclessnparagraph{Modifiers}
-%~ \vspace{-8truemm}
-\begin{table}[ht]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
-        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/reset}{reset} & releases the ownership of the managed object \\
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/reset}{reset}
+        & releases the weak reference \\
         \cline{1-2}
-        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/swap}{swap} &  swaps the managed objects \\
+        \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/swap}{swap}
+        & swaps with another \texttt{weak\char`_ptr} \\
         \cline{1-2}
     \end{tabularx}
 \end{table}
-    
+
+\newpage
 \toclessnparagraph{Observers}
-%~ \vspace{-8truemm}
-\begin{table}[h!t]
-    \begin{tabular}{|l|l|}
+\begin{table}[H]
+    \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/use_count}{use\char`_count}
         & returns the number of \texttt{shared\char`_ptr} objects that manage the object \\
@@ -292,16 +362,22 @@ in the \highlight{pImpl idiom}.
         & checks whether the referenced object was already deleted \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/lock}{lock}
-        & creates a \texttt{shared\char`_ptr} that manages the referenced object \\
+        & creates a \texttt{shared\char`_ptr} that manages the referenced object (or empty if expired) \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/memory/weak_ptr/owner_before}{owner\char`_before}
         & provides owner-based ordering of weak pointers \\
         \cline{1-2}
-    \end{tabular}
+    \end{tabularx}
 \end{table}       
 
 \newpage
 \subsection{\texttt{std::auto\char`_ptr}}
-    \href{https://en.cppreference.com/w/cpp/memory/auto_ptr}{cppreference documentation about \textbf{\texttt{std::auto\char`_ptr}}}.
-    \newline
-    It was deprecated in C++11 and removed in C++17.
+\label{subsec:auto-ptr}
+See~\cite{cppreference-autopointer}.
+\newline
+\texttt{std::auto\char`_ptr} was an early exclusive-ownership smart pointer. 
+Copying it \textbf{transferred} ownership (surprising copy semantics), which 
+made it unsafe in standard containers and easy to misuse.
+\newline
+It was \textbf{deprecated in C++11} and \textbf{removed in C++17}. 
+Use \texttt{std::unique\char`_ptr} (move-only) instead.
