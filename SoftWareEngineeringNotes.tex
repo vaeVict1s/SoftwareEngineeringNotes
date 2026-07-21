@@ -284,6 +284,50 @@
 % Token colors inspired by Geany "Oblivion 2" (on light listing background).
 % Built-in language keywords -> green. Custom types/namespaces use emph (morekeywords
 % inside a style are cleared when language=C++/Python is set on a listing).
+% Keep emph lists in \applylstemph only (called at startup and after each language=).
+\newcommand{\applylstemph}{%
+  \lstset{%
+    alsoletter={_},%
+    % Types / typedefs / example class names (add as new listings need them)
+    emph={bool,char,short,int,long,float,double,void,unsigned,signed,const,volatile,auto,wchar_t,
+          size_t,ssize_t,pid_t,ptrdiff_t,intptr_t,uintptr_t,max_align_t,streamsize,
+          uint8_t,uint16_t,uint32_t,uint64_t,int8_t,int16_t,int32_t,int64_t,
+          char8_t,char16_t,char32_t,byte,nullptr_t,FILE,
+          string,string_view,wstring_view,thread,jthread,vector,array,deque,list,forward_list,
+          map,multimap,unordered_map,set,multiset,unordered_set,span,optional,variant,any,tuple,pair,
+          priority_queue,queue,stack,bitset,
+          mutex,timed_mutex,recursive_mutex,shared_mutex,atomic,atomic_flag,atomic_ref,
+          unique_ptr,shared_ptr,weak_ptr,lock_guard,unique_lock,scoped_lock,shared_lock,once_flag,
+          condition_variable,future,shared_future,promise,packaged_task,launch,
+          memory_order,memory_order_relaxed,memory_order_acquire,memory_order_release,
+          memory_order_acq_rel,memory_order_seq_cst,memory_order_consume,
+          initializer_list,reference_wrapper,iterator_traits,ostream_iterator,
+          ostream,istream,iostream,osyncstream,ofstream,ifstream,stringstream,
+          enable_if_t,remove_reference_t,conditional,is_same,is_same_v,is_integral,is_integral_v,
+          is_signed_v,integer_sequence,numeric_limits,errc,runtime_error,
+          same_as,convertible_to,integral,signed_integral,unsigned_integral,
+          formatter,format_context,format_parse_context,strong_ordering,weak_ordering,partial_ordering,
+          stop_source,stop_token,mt19937,random_device,
+          steady_clock,system_clock,high_resolution_clock,time_point,duration,complex,path,
+          cpu_set_t,sched_param,pthread_t,sockaddr,sockaddr_in,epoll_event,pollfd,fd_set,timeval,off_t,
+          % Example / handbook class names from Ch.~1--6 listings
+          Alert,Arena,Array,Bar,Base,Buffer,Car,Circle,Color,Comparable,Coordinate,Derived,Drawable,
+          File,FixedPool,Foo,FooKeeper,Fred,Game,Human,Impl,Io_obj,IostreamInit,Join,Model,
+          MyContainer,MyObj,Node,Person,PersonList,Point,Proxy,Ref,Shape,Square,String,StringBody,
+          UserClass,Vec,Widget,AE,Der1,Der2,D_priv,D_prot,D_publ,X1,X2,X3,X4,
+          my_integer_sequence,rgba_color_channel,fraction,always_satisfied,callable,
+          True,False,None,str,dict,bytes},%
+    emphstyle={\color{obliviontype}\bfseries},%
+    % Namespaces (std::thread -> std purple, thread blue above)
+    emph={[2]std,this_thread,chrono,chrono_literals,filesystem,execution,numbers,pmr,literals},%
+    emphstyle={[2]\color{oblivionnamespace}\bfseries},%
+    % Methods / free functions you care to highlight in examples
+    emph={[3]get_id,native_handle,getpid,pthread_self,syscall,make_unique,make_shared,
+          make_pair,make_tuple,call_once,async,any_cast,bit_cast,to_integer,format,format_to,vformat},%
+    emphstyle={[3]\color{obliviontype}},%
+  }%
+}
+
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},
     basicstyle=\ttfamily\footnotesize\color{obliviondefault},
@@ -292,23 +336,6 @@
     stringstyle={\color{oblivionstring}},
     numberstyle=\tiny\color{codegray},
     alsoletter={_},
-    % Types / typedefs (add new names here as examples need them)
-    emph={bool,char,short,int,long,float,double,void,unsigned,signed,const,volatile,auto,
-          size_t,ssize_t,pid_t,uint8_t,uint16_t,uint32_t,uint64_t,
-          int8_t,int16_t,int32_t,int64_t,char8_t,char16_t,char32_t,byte,nullptr_t,
-          string,string_view,wstring_view,thread,jthread,vector,array,map,unordered_map,span,optional,variant,any,
-          mutex,atomic,atomic_flag,unique_ptr,shared_ptr,weak_ptr,lock_guard,unique_lock,
-          condition_variable,future,promise,pair,initializer_list,
-          cpu_set_t,sched_param,pthread_t,sockaddr,sockaddr_in,epoll_event,pollfd,fd_set,timeval,off_t,enable_if_t,remove_reference_t,is_same_v,integer_sequence,
-          steady_clock,system_clock,high_resolution_clock,time_point,duration,complex,path,iostream,
-          True,False,None,str,list,dict,set,tuple,bytes},
-    emphstyle={\color{obliviontype}\bfseries},
-    % Namespaces (std::thread -> std purple, thread blue above)
-    emph={[2]std,this_thread,chrono,filesystem},
-    emphstyle={[2]\color{oblivionnamespace}\bfseries},
-    % Methods / free functions you care to highlight in examples
-    emph={[3]get_id,native_handle,getpid,pthread_self,syscall,make_unique,make_shared},
-    emphstyle={[3]\color{obliviontype}},
     breakatwhitespace=false,
     breaklines=true,
     captionpos=b,
@@ -336,28 +363,11 @@
 }
 
 \lstset{style=mystyle}
+\applylstemph
 
 % Re-apply emph after each language=... switch (listings drops style morekeywords).
 \makeatletter
-\lst@AddToHook{SetLanguage}{%
-  \lstset{%
-    alsoletter={_},%
-    emph={bool,char,short,int,long,float,double,void,unsigned,signed,const,volatile,auto,
-          size_t,ssize_t,pid_t,uint8_t,uint16_t,uint32_t,uint64_t,
-          int8_t,int16_t,int32_t,int64_t,char8_t,char16_t,char32_t,byte,nullptr_t,
-          string,string_view,wstring_view,thread,jthread,vector,array,map,unordered_map,span,optional,variant,any,
-          mutex,atomic,atomic_flag,unique_ptr,shared_ptr,weak_ptr,lock_guard,unique_lock,
-          condition_variable,future,promise,pair,initializer_list,
-          cpu_set_t,sched_param,pthread_t,sockaddr,sockaddr_in,epoll_event,pollfd,fd_set,timeval,off_t,enable_if_t,remove_reference_t,is_same_v,integer_sequence,
-          steady_clock,system_clock,high_resolution_clock,time_point,duration,complex,path,iostream,
-          True,False,None,str,list,dict,set,tuple,bytes},%
-    emphstyle={\color{obliviontype}\bfseries},%
-    emph={[2]std,this_thread,chrono,filesystem},%
-    emphstyle={[2]\color{oblivionnamespace}\bfseries},%
-    emph={[3]get_id,native_handle,getpid,pthread_self,syscall,make_unique,make_shared},%
-    emphstyle={[3]\color{obliviontype}},%
-  }%
-}
+\lst@AddToHook{SetLanguage}{\applylstemph}
 \makeatother
 
 % ========= Example Boxes =============
