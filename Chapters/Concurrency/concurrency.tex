@@ -1,75 +1,56 @@
 \chapter{Concurrency}
 \label{chap:concurrency}
+See~\cite{cppreference-thread},~\cite{cppreference-memory-order}.
+\newline
 C++ includes built-in support for threads, atomic operations, mutual exclusion, 
-condition variables, and futures.
+condition variables, and futures. Deeper formal memory-model material lives in 
+Chapter~\ref{chap:memorymodel}; this chapter is the library map plus usage notes.
 \newline
 %%% Paragraph
 \section{Threads}
-%~ \vspace{-8truemm} %% needed in case of a nparagraph
-\begin{table}[h!t]
+\label{sec:threads}
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/thread}{thread}
         & manages a separate thread \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/jthread}{jthread} 
-        & thread with support for auto-joining and cancellation \\
+        & thread with support for auto-joining and cooperative stop (C++20) \\
         \cline{1-2}   
     \end{tabularx}
 \end{table}
+
+\toclessnparagraph{Process vs thread (C++)}
+\begin{itemize}
+    \item A \textbf{process} is an OS instance of a program with its own address space.
+    \item A \textbf{thread} is a unit of execution \emph{inside} a process; threads of the 
+          same process share memory (hence data races if unsynchronized).
+    \item \texttt{std::thread} must be \texttt{join()}ed or \texttt{detach()}ed before 
+          destruction, or \texttt{std::terminate} is called.
+    \item Prefer \texttt{std::jthread} when you can: it joins on destruction and can 
+          receive a stop token (C++20).
+\end{itemize}
+
 \begin{lstlisting}[language=C++]
-#include <string>
 #include <iostream>
 #include <thread>
+#include <string>
 
-using namespace std;
-
-// The function we want to execute on the new thread.
-void task1(string msg)
-{
-  cout << "task1 says: " << msg;
+void task1(std::string msg) {
+    std::cout << "task1 says: " << msg << '\n';
 }
 
-int main()
-{
-  // Constructs the new thread and runs it. Does not block execution.
-  thread t1(task1, "Hello");
-
-  // Do other things...
-
-  // Makes the main thread wait for the new thread to finish execution, therefore blocks its own execution.
-  t1.join();
+int main() {
+    std::thread t1(task1, "Hello");  // starts running
+    // ... other work on this thread ...
+    t1.join();                       // wait for completion
 }
 \end{lstlisting}
-
-\begin{itemize}
-    \item A program is an executable file which consists of a set of 
-          instructions to perform some task and is usually stored on 
-          the disk of your computer.
-    \item A process is what we call a program that has been loaded 
-          into memory along with all the resources it needs to operate. 
-          It has its own memory space.
-    \item A thread is the unit of execution within a process. A process 
-          can have multiple threads running as a part of it, where each 
-          thread uses the process’s memory space and shares it with 
-          other threads.
-    \item Multithreading is a technique where multiple threads are 
-          spawned by a process to do different tasks, at about the same 
-          time, just one after the other. This gives you the illusion 
-          that the threads are running in parallel, but they are actually 
-          run in a concurrent manner. In Python, the Global Interpreter 
-          Lock (GIL) prevents the threads from running simultaneously.
-    \item Multiprocessing is a technique where parallelism in its truest 
-          form is achieved. Multiple processes are run across multiple 
-          CPU cores, which do not share the resources among them. 
-          Each process can have many threads running in its own memory 
-          space. In Python, each process has its own instance of Python 
-          interpreter doing the job of executing the instructions.
-\end{itemize}
 %%% Paragraph
 \subsection{Functions managing the current thread}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/yield}{yield} 
@@ -95,17 +76,23 @@ allowing for lockless concurrent programming. Each atomic operation is
 indivisible with regards to any other atomic operation that involves 
 the same object. 
 Atomic objects are 
-\href{https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races}{free of data races}. 
+\href{https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races}{free of data races}.
+
+\begin{lstlisting}[language=C++]
+std::atomic<int> counter{0};
+// concurrent increments are data-race-free:
+counter.fetch_add(1, std::memory_order_relaxed);
+\end{lstlisting}
 %~ \newpage
 %%% Paragraph
 \subsection{Atomic types}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/atomic/atomic}{atomic}} 
         & atomic class template and specializations for \\
-        & bool, integraln and pointer types \\
+        & bool, integral, and pointer types \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_ref}{atomic\char`_ref}
         & provides atomic operations on non-atomic objects \\
@@ -116,7 +103,7 @@ Atomic objects are
 
 \subsection{Operations on atomic types}
 \vspace{-8truemm}
-%~ \begin{table}[h!t]
+%~ \begin{table}[H]
     %~ \begin{adjustbox}{width=1.1\columnwidth,left}
     %~ \begin{tabular}{|l|l|}
         %~ \cline{1-2}
@@ -187,7 +174,7 @@ Atomic objects are
     %~ \end{tabular}
     %~ \end{adjustbox}
 %~ \end{table}
-\begin{table}[h!t]
+\begin{table}[H]
     %~ \begin{adjustbox}{width=1.1\columnwidth,left}
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
@@ -227,7 +214,7 @@ Atomic objects are
         \end{tabularx}
         \end{table}
         
-        \begin{table}[h!t]
+        \begin{table}[H]
     %~ \begin{adjustbox}{width=1.1\columnwidth,left}
         \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
@@ -240,20 +227,21 @@ Atomic objects are
                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_and}{atomic\char`_fetch\char`_and\char`_explicit}}}
                         & replaces the atomic object with the result of bitwise AND with a non-atomic argument\\
                         & and obtains the previous value of the atomic\\
+        \cline{1-2}
         \multirow{2}{*}{\parbox{4.5cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or} \\
                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_or}{atomic\char`_fetch\char`_or\char`_explicit}}}
                         & replaces the atomic object with the result of bitwise OR with a\\
-                        & a non-atomic argument and obtains the previous value of the atomic \\
+                        & non-atomic argument and obtains the previous value of the atomic \\
         \cline{1-2}
         \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_xor}{atomic\char`_fetch\char`_xor} \\
                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_fetch_xor}{atomic\char`_fetch\char`_xor\char`_explicit}}}
-                        & blocks the thread until notified and the atomic value changes \\
-                        & \\
+                        & replaces the atomic object with the result of bitwise XOR with a non-atomic argument \\
+                        & and obtains the previous value of the atomic \\
         \cline{1-2}
         \multirow{2}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/atomic/atomic_wait}{atomic\char`_wait} \\
                                      \href{https://en.cppreference.com/w/cpp/atomic/atomic_wait}{atomic\char`_wait\char`_explicit}}}
-                        & replaces the atomic object with the result of bitwise XOR with a non-atomic argument \\
-                        & and obtains the previous value of the atomic \\
+                        & blocks the thread until notified and the atomic value changes \\
+                        & \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_notify_one}{atomic\char`_notify\char`_one} 
         & notifies a thread blocked in \texttt{atomic\char`_wait} \\
@@ -268,7 +256,7 @@ Atomic objects are
 \newpage
 \subsection{Flag type and operations}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_flag}{atomic\char`_flag} 
@@ -305,7 +293,7 @@ Atomic objects are
 
 \subsection{Initialization}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/atomic/atomic_init}{atomic\char`_init} 
@@ -325,7 +313,7 @@ Atomic objects are
 \subsection{Memory synchronization ordering}
 \label{subsec:memory-sync-ordering}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
          \cline{1-2}
          \href{https://en.cppreference.com/w/cpp/atomic/memory_order}{memory\char`_order} 
@@ -345,11 +333,13 @@ Atomic objects are
 
 \subsection{Mutual exclusion}
 \label{subsec:mutual-exclusion}
+See~\cite{cppreference-mutex}.
+\newline
 Mutual exclusion algorithms prevent multiple threads from simultaneously accessing shared resources. 
 This prevents data races and provides support for synchronization between threads. 
 \newline
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/mutex}{mutex} 
@@ -379,7 +369,7 @@ This prevents data races and provides support for synchronization between thread
 
 \subsection{Generic mutex management}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/lock_guard}{lock\char`_guard} 
@@ -413,7 +403,7 @@ This prevents data races and provides support for synchronization between thread
 \newpage
 \subsection{Generic locking management}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/try_lock}{try\char`_lock} 
@@ -425,25 +415,35 @@ This prevents data races and provides support for synchronization between thread
     \end{tabularx}
 \end{table}
 
-A lock allows only one thread to enter the part that's locked and 
-the lock is not shared with any other processes.
+\toclessnparagraph{Mutex vs lock vs semaphore (C++)}
+\begin{itemize}
+    \item A \textbf{mutex} (\texttt{std::mutex}, \ldots) is the synchronization object 
+          threads lock/unlock.
+    \item A \textbf{lock wrapper} (\texttt{lock\char`_guard}, \texttt{unique\char`_lock}, 
+          \texttt{scoped\char`_lock}) is RAII around a mutex --- prefer these over raw 
+          \texttt{lock()}/\texttt{unlock()}.
+    \item \texttt{std::mutex} is \emph{not} an OS-wide inter-process lock; for that you 
+          need OS primitives / shared-memory named mutexes.
+    \item A \textbf{counting semaphore} (\texttt{std::counting\char`_semaphore}, C++20) 
+          allows up to $N$ concurrent holders; a binary semaphore is similar to a mutex 
+          in spirit but with different API/ownership rules.
+    \item Reader/writer access: \texttt{shared\char`_mutex} + \texttt{shared\char`_lock} / 
+          \texttt{unique\char`_lock}.
+\end{itemize}
 
-A mutex is the same as a lock but it can be system wide 
-(shared by multiple processes).
+\begin{lstlisting}[language=C++]
+std::mutex m;
+int shared = 0;
 
-A semaphore does the same as a mutex but allows x number of threads 
-to enter, this can be used for example to limit the number of cpu, io or 
-ram intensive tasks running at the same time.
-
-For a more detailed post about the differences between mutex and 
-semaphore read here.
-
-You also have read/write locks that allows either unlimited number of 
-readers or 1 writer at any given time.
+void inc() {
+    std::lock_guard<std::mutex> lock(m);  // unlocks at end of scope
+    ++shared;
+}
+\end{lstlisting}
 
 \subsection{Call once}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/once_flag}{once\char`_flag} 
@@ -455,9 +455,19 @@ readers or 1 writer at any given time.
     \end{tabularx}
 \end{table}
 
+\begin{lstlisting}[language=C++]
+std::once_flag flag;
+void init() { /* runs at most once across all threads */ }
+
+void use() {
+    std::call_once(flag, init);
+}
+\end{lstlisting}
+
 \subsection{Condition variables}
-\vspace{-8truemm}
-\begin{table}[h!t]
+See~\cite{cppreference-condition-variable}.
+\newline
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
          \cline{1-2}
          \href{https://en.cppreference.com/w/cpp/thread/condition_variable}{condition\char`_variable} 
@@ -476,10 +486,32 @@ readers or 1 writer at any given time.
     \end{tabularx}
 \end{table}
 
+Always wait in a loop (or with a predicate) --- spurious wakeups are allowed.
+
+\begin{lstlisting}[language=C++]
+std::mutex m;
+std::condition_variable cv;
+bool ready = false;
+
+void consumer() {
+    std::unique_lock<std::mutex> lock(m);
+    cv.wait(lock, []{ return ready; });  // wait until predicate is true
+    // ... use data ...
+}
+
+void producer() {
+    {
+        std::lock_guard<std::mutex> lock(m);
+        ready = true;
+    }
+    cv.notify_one();
+}
+\end{lstlisting}
+
 \newpage
 \subsection{Futures}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/promise}{promise} 
@@ -508,9 +540,14 @@ readers or 1 writer at any given time.
     \end{tabularx}
 \end{table}
 
+\begin{lstlisting}[language=C++]
+auto fut = std::async(std::launch::async, []{ return 42; });
+int v = fut.get();   // waits if needed; retrieves the value (or rethrows)
+\end{lstlisting}
+
 \subsection{Future errors}
 \vspace{-8truemm}
-\begin{table}[h!t]
+\begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/future_error}{future\char`_error} 
@@ -528,7 +565,7 @@ readers or 1 writer at any given time.
 
 \subsection{Memory Order Semantics}
 \label{subsec:memory-order}
-\href{https://en.cppreference.com/w/cpp/atomic/memory_order}{Cppreference documentation about \textbf{\texttt{std::memory\char`_order}}}. 
+See~\cite{cppreference-memory-order},~\cite{sof-memory-order},~\cite{gnugccwiki-atomicsync}.
 \newline
 For \texttt{std::memory\char`_order} API listings, see Section~\ref{subsec:memory-sync-ordering} above.
 \newline
@@ -542,3 +579,4 @@ Use the following guidance when choosing a weaker order:
     \item \textbf{\texttt{memory\char`_order\char`_seq\char`_cst}} --- safest default when in doubt; single total order across all threads.
 \end{itemize}
 For formal definitions of happens-before and sequential consistency, see Section~\ref{subsec:sequential-consistency} in Chapter~\ref{chap:memorymodel}.
+Also~\cite{data-dependency-ordering},~\cite{youtube-memory-order-1},~\cite{youtube-memory-order-2}.
