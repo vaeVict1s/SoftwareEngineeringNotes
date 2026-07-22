@@ -59,7 +59,8 @@ unpredictable delay. Alternatives on the critical path:
     \item User-space poll loops on bypass rings (Chapter~\ref{chap:kernelbypass}).
 \end{itemize}
 Cost: a core at $\sim$100\% for as long as you spin. Only do this on isolated CPUs dedicated 
-to that job. Interview line: sleep = jitter; busy poll = latency for watts and opportunity cost.
+to that job.
+\par\noindent\textbf{Interview tip:} sleep = jitter; busy poll = latency for watts and opportunity cost.
 
 \section{Cache Optimization}
 \label{sec:lowlatency-cache-optimization}
@@ -114,7 +115,6 @@ HFT market-data and order paths are usually \highlight{latency-first}: busy poll
 \texttt{TCP\char`_NODELAY}, shallow queues, one connection per hot thread, isolation. 
 A bulk file transfer or analytics job is throughput-first: large buffers, interrupts 
 coalesced, sleep when idle.
-\newline
-Interview line: know which axis you are on. Techniques that maximize packets/sec 
+\par\noindent\textbf{Interview tip:} know which axis you are on. Techniques that maximize packets/sec 
 (Nagle, interrupt coalescing, shared noisy cores) often \highlight{hurt} tick-to-trade 
 latency --- and the reverse wastes capacity if you only care about bulk bandwidth.

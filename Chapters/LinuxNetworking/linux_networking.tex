@@ -8,7 +8,8 @@ Multiplexing with \texttt{epoll} is Chapter~\ref{chap:eventdrivenio}; kernel byp
 Chapter~\ref{chap:kernelbypass}.
 \newline
 Do \highlight{not} memorize every flag and \texttt{errno}. Use \texttt{man 2 <call>} and 
-\texttt{man 7 socket} / \texttt{man 7 tcp}. Interviewers care that you know which calls 
+\texttt{man 7 socket} / \texttt{man 7 tcp}.
+\par\noindent\textbf{Interview tip:} know which calls 
 block, how non-blocking I/O fails with \texttt{EAGAIN}, and latency knobs such as 
 \texttt{TCP\char`_NODELAY}.
 
@@ -22,7 +23,7 @@ block, how non-blocking I/O fails with \texttt{EAGAIN}, and latency knobs such a
           Common for \highlight{market data} (including multicast feeds): the app handles 
           gaps/seq numbers. Lower overhead; you own reliability.
 \end{itemize}
-Interview line: pick TCP when you need a reliable session; UDP when you need 
+\par\noindent\textbf{Interview tip:} pick TCP when you need a reliable session; UDP when you need 
 firehose throughput and can tolerate/detect loss yourself.
 
 \section{Which Calls Block?}
@@ -86,7 +87,9 @@ Assigns a local address (IP + port). Servers bind before listening;
 \highlightbf{\texttt{EADDRINUSE} / \texttt{TIME\char`_WAIT}:} after a restart, \texttt{bind} often fails 
 because the port is still reserved while TCP finishes delayed segments. Set 
 \texttt{SO\char`_REUSEADDR} with \texttt{setsockopt} \highlight{before} \texttt{bind} so the address 
-can be reused. This is a standard interview pitfall.
+can be reused.
+\par\noindent\textbf{Interview tip:} \texttt{EADDRINUSE} after restart is a classic pitfall --- set 
+\texttt{SO\char`_REUSEADDR} before \texttt{bind}.
 
 \subsection{\texttt{listen()}}
 \label{subsec:listen}
@@ -206,7 +209,7 @@ packets (better bandwidth, worse latency). In HFT that delay is unacceptable.
 int one = 1;
 setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
 \end{lstlisting}
-Disabling Nagle sends ASAP at the cost of more packets. Classic interview question.
+\par\noindent\textbf{Interview tip:} disabling Nagle sends ASAP at the cost of more packets --- a classic question.
 
 \subsection{\texttt{MSG\_NOSIGNAL}}
 \label{subsec:msg-nosignal}

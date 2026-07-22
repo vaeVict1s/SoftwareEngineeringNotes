@@ -42,7 +42,8 @@ A \highlight{race condition} is a broader engineering term: the program's correc
 \highlight{timing} or interleaving. It may or may not be a formal data race.
 \newline
 Example: both threads use a mutex (no data race) but the business logic still breaks if 
-updates run in the wrong order. Interview tip: say \highlight{data race} when you mean UB; 
+updates run in the wrong order.
+\par\noindent\textbf{Interview tip:} say \highlight{data race} when you mean UB; 
 say \highlight{race condition} for logic/timing bugs.
 
 \subsection{Happens-Before}
@@ -220,8 +221,7 @@ public:
 };
 \end{lstlisting}
 
-\noindent
-Interview talking points: SPSC only; release/acquire on indices; cache-line separation; 
+\par\noindent\textbf{Interview tip:} SPSC only; release/acquire on indices; cache-line separation; 
 preallocate \texttt{buf\_} (no \texttt{new} on the hot path).
 
 \section{Synchronization}

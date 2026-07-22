@@ -4,8 +4,8 @@
 On a laptop with one CPU socket, almost all RAM is ``local.'' On multi-socket servers, 
 each socket has its own memory controllers: accessing \highlight{local} RAM is faster than 
 crossing to another socket's RAM. That design is \highlight{NUMA} 
-(\emph{Non-Uniform Memory Access}). HFT boxes are often multi-socket; interviews expect 
-you to keep \highlight{threads, memory, and NICs} on the same node when it matters.
+(\emph{Non-Uniform Memory Access}). HFT boxes are often multi-socket.
+\par\noindent\textbf{Interview tip:} keep \highlight{threads, memory, and NICs} on the same node when it matters.
 
 \section{NUMA Fundamentals}
 \label{sec:numa-fundamentals}
@@ -31,7 +31,7 @@ tax and can increase jitter. Cross-node false sharing / coherence traffic is esp
 
 \subsection{Memory Access Latency}
 \label{subsec:numa-memory-latency}
-Rule of thumb for interviews: remote DRAM can be on the order of 
+\par\noindent\textbf{Interview tip:} remote DRAM can be on the order of 
 \highlight{$\sim$1.5$\times$--2$\times+$} local latency (platform-dependent; measure on the box). 
 Bandwidth can suffer too when many cores hammer the interconnect.
 \newline
@@ -102,6 +102,5 @@ Workflow:
 \end{enumerate}
 \texttt{libnuma} helpers such as \texttt{numa\char`_run\char`_on\char`_node(node)} restrict the calling 
 thread to that node's CPUs; combine with explicit affinity when you need a \highlight{specific} core.
-\newline
-Interview one-liner: \highlight{pin compute next to memory next to the NIC} --- same NUMA node --- 
+\par\noindent\textbf{Interview tip:} \highlight{pin compute next to memory next to the NIC} --- same NUMA node --- 
 unless you have measured that another layout wins.

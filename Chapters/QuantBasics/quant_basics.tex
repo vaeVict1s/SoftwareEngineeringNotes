@@ -18,7 +18,7 @@ before. Formulas are there for precision; the prose is what you should read firs
           The closed-form price and the \emph{greeks} (sensitivities) --- 
           partial derivatives, exactly like in perturbation theory.
     \item \textbf{Sections~\ref{sec:pnl-explain} onward:} 
-          How desks use this in practice (P\&L, smiles, code, interviews).
+          How desks use this in practice (P\&L, smiles, code).
 \end{enumerate}
 Each section has a stable \texttt{\textbackslash label} so it can be expanded later 
 into full textbook depth without moving content.
@@ -33,7 +33,7 @@ randomness is what makes derivatives non-trivial.
 
 \subsection{Derivative / option}
 A \highlight{derivative} is a contract whose \highlight{payoff} depends on something else 
-(the \highlight{underlying}, usually the stock). The simplest interview example is a 
+(the \highlight{underlying}, usually the stock). The simplest running example is a 
 \highlight{European call option}:
 \begin{itemize}
     \item Today you agree on a \highlight{strike} $K$ and an \highlight{expiry} date $T$.
@@ -68,7 +68,7 @@ payoff is uncertain. Pricing = finding a fair $V$ given $S$, $K$, $T$, and model
           $F = S\,e^{(r-q)(T-t)}$ is the fair locked-in price to deliver stock at $T$ 
           agreed today. Many desks think in forwards rather than spots.
 \end{itemize}
-You do not need fixed-income expertise for a first interview pass --- just know that 
+\par\noindent\textbf{Interview tip:} you do not need fixed-income expertise for a first pass --- just know that 
 $e^{-rT}$ discounts and $q$ shifts the fair drift.
 
 \section{Volatility}
@@ -92,7 +92,7 @@ At systematic trading firms, a \highlight{Senior Quant Developer} typically:
     \item Connects \textbf{market data} (prices, rates, vol surfaces) to those libraries.
     \item Explains daily P\&L: ``how much was stock move vs vol move vs time decay?''
 \end{itemize}
-Interviewers care that you understand \emph{both} the model and \emph{where production breaks} 
+\par\noindent\textbf{Interview tip:} understand \emph{both} the model and \emph{where production breaks} 
 (wrong units, stale data, smile not flat, etc.).
 
 \section{Modelling the Stock: Random Walk and GBM}
@@ -180,7 +180,7 @@ $N(x)$ = standard normal CDF, $\phi(x)$ = PDF. Then:
     \item $N(d_1)$ weights the stock leg of the replicating portfolio (the $\Delta$ hedge).
     \item $e^{-r(T-t)}$ and $e^{-q(T-t)}$ discount strike and spot contributions.
 \end{itemize}
-You do not need to derive $d_1,d_2$ in an interview --- know they encode 
+\par\noindent\textbf{Interview tip:} you do not need to derive $d_1,d_2$ --- know they encode 
 \highlight{moneyness} ($S/K$), \highlight{time to expiry}, \highlight{rates}, and \highlight{vol}.
 
 \subsection{Put--Call Parity}
@@ -264,7 +264,7 @@ Desks decompose one day's P\&L using a Taylor expansion --- same logic as
     \item \textbf{Residual} --- anything left: bad data, model mismatch, cross terms, 
           discrete hedging, dividends not in model, etc.
 \end{itemize}
-\textbf{Interview sentence:} ``We lost \$2M; \$1.6M is delta on a $-3\%$ move, 
+\par\noindent\textbf{Interview tip:} ``We lost \$2M; \$1.6M is delta on a $-3\%$ move, 
 \$300k gamma, \$100k vega when skew steepened; \$50k unexplained --- we should check 
 surface build.''
 

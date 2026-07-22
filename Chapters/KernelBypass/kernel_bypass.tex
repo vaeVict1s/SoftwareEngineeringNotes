@@ -8,7 +8,8 @@ market-data and order paths. \highlight{Kernel bypass} moves packet I/O into use
 (or a thin driver path) so the trading process touches buffers with far fewer kernel 
 transitions.
 \newline
-This chapter is conceptual: interviewers want \highlight{why} bypass exists and 
+This chapter is conceptual.
+\par\noindent\textbf{Interview tip:} focus on \highlight{why} bypass exists and 
 \highlight{when} it is justified, not a full DPDK tutorial.
 
 \section{Why Kernel Bypass}
@@ -62,8 +63,7 @@ The \highlight{Data Plane Development Kit}~\cite{dpdk-docs} is a widely cited op
 poll-mode drivers (PMDs), memory pools (mbufs), and run-to-completion loops on dedicated 
 cores. The application owns RX/TX rings; the kernel is largely out of the data path for 
 those NICs/ports.
-\newline
-Interview points: poll mode (no interrupt per packet on the hot path), huge pages, NUMA-aware 
+\par\noindent\textbf{Interview tip:} poll mode (no interrupt per packet on the hot path), huge pages, NUMA-aware 
 pools (Chapter~\ref{chap:numa}), and the operational cost (you become the network stack for 
 that interface --- routing, filtering, and safety are your problem).
 
@@ -75,8 +75,9 @@ NICs. Many apps keep \texttt{socket}/\texttt{recv}/\texttt{send} while the libra
 into user space when possible.
 \newline
 Appeal for trading firms: less rewrite than a full DPDK port; still hardware-specific and 
-ops-heavy. Exact product names evolve; the interview idea is 
-\highlight{sockets API + user-space acceleration}, not memorizing version strings.
+ops-heavy. Exact product names evolve.
+\par\noindent\textbf{Interview tip:} the idea is \highlight{sockets API + user-space acceleration}, 
+not memorizing version strings.
 
 \subsection{AF\_XDP}
 \label{subsec:af-xdp}
@@ -121,6 +122,6 @@ When the SLA is ``kernel networking is already too slow even when tuned,'' combi
     \item Careful NUMA placement of threads and buffers (Chapter~\ref{chap:numa}),
     \item Preallocated rings and no hot-path allocations (Chapter~\ref{chap:memorymodel}).
 \end{itemize}
-Interview line: kernel sockets copy and syscall; bypass polls user-space rings for lower 
+\par\noindent\textbf{Interview tip:} kernel sockets copy and syscall; bypass polls user-space rings for lower 
 median and tail latency at the cost of complexity. Name DPDK (PMD), OpenOnload-style 
 socket acceleration, and \texttt{AF\char`_XDP} as the Linux-native middle ground.

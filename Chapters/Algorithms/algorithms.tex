@@ -235,7 +235,8 @@ There are three methods for solving recurrences:
 An \highlight{order book} stores resting interest: buy and sell orders waiting to trade. 
 Exchanges and many trading systems publish incremental updates (add / modify / cancel / trade); 
 your process rebuilds a local book and reads \highlight{best bid/offer} (BBO) and depth for 
-decisions. Interview focus: data layout, price-time priority, and hot-path cost --- not exchange 
+decisions.
+\par\noindent\textbf{Interview tip:} focus on data layout, price-time priority, and hot-path cost --- not exchange 
 matching-engine internals.
 
 \subsection{Price Levels and Market Depth}
@@ -271,7 +272,7 @@ You need: fast \highlight{find level by price}, fast \highlight{BBO}, and (often
 walk levels in price order. Common choices:
 \begin{itemize}
     \item \highlightbf{Ordered map} (\texttt{std::map} / flat map): price $\rightarrow$ level. 
-          Logarithmic update; natural ordered iteration. Simple; often fine for interview 
+          Logarithmic update; natural ordered iteration. Simple; often fine for whiteboard 
           sketches and moderate update rates.
     \item \highlightbf{Hash map + sorted structure}: \texttt{unordered\char`_map} for 
           price $\rightarrow$ level, plus a heap or side tree for best price. Faster random 
@@ -296,7 +297,7 @@ struct Level {
 std::map<int64_t, Level, std::greater<int64_t>> bids;
 std::map<int64_t, Level, std::less<int64_t>>    asks;
 \end{lstlisting}
-Interview line: say \highlight{what} you optimize (BBO vs deep book vs cancel-by-id) before 
+\par\noindent\textbf{Interview tip:} say \highlight{what} you optimize (BBO vs deep book vs cancel-by-id) before 
 picking the structure.
 
 \subsection{Add, Update, and Remove}

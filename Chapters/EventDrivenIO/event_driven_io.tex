@@ -11,8 +11,8 @@ kernel bypass come later (Chapters~\ref{chap:lowlatency} and~\ref{chap:kernelbyp
 
 \section{\texttt{select()}}
 \label{sec:select}
-\texttt{select(2)}~\cite{man-select} is the oldest portable multiplexer. Interviewers still ask 
-about it to contrast with \texttt{epoll}.
+\texttt{select(2)}~\cite{man-select} is the oldest portable multiplexer.
+\par\noindent\textbf{Interview tip:} people still ask about \texttt{select} to contrast with \texttt{epoll}.
 
 \subsection{How It Works}
 \label{subsec:select-how-it-works}
@@ -129,8 +129,7 @@ Cons: if you do not drain carefully, you can get woken repeatedly for the same r
 \label{subsec:epoll-edge-triggered}
 Add \texttt{EPOLLET}: you are notified on a \highlight{state transition} (e.g.\ went from 
 empty to readable), not continuously while ready.
-\newline
-Rules that interviewers expect:
+\par\noindent\textbf{Interview tip:} with edge-triggered \texttt{epoll}, expect these rules:
 \begin{itemize}
     \item Fds \highlight{must} be non-blocking.
     \item On notification, \highlight{drain} until \texttt{EAGAIN}/\texttt{EWOULDBLOCK} 
@@ -205,6 +204,6 @@ void run_loop(int epfd)
 }
 \end{lstlisting}
 
-Interview line: \texttt{select}/\texttt{poll} scan all interest (linear in fds); \texttt{epoll} keeps 
+\par\noindent\textbf{Interview tip:} \texttt{select}/\texttt{poll} scan all interest (linear in fds); \texttt{epoll} keeps 
 interest in-kernel and returns ready set. Prefer LT until you need ET; with ET always use 
 non-blocking fds and drain to \texttt{EAGAIN}.

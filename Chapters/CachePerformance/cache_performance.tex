@@ -1,8 +1,8 @@
 \chapter{Cache Coherence and Performance}
 \label{chap:cacheperformance}
 
-Modern CPUs are fast; \highlight{DRAM} is slow. Caches hide that gap. 
-For HFT and systems interviews, you must explain why two threads touching 
+Modern CPUs are fast; \highlight{DRAM} is slow. Caches hide that gap.
+\par\noindent\textbf{Interview tip:} explain why two threads touching 
 \highlight{nearby} memory can destroy performance (\highlight{false sharing}), 
 how coherence protocols move ownership of cache lines, and how to 
 \highlight{measure} misses with \texttt{perf}.
@@ -67,7 +67,7 @@ Frequent invalidations across cores = \highlight{coherence traffic} and latency 
 
 \section{False Sharing}
 \label{sec:false-sharing}
-False sharing is one of the highest-yield interview topics in this chapter.
+\par\noindent\textbf{Interview tip:} false sharing is one of the highest-yield topics in this chapter.
 
 \subsection{What It Is}
 \label{subsec:false-sharing-definition}

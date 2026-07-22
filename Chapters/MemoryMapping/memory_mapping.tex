@@ -163,6 +163,5 @@ With \texttt{MAP\char`_PRIVATE}, the first write to a shared-looking page alloca
 \highlight{private} copy for that process; other mappers keep the old contents. 
 \texttt{fork} uses the same idea for the child's address space: pages stay shared read-only 
 until either side writes.
-\newline
-Interview line: \texttt{MAP\char`_SHARED} shares updates; \texttt{MAP\char`_PRIVATE} is COW and 
+\par\noindent\textbf{Interview tip:} \texttt{MAP\char`_SHARED} shares updates; \texttt{MAP\char`_PRIVATE} is COW and 
 does not update the file. Shared memory still needs synchronization on top of the map.
