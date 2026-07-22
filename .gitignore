@@ -1,5 +1,6 @@
 # File temporanei di compilazione
 *.aux
+*.auxlock
 *.bbl
 *.blg
 *.brf

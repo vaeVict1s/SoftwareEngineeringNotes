@@ -1,0 +1,386 @@
+\chapter{Quant Basics for Developers}
+\label{chap:quantbasics}
+
+See~\cite{hull-options},~\cite{shreve-finance},~\cite{wilmott-quant}.
+\newline
+This chapter assumes you know \highlight{math and programming}, but \emph{not} finance. 
+It builds ideas in order --- like a physics course where each section uses only what came 
+before. Formulas are there for precision; the prose is what you should read first.
+
+\subsection*{How to read this chapter}
+\begin{enumerate}
+    \item \textbf{Sections~\ref{sec:plain-options}--\ref{sec:plain-volatility}:} 
+          What is being traded and what ``price an option'' means.
+    \item \textbf{Sections~\ref{sec:sde-intuition}--\ref{sec:bs-pde}:} 
+          Why the stock is modelled as a diffusion, and how hedging leads to the 
+          Black--Scholes equation (the heart of the theory).
+    \item \textbf{Sections~\ref{sec:bs-closed-form}--\ref{sec:greeks}:} 
+          The closed-form price and the \emph{greeks} (sensitivities) --- 
+          partial derivatives, exactly like in perturbation theory.
+    \item \textbf{Sections~\ref{sec:pnl-explain} onward:} 
+          How desks use this in practice (P\&L, smiles, code, interviews).
+\end{enumerate}
+Each section has a stable \texttt{\textbackslash label} so it can be expanded later 
+into full textbook depth without moving content.
+
+\section{Stocks and Options in Plain Language}
+\label{sec:plain-options}
+
+\subsection{Stock}
+A \highlight{stock} (share) is a piece of ownership in a company. Its \highlight{spot price} 
+$S$ is what the market pays \emph{right now} for one share. $S$ moves over time --- that 
+randomness is what makes derivatives non-trivial.
+
+\subsection{Derivative / option}
+A \highlight{derivative} is a contract whose \highlight{payoff} depends on something else 
+(the \highlight{underlying}, usually the stock). The simplest interview example is a 
+\highlight{European call option}:
+\begin{itemize}
+    \item Today you agree on a \highlight{strike} $K$ and an \highlight{expiry} date $T$.
+    \item At $T$, if the stock is above $K$, the call pays $(S_T - K)$; otherwise it pays $0$.
+    \item In symbols: payoff $= \max(S_T - K,\, 0)$.
+\end{itemize}
+A \highlight{European put} pays $\max(K - S_T,\, 0)$ --- you gain if the stock \emph{falls} 
+below $K$. ``European'' means you only settle at $T$, not before.
+
+\subsection{Why anyone buys an option}
+\begin{itemize}
+    \item \textbf{Insurance:} a put limits losses if you own stock and the market crashes.
+    \item \textbf{Leverage:} a call gives exposure to upside with limited upfront cost 
+          (the \highlight{premium}, i.e.\ the option's price today).
+    \item \textbf{Trading / hedging:} desks replicate payoffs, trade volatility, or hedge 
+          other books --- your job as quant dev is to \highlight{price} and \highlight{risk-manage} 
+          these contracts in code.
+\end{itemize}
+\textbf{Key idea:} the option has a \highlight{value today}, $V(S,t)$, even though the 
+payoff is uncertain. Pricing = finding a fair $V$ given $S$, $K$, $T$, and model assumptions.
+
+\section{Interest Rates, Dividends, and Forward Price}
+\label{sec:plain-rates-divs}
+\begin{itemize}
+    \item \highlight{$r$} --- \textbf{risk-free rate} (annualized). Money in the bank grows 
+          as $e^{rt}$; discounting future cash by $e^{-r(T-t)}$ is the continuous analogue 
+          of ``\$1 today vs \$1 in six months.''
+    \item \highlight{$q$} --- \textbf{dividend yield}. Shareholders receive dividends; 
+          holding stock is slightly less attractive than holding cash at $r$, so the 
+          \emph{effective} drift of $S$ in no-arbitrage pricing uses $(r - q)$, not $r$ alone.
+    \item \textbf{Forward price} (simplified): 
+          $F = S\,e^{(r-q)(T-t)}$ is the fair locked-in price to deliver stock at $T$ 
+          agreed today. Many desks think in forwards rather than spots.
+\end{itemize}
+You do not need fixed-income expertise for a first interview pass --- just know that 
+$e^{-rT}$ discounts and $q$ shifts the fair drift.
+
+\section{Volatility}
+\label{sec:plain-volatility}
+\highlight{Volatility} $\sigma$ measures how much $S$ \emph{fluctuates}. In the models below, 
+$\sigma$ is the coefficient on the random noise (like a diffusion constant). 
+It is quoted as a \textbf{decimal}: $\sigma = 0.20$ means ``20\% per year'' in the 
+standard annualized sense.
+\newline
+Higher $\sigma$ $\Rightarrow$ more uncertainty $\Rightarrow$ an option (which pays off 
+in the tails) is usually \textbf{worth more}. That is the economic content of \highlight{vega} 
+(Section~\ref{sec:greeks}).
+
+\section{What a Quant Developer Does}
+\label{sec:quant-dev-role}
+At systematic trading firms, a \highlight{Senior Quant Developer} typically:
+\begin{itemize}
+    \item Writes C++ (or similar) to \textbf{price} options and compute \textbf{greeks}.
+    \item Makes libraries \textbf{fast, deterministic, and tested} on paths that affect 
+          live \highlight{P\&L} (profit and loss).
+    \item Connects \textbf{market data} (prices, rates, vol surfaces) to those libraries.
+    \item Explains daily P\&L: ``how much was stock move vs vol move vs time decay?''
+\end{itemize}
+Interviewers care that you understand \emph{both} the model and \emph{where production breaks} 
+(wrong units, stale data, smile not flat, etc.).
+
+\section{Modelling the Stock: Random Walk and GBM}
+\label{sec:sde-intuition}
+\textbf{Physics analogy:} treat $S_t$ like a stochastic process with drift and noise.
+
+\subsection{Discrete warm-up}
+Over a small time step $\Delta t$, a crude model is:
+\[
+  \frac{\Delta S}{S} \approx \mu\,\Delta t + \sigma\,\sqrt{\Delta t}\,\xi,
+  \qquad \xi \sim \mathcal{N}(0,1).
+\]
+$\mu$ is average relative return; $\sigma$ controls the size of shocks. 
+Taking $\Delta t \to 0$ gives \highlight{geometric Brownian motion} (GBM):
+\begin{equation}
+  dS_t = \mu S_t\,dt + \sigma S_t\,dW_t ,
+  \label{eq:gbm}
+\end{equation}
+with $W_t$ standard Brownian motion. Because the noise multiplies $S_t$, $S$ stays 
+\highlight{positive} and is \highlight{log-normal} at fixed time (not Gaussian).
+
+\subsection{Risk-neutral measure (pricing only)}
+For \textbf{pricing}, we do not use your real-world $\mu$ (which is hard to estimate). 
+No-arbitrage implies we can price as if, under a special probability measure 
+$\mathbb{Q}$,
+\begin{equation}
+  dS_t = (r - q)\,S_t\,dt + \sigma S_t\,dW_t^{\mathbb{Q}} .
+  \label{eq:gbm-rn}
+\end{equation}
+\textbf{In words:} in the pricing world, the \emph{expected} growth rate of $S$ 
+(adjusted for dividends) equals the risk-free rate. The discounted option value 
+$e^{-rt}V_t$ is then a \highlight{martingale} --- expected future payoff, 
+discounted, equals today's price. This is the finance version of ``choose coordinates 
+so the equation simplifies.''
+
+\section{Black--Scholes: Assumptions and the Big Idea}
+\label{sec:bs-assumptions}
+Black--Scholes (BS)~\cite{wiki-black-scholes} is the baseline model. It assumes:
+\begin{itemize}
+    \item $S$ follows GBM with \textbf{constant} $\sigma$.
+    \item You can trade $S$ continuously, no fees, borrow/lend at rate $r$.
+    \item No jumps, no smile built in (vol same for all strikes).
+\end{itemize}
+\textbf{The big idea (replication):} if you hold the option and continuously adjust a 
+position in the stock, you can \highlight{cancel the leading risk} of $dS$. 
+The remaining portfolio must earn the risk-free rate (else arbitrage). 
+That balance \emph{forces} a PDE on $V(S,t)$ --- you are not guessing a price; 
+you are solving for the unique price consistent with no arbitrage + hedging.
+
+\section{The Black--Scholes PDE}
+\label{sec:bs-pde}
+Let $V(S,t)$ be the option value. \textbf{It\^o's lemma} (chain rule with $dW$) gives 
+how $dV$ depends on $dS$ and $dt$. A portfolio ``long 1 option, short $\Delta$ shares'' 
+can be made insensitive to $dS$ to first order by choosing $\Delta = \partial V/\partial S$. 
+No-arbitrage then yields:
+\begin{equation}
+  \frac{\partial V}{\partial t}
+  + (r - q)\,S\,\frac{\partial V}{\partial S}
+  + \tfrac{1}{2}\sigma^2 S^2\,\frac{\partial^2 V}{\partial S^2}
+  - r\,V = 0 .
+  \label{eq:bs-pde}
+\end{equation}
+\textbf{Read it like a physics PDE:} time derivative + drift in $S$ + diffusion in $S$ 
+($\tfrac{1}{2}\sigma^2 S^2 \partial_{SS}$) + discount term $-rV = 0$. 
+\textbf{Terminal condition} at $T$: $V(S,T) = \max(S-K,0)$ for a call. 
+Solve backward in time from $T$ to today.
+
+\section{Closed-Form Price (European Call and Put)}
+\label{sec:bs-closed-form}
+BS gives an explicit solution (no need to solve the PDE numerically for Europeans). Define:
+\begin{align}
+  d_1 &= \frac{\ln(S/K) + (r - q + \tfrac{1}{2}\sigma^2)(T-t)}{\sigma\sqrt{T-t}} ,
+  &
+  d_2 &= d_1 - \sigma\sqrt{T-t} .
+  \label{eq:d1d2}
+\end{align}
+$N(x)$ = standard normal CDF, $\phi(x)$ = PDF. Then:
+\begin{align}
+  C &= S\,e^{-q(T-t)}\,N(d_1) - K\,e^{-r(T-t)}\,N(d_2) \quad\text{(call)}, \\
+  P &= K\,e^{-r(T-t)}\,N(-d_2) - S\,e^{-q(T-t)}\,N(-d_1) \quad\text{(put)}.
+\end{align}
+\textbf{Rough intuition:}
+\begin{itemize}
+    \item $N(d_2)$ is (roughly) the risk-neutral probability the call finishes in the money.
+    \item $N(d_1)$ weights the stock leg of the replicating portfolio (the $\Delta$ hedge).
+    \item $e^{-r(T-t)}$ and $e^{-q(T-t)}$ discount strike and spot contributions.
+\end{itemize}
+You do not need to derive $d_1,d_2$ in an interview --- know they encode 
+\highlight{moneyness} ($S/K$), \highlight{time to expiry}, \highlight{rates}, and \highlight{vol}.
+
+\subsection{Put--Call Parity}
+\label{subsec:put-call-parity}
+For the same $K$, $T$~\cite{wiki-put-call-parity}:
+\begin{equation}
+  C - P = S\,e^{-q(T-t)} - K\,e^{-r(T-t)} .
+  \label{eq:put-call-parity}
+\end{equation}
+\textbf{In words:} ``long call + short put'' replicates a forward on the stock. 
+If this fails in your pricer, you have a bug or inconsistent inputs.
+
+\section{The Greeks: Sensitivities of the Price}
+\label{sec:greeks}
+\highlight{Greeks}~\cite{wiki-greeks} are partial derivatives of $V$ --- exactly like 
+sensitivity of an observable to parameters in physics.
+
+\begin{center}
+\begin{tabular}{|l|l|p{7.5cm}|}
+\hline
+\textbf{Name} & \textbf{Symbol} & \textbf{Meaning in one sentence} \\
+\hline
+Delta   & $\Delta = \partial V/\partial S$ 
+        & How much option value moves when $S$ moves \$1 (hedge ratio in shares). \\
+Gamma   & $\Gamma = \partial^2 V/\partial S^2$ 
+        & How fast $\Delta$ changes when $S$ moves (curvature / convexity). \\
+Vega    & $\nu = \partial V/\partial \sigma$ 
+        & Sensitivity to vol; long options usually have $\nu > 0$. \\
+Theta   & $\Theta = \partial V/\partial t$ 
+        & Time decay; long vanilla usually loses value as $T$ approaches. \\
+Rho     & $\rho = \partial V/\partial r$ 
+        & Sensitivity to interest rates (often smaller for short-dated equity options). \\
+\hline
+\end{tabular}
+\end{center}
+For a European \textbf{call} under BS:
+\begin{align}
+  \Delta &= e^{-q(T-t)}\,N(d_1) , &
+  \Gamma &= \frac{e^{-q(T-t)}\,\phi(d_1)}{S\,\sigma\sqrt{T-t}} , \\
+  \nu    &= S\,e^{-q(T-t)}\,\phi(d_1)\,\sqrt{T-t} .
+\end{align}
+\textbf{Units trap:} $\sigma = 0.20$ is 20\%; ``vega per vol \emph{point}'' often means 
+$\nu/100$ (per 1 percentage point).
+
+\subsection{Delta hedging}
+\label{subsec:delta-hedging}
+If you are \textbf{short} one call (you sold it), you are exposed to $S$ going up. 
+Hold $\Delta$ shares long: for small moves, option loss $\approx$ stock gain. 
+\textbf{Delta-neutral} = net $\Delta$ of book is zero. You re-hedge when $S$ moves 
+(discrete hedging) --- real P\&L differs from the idealized continuous model.
+
+\subsection{Gamma and theta (long option)}
+\label{subsec:gamma-theta}
+\textbf{Long} a call: $\Gamma > 0$ (convexity --- you gain more from up moves than you 
+lose from down moves, to second order), but $\Theta < 0$ (you \emph{pay} for that 
+convexity via time decay). \textbf{Short} option: opposite signs --- you collect theta 
+but suffer if $S$ moves a lot (gamma risk). Near expiry at-the-money, $\Gamma$ spikes 
+--- hedging is hardest there.
+
+\section{P\&L Explain: Accounting for Daily Profit and Loss}
+\label{sec:pnl-explain}
+Desks decompose one day's P\&L using a Taylor expansion --- same logic as 
+``$\delta(\mathrm{observable}) \approx (\partial O/\partial p)\,\delta p$'':
+\begin{equation}
+  \Delta \mathrm{PnL} \approx
+  \Delta\,\delta S
+  + \tfrac{1}{2}\Gamma\,(\delta S)^2
+  + \nu\,\delta\sigma
+  + \Theta\,\delta t
+  + \rho\,\delta r
+  + \text{residual} .
+  \label{eq:pnl-explain}
+\end{equation}
+\textbf{Concrete reading:}
+\begin{itemize}
+    \item $\Delta\,\delta S$ --- P\&L from the stock moving (delta explain).
+    \item $\tfrac{1}{2}\Gamma\,(\delta S)^2$ --- correction when the move was large 
+          (gamma explain).
+    \item $\nu\,\delta\sigma$ --- P\&L from implied vol changing (vol explain).
+    \item $\Theta\,\delta t$ --- P\&L from one day passing (time decay).
+    \item \textbf{Residual} --- anything left: bad data, model mismatch, cross terms, 
+          discrete hedging, dividends not in model, etc.
+\end{itemize}
+\textbf{Interview sentence:} ``We lost \$2M; \$1.6M is delta on a $-3\%$ move, 
+\$300k gamma, \$100k vega when skew steepened; \$50k unexplained --- we should check 
+surface build.''
+
+\section{Implied Volatility and the Smile}
+\label{sec:implied-vol-smile}
+BS uses one number $\sigma$ for all strikes. \textbf{Markets do not:} if you take 
+each traded option price and ask ``what $\sigma$ makes BS match?'', you get 
+\highlight{implied volatility} $\sigma_{\mathrm{imp}}(K,T)$ --- typically a 
+\highlight{smile/skew}~\cite{wiki-volatility-smile} (equity puts often have higher 
+implied vol than calls at same expiry).
+\newline
+\textbf{In plain terms:} BS is a wrong model, but $\sigma_{\mathrm{imp}}$ is a 
+\highlight{useful coordinate} for quoting options (like using action angle variables 
+when the true Hamiltonian is messy). Production stores a \highlight{vol surface}, 
+not one scalar $\sigma$.
+
+\section{Beyond Vanilla (Short Glossary)}
+\label{sec:beyond-vanilla-glossary}
+Read these once; depth can come later.
+\begin{itemize}
+    \item \textbf{Realized vol} --- measured from past returns; \textbf{implied vol} --- 
+          inferred from option prices.
+    \item \textbf{Exotic} --- non-vanilla payoff (barrier, Asian average, digital); 
+          often priced by Monte Carlo or PDE on a grid.
+    \item \textbf{American} --- can exercise before $T$; worth at least European.
+    \item \textbf{Vanna / volga} --- cross and second derivatives w.r.t.\ $S$ and $\sigma$; 
+          matter on large joint moves.
+    \item \textbf{Bid--ask / order book} --- where theoretical price meets tradable price 
+          (Part~II networking chapters).
+\end{itemize}
+
+\section{Computing Greeks in Code}
+\label{sec:analytic-vs-bump}
+Two approaches:
+\begin{itemize}
+    \item \textbf{Analytic:} plug into closed forms above (fast for BS).
+    \item \textbf{Bump:} reprice with $S \to S+h$, $\sigma \to \sigma+\varepsilon$; 
+          finite difference (works for any pricer):
+\end{itemize}
+\begin{align}
+  \Delta &\approx \frac{V(S+h) - V(S-h)}{2h} , &
+  \nu    &\approx \frac{V(\sigma+\varepsilon) - V(\sigma-\varepsilon)}{2\varepsilon} .
+\end{align}
+Choose $h$ like any numerical derivative: not too small (roundoff) or too large (truncation).
+
+\toclessnparagraph{Minimal C++ pricer sketch}
+\begin{lstlisting}[language=C++]
+#include <cmath>
+
+struct BsParams { double S, K, r, q, sigma, T; };
+
+inline double norm_cdf(double x) {
+    return 0.5 * std::erfc(-x / std::sqrt(2.0));
+}
+
+double bs_call(const BsParams& p) {
+    const double sqT = std::sqrt(p.T);
+    const double d1 = (std::log(p.S / p.K) + (p.r - p.q + 0.5 * p.sigma * p.sigma) * p.T)
+                      / (p.sigma * sqT);
+    const double d2 = d1 - p.sigma * sqT;
+    return p.S * std::exp(-p.q * p.T) * norm_cdf(d1)
+         - p.K * std::exp(-p.r * p.T) * norm_cdf(d2);
+}
+
+double bump_delta(const BsParams& p, double h = 1e-4 * p.S) {
+    BsParams up = p; up.S += h;
+    BsParams dn = p; dn.S -= h;
+    return (bs_call(up) - bs_call(dn)) / (2.0 * h);
+}
+\end{lstlisting}
+Use \texttt{std::erfc}~\cite{cppreference-erfc} for stable $N(x)$ in the tails.
+
+\section{Implementation Pitfalls}
+\label{sec:numerical-gotchas}
+\begin{itemize}
+    \item \textbf{Near expiry ATM:} greeks blow up; use limits or switch to intrinsic value.
+    \item \textbf{Units:} vol decimal vs percent; rates; day-count conventions.
+    \item \textbf{Put--call parity:} automated test on every build.
+    \item \textbf{Determinism:} Monte Carlo greeks need fixed seeds for regression tests.
+\end{itemize}
+
+\section{Monte Carlo and PDE (When BS Is Not Enough)}
+\label{sec:monte-carlo}
+\textbf{Monte Carlo}~\cite{wiki-monte-carlo}: simulate many paths of $S$, average discounted 
+payoffs --- works for path-dependent exotics; error $\propto 1/\sqrt{N}$.
+\newline
+\textbf{PDE / finite differences:} discretize Eq.~\eqref{eq:bs-pde} on a grid in $(S,t)$; 
+needed for Americans and some barriers. As quant dev you choose method + validate against 
+known cases (BS, parity).
+
+\section{Production Architecture (Lite)}
+\label{sec:pricer-risk-design}
+Typical pipeline: \textbf{market data snapshot} $\to$ \textbf{curves/surfaces} $\to$ 
+\textbf{pricer} $\to$ \textbf{risk aggregator}. Version snapshots so you can replay 
+``what did we think P\&L was at 10:00?'' See Chapter~\ref{chap:lowlatency} for hot-path 
+engineering and Chapter~\ref{chap:concurrency} for thread-safe shared state.
+
+\section{Testing and Python/C++ Split}
+\label{sec:testing-quant-code}
+Test: parity, analytic vs bump greeks, edge cases ($T \to 0$, deep OTM). 
+Research in Python; production pricers in C++ with a thin binding --- same numerics, 
+stricter latency and determinism requirements.
+
+\section{Interview Cheat Sheet (Read Last)}
+\label{sec:quant-interview-cheat-sheet}
+After reading the chapter once, rehearse these aloud:
+\begin{itemize}
+    \item \textbf{Option:} right to receive $\max(S_T-K,0)$ at $T$; priced by no-arbitrage 
+          + hedging, not by guessing $\mu$.
+    \item \textbf{BS:} GBM, constant $\sigma$, replicate with $\Delta$ shares $\Rightarrow$ PDE 
+          $\Rightarrow$ closed form with $N(d_1), N(d_2)$.
+    \item \textbf{Greeks:} $\partial V$ w.r.t.\ $S,\sigma,t,r$; delta hedge; long option = 
+          +gamma, $-$theta usually.
+    \item \textbf{Smile:} one $\sigma$ is wrong; desks use surfaces; implied vol is a quote 
+          coordinate.
+    \item \textbf{P\&L explain:} Taylor in $\delta S$, $\delta\sigma$, $\delta t$; residual 
+          = bug or model gap.
+    \item \textbf{Dev:} test parity, mind units, bump vs analytic, deterministic MC.
+\end{itemize}
