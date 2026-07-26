@@ -384,3 +384,235 @@ After reading the chapter once, rehearse these aloud:
           = bug or model gap.
     \item \textbf{Dev:} test parity, mind units, bump vs analytic, deterministic MC.
 \end{itemize}
+
+\section{Typical Interview Questions}
+\label{sec:quant-interview-qa}
+Short answers you can expand on a whiteboard. For order-book data structures in more depth, 
+see also Chapter~\ref{chap:algorithms} (order book section).
+
+\subsection{Market data and the order book}
+
+\toclessnparagraph{What is the difference between Level~1, Level~2, and Level~3 market data?}
+\begin{itemize}
+    \item \highlightbf{Level~1 (L1) / top of book:} best available prices only. Typically 
+          best bid price/size, best ask price/size, and often last trade price/volume. 
+          You see the \highlight{spread} and the last print, but \emph{not} book depth.
+    \item \highlightbf{Level~2 (L2) / market depth:} many price levels with 
+          \highlight{aggregated} size at each price (not every order id). Example:
+\begin{center}
+\small
+\begin{tabular}{lr@{\hspace{1.5em}}lr}
+\multicolumn{2}{c}{\textbf{Ask}} & \multicolumn{2}{c}{\textbf{Bid}} \\
+101.30 & 20 & 101.27 & 15 \\
+101.29 & 35 & 101.26 & 40 \\
+101.28 & 50 & 101.25 & 60 \\
+\end{tabular}
+\end{center}
+          From L2 you can read depth, liquidity, bid/ask \highlight{imbalance}, and 
+          short-horizon pressure. Many HFT strategies need at least L2; queue-position 
+          strategies may need L3.
+    \item \highlightbf{Level~3 (L3) / order-by-order:} individual orders with ids. 
+          Instead of \texttt{101.25 $\rightarrow$ 300}, you see order 1452 buy 100, 
+          1891 buy 50, 2110 buy 150, and events \texttt{New}/\texttt{Modify}/\texttt{Cancel}/\texttt{Execution}. 
+          Full \highlight{limit order book} reconstruction and price--time queues are possible; 
+          heaviest bandwidth and bookkeeping.
+\end{itemize}
+Naming varies by venue/vendor; say what \emph{your} feed actually contains.
+
+\toclessnparagraph{What information is contained in a market data feed?}
+Depends on the feed. Common pieces:
+\begin{itemize}
+    \item \textbf{Order events:} new / modify / cancel / replace (L3) or level updates (L2).
+    \item \textbf{Trade events:} execution price and size.
+    \item \textbf{Quotes:} resting interest or aggregated BBO (an intention, not a fill).
+    \item \textbf{Market state:} halt, auction, open, close.
+    \item \textbf{Timestamps:} exchange / matching / send --- critical for HFT 
+          (often µs or ns resolution, venue-dependent).
+    \item \textbf{Sequence numbers:} gap detection and replay.
+\end{itemize}
+Options/futures feeds may add extra fields (e.g.\ open interest) --- venue-dependent.
+
+\toclessnparagraph{What is the difference between trades and quotes?}
+A \highlight{quote} is an \emph{intention}: e.g.\ buy 100 @ 100.20 or sell 200 @ 100.25 
+--- resting (or displayed) interest, not necessarily a fill. It may arrive as full 
+orders (L3) or as aggregated BBO/level updates.  
+A \highlight{trade} is an \emph{execution}: e.g.\ 50 @ 100.23 --- someone bought and 
+someone sold.  
+\textbf{Short:} quotes $\approx$ interest in the book (or top-of-book updates); 
+trades $\approx$ prints. Strategies use quotes for shape and trades for markouts.
+
+\toclessnparagraph{How would you reconstruct an order book from incremental updates?}
+Modern feeds rarely blast the full book every time; they send an \highlight{event stream}.
+\begin{enumerate}
+    \item Start from an initial \highlight{snapshot} (or empty book if the protocol allows).
+    \item Apply sequenced messages locally: \texttt{Add} (add liquidity), \texttt{Modify} 
+          (size/price), \texttt{Cancel} (remove), \texttt{Execution}/\texttt{Trade} 
+          (reduce or delete the resting order that was hit).
+    \item Keep invariants: no empty levels; BBO consistent; detect \highlight{sequence gaps} 
+          and resubscribe/snapshot.
+\end{enumerate}
+Incremental updates are far cheaper than continuous full snapshots. Never assume 
+cross-feed wall-clock order without sequence checks.
+
+\toclessnparagraph{Why would an HFT strategy need Level~2 instead of Level~1?}
+L1 only shows the touch. Two books can share the \highlight{same best ask} and look identical 
+on L1 while liquidity behind the touch is completely different:
+\begin{center}
+\small
+\begin{tabular}{lr@{\hspace{2em}}lr}
+\multicolumn{2}{c}{\textbf{Ask A}} & \multicolumn{2}{c}{\textbf{Ask B}} \\
+101.00 & 5   & 101.00 & 500 \\
+101.01 & 800 & 101.01 & 5 \\
+101.02 & 900 & 101.02 & 5 \\
+\end{tabular}
+\end{center}
+L2 unlocks depth, how far a take walks the book, and signals such as 
+\highlight{order-book imbalance}, liquidity, pressure, support/resistance style levels, 
+and \highlight{microprice}. Many quantitative short-horizon strategies use exactly these.
+
+\toclessnparagraph{How would you represent an order book in memory?}
+State the hot query first (BBO vs deep walk vs cancel-by-id). A common L3 sketch:
+\begin{lstlisting}[language=C++]
+// bids: highest price first; asks: lowest first
+std::map<Price, PriceLevel, std::greater<>> bids;
+std::map<Price, PriceLevel>                 asks;
+// PriceLevel: price, total volume, queue of orders (price-time)
+std::unordered_map<OrderId, Order*>         by_id;  // O(1) modify/cancel
+\end{lstlisting}
+Each price level holds the resting orders at that price; \texttt{by\char`_id} makes 
+modify/cancel fast.  
+In real HFT stacks, generic \texttt{std::map} is often avoided when the tick grid or 
+price range is bounded: prefer \highlight{cache-friendly} layouts (tick-indexed arrays, 
+custom trees, pooled nodes) to cut allocations and improve locality. 
+See Chapter~\ref{chap:algorithms}.
+
+\toclessnparagraph{What is price--time priority?}
+At the same price, earlier resting orders trade first. Your L3 book must preserve 
+queue order if you model fill probability at the touch.
+
+\toclessnparagraph{Market order vs limit order?}
+\highlight{Market:} take liquidity now at whatever prices are available (walk the book). 
+\highlight{Limit:} rest at a price (or take if marketable). HFT cares about 
+\highlight{make} vs \highlight{take}, fees, and queue position.
+
+\subsection{Latency and systems (quant-dev)}
+
+\toclessnparagraph{How is tick-to-trade latency composed?}
+\label{qa:latency-composition}
+Always define the path first. The industry default is \highlight{tick-to-trade}:
+\textbf{market-data packet in} $\rightarrow$ \textbf{order packet out} toward the venue.
+\newline
+\begin{center}
+\input{./Chapters/QuantBasics/TikzInclude/tick_to_trade_latency.tex}
+\captionof{figure}{Software tick-to-trade path (and harness variant).}
+\label{fig:tick-to-trade-latency}
+\end{center}
+
+\textbf{Budget buckets} (whiteboard version):
+\begin{center}
+\small
+\begin{tabular}{|l|p{8.2cm}|}
+\hline
+\textbf{Stage} & \textbf{What eats time} \\
+\hline
+NIC / kernel & Interrupt or poll, sk\_buff, copies, syscall; shrinks with busy-poll / bypass 
+  (Chapters~\ref{chap:eventdrivenio},~\ref{chap:kernelbypass}). \\
+\hline
+Decode / normalize & Parse wire format, instrument map, sequence checks. \\
+\hline
+Book update & Apply L2/L3 deltas; map/array walks; allocator traffic. \\
+\hline
+Strategy & Signal + decision; can dominate if heavy or blocked on locks. \\
+\hline
+Risk / pre-trade & Limits, fat-finger, position; must stay allocation-thin. \\
+\hline
+Encode + send & Serialize order, \texttt{send}/\texttt{write}; Nagle off on hot TCP. \\
+\hline
+Cross-cutting tax & Queues, context switches, cache misses / false sharing, NUMA remote, 
+  page faults, logging --- often the \emph{tail}, not the median. \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{What usually dominates?}
+\begin{itemize}
+    \item \textbf{Fat app:} book + strategy + risk + hidden allocations.
+    \item \textbf{Lean app:} kernel path, copies, cache/NUMA, NIC --- optimize the wire side 
+          (Part~II) once the software path is already thin.
+\end{itemize}
+Interview line: give a number only with a path (``local process path $\sim$1--10\,µs is 
+plausible; exchange RTT is another story'').
+
+\toclessnparagraph{What about inject $\rightarrow$ simulated order (harness latency)?}
+Lab metrics often start at \highlight{controlled injection} of market data and stop when the 
+stack emits a \highlight{simulated order} (no venue ACK). That measures the 
+\textbf{application path} under load and is valid if you \emph{name} it --- it is 
+\emph{not} full tick-to-trade to the exchange.  
+Use the same harness before/after each optimization (pinning, NUMA split, lock-free queues, 
+lean serialization, monotonic clocks). Production still needs separate clocks on the 
+real MD-in / order-out boundaries.
+
+\toclessnparagraph{Median vs tail --- why HFT cares about p99?}
+Median (p50) shows the happy path. Tails (p99/p999) come from interrupts, stealing, 
+allocator locks, cold caches, page faults, disk logs, and noisy neighbors. A strategy can 
+look fine on average and still lose on the slow prints. Optimize for 
+\highlight{predictability}, not only average.
+
+\toclessnparagraph{Where does latency come from on a tick-to-trade path?}
+See the composition above (Figure~\ref{fig:tick-to-trade-latency}). Short answer: 
+NIC/kernel $\rightarrow$ decode $\rightarrow$ book $\rightarrow$ strategy $\rightarrow$ 
+risk $\rightarrow$ encode/send, plus jitter taxes. Book + strategy + risk often dominate 
+until the app is lean.
+
+\toclessnparagraph{How would you measure software latency?}
+\begin{itemize}
+    \item Define start/end events on a \highlight{named path}.
+    \item Steady clock: \texttt{CLOCK\char`_MONOTONIC\char`_RAW} (or equivalent) --- not 
+          \texttt{gettimeofday} for intervals.
+    \item Report median \emph{and} tails; same hardware affinity before/after.
+    \item Separate \textbf{harness / app path} from \textbf{exchange RTT}.
+\end{itemize}
+
+\toclessnparagraph{Why pin threads and care about NUMA?}
+Keep hot threads on dedicated cores; keep memory and NIC on the \highlight{same node} 
+as the consumer to avoid remote DRAM and cross-QPI/UPI traffic 
+(Chapters~\ref{chap:cacheperformance},~\ref{chap:numa}).
+
+\toclessnparagraph{How do you pass opaque payloads in C++?}
+Be explicit about the layer: hot-path FFI often uses \texttt{void*} + size (or a byte 
+buffer + tag). Library design may use type erasure (\texttt{std::any}, 
+\texttt{std::function}, or a small virtual/SOP eraser). Ask which layer they mean.
+
+\subsection{Pricing, risk, and greeks}
+
+\toclessnparagraph{What is put--call parity?}
+For European options with the same $K$, $T$: 
+$C - P = S e^{-q(T-t)} - K e^{-r(T-t)}$. Violation $\Rightarrow$ arb or a pricer bug.
+
+\toclessnparagraph{What is delta hedging in one sentence?}
+Hold $-\Delta$ shares per short option (signs flip with position) so small moves in $S$ 
+cancel to first order; rebalance as $\Delta$ changes (gamma).
+
+\toclessnparagraph{What is implied volatility?}
+The $\sigma$ that makes the BS price match the market price. One number per option; 
+across strikes you get a \highlight{smile/skew}, so production uses a surface, not one 
+global $\sigma$.
+
+\toclessnparagraph{Analytic vs bump greeks?}
+Analytic: closed-form $\partial V$ under BS --- fast, model-tied. 
+Bump: reprice at $S\pm h$ or $\sigma\pm\varepsilon$ --- works for any pricer, careful with 
+step size and noise.
+
+\toclessnparagraph{How do you explain daily P\&L?}
+Taylor: $\Delta\,\delta S + \tfrac{1}{2}\Gamma(\delta S)^2 + \nu\,\delta\sigma + \Theta\,\delta t + \cdots$ 
+plus residual (data/model/hedge error).
+
+\subsection{Behavioural / role}
+
+\toclessnparagraph{Why move from industrial C++ (e.g.\ semis) back to trading systems?}
+Tight feedback loop: ship, measure latency/correctness, iterate with the desk. 
+Ownership of a hot path and measurable impact --- not month-long silicon cycles.
+
+\toclessnparagraph{What would you ask us?}
+Team size and greenfield vs reuse; what you own on the critical path; how latency is 
+measured in prod; on-call expectations; what success looks like in six months.

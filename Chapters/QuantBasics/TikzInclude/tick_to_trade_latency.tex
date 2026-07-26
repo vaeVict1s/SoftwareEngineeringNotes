@@ -1,0 +1,40 @@
+% Tick-to-trade latency pipeline (externalized)
+\centering
+\tikzfig{tick_to_trade_latency}
+\begin{tikzpicture}[
+    font=\sffamily\footnotesize,
+    stage/.style={
+        draw=black,
+        thick,
+        rounded corners=1pt,
+        align=center,
+        minimum height=1.15cm,
+        text width=1.55cm,
+        inner sep=2pt
+    },
+    arr/.style={-{Stealth[length=2mm]}, thick},
+    note/.style={font=\sffamily\scriptsize, align=center, text=oblivioncomment}
+]
+    \node[stage] (nic) {NIC /\\kernel};
+    \node[stage, right=0.35cm of nic] (dec) {Decode /\\normalize};
+    \node[stage, right=0.35cm of dec] (book) {Book\\update};
+    \node[stage, right=0.35cm of book] (strat) {Strategy};
+    \node[stage, right=0.35cm of strat] (risk) {Risk\\checks};
+    \node[stage, right=0.35cm of risk] (enc) {Encode\\+ send};
+
+    \draw[arr] (nic) -- (dec);
+    \draw[arr] (dec) -- (book);
+    \draw[arr] (book) -- (strat);
+    \draw[arr] (strat) -- (risk);
+    \draw[arr] (risk) -- (enc);
+
+    \node[note, above=0.15cm of nic] {MD in};
+    \node[note, above=0.15cm of enc] {order out};
+
+    % harness overlay note
+    \node[note, below=0.55cm of book] (harness) {%
+        \textbf{Harness variant:} inject simulated MD here $\rightarrow$ stop at simulated order\\
+        (app path only --- not exchange RTT)};
+    \draw[arr, densely dashed, oblivioncomment] ([yshift=-0.05cm]dec.south) -- ++(0,-0.25)
+        -| ([xshift=-0.1cm]harness.north);
+\end{tikzpicture}
