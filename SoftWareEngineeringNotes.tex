@@ -334,16 +334,21 @@
           stop_source,stop_token,mt19937,random_device,
           steady_clock,system_clock,high_resolution_clock,time_point,duration,complex,path,
           cpu_set_t,sched_param,pthread_t,sockaddr,sockaddr_in,epoll_event,pollfd,fd_set,timeval,off_t,
-          % Example / handbook class names from Ch.~1--6 listings
+          greater,less,hash,equal_to,
+          % Example / handbook class names from listings across the book
           Alert,Arena,Array,Bar,Base,Buffer,Car,Circle,Color,Comparable,Coordinate,Derived,Drawable,
           File,FixedPool,Foo,FooKeeper,Fred,Game,Human,Impl,Io_obj,IostreamInit,Join,Model,
           MyContainer,MyObj,Node,Person,PersonList,Point,Proxy,Ref,Shape,Square,String,StringBody,
           UserClass,Vec,Widget,AE,Der1,Der2,D_priv,D_prot,D_publ,X1,X2,X3,X4,
           my_integer_sequence,rgba_color_channel,fraction,always_satisfied,callable,Price,PriceLevel,OrderId,Order,
+          Level,BBO,BsParams,PaddedCounters,SharedCounters,Spinlock,SpscRing,Concept,Callable,Engine,Der,
+          FunctionPtr,FredMemFn,Message,Slot,Log,TimeKeeper,Timer,BadFoo,arity,widget,impl,lref,rref,
+          container,int_value,cpp11LongTypedef,cpp98LongTypedef,
           True,False,None,str,dict,bytes},%
     emphstyle={\color{obliviontype}\bfseries},%
     % Namespaces (std::thread -> std purple, thread blue above)
-    emph={[2]std,this_thread,chrono,chrono_literals,filesystem,execution,numbers,pmr,literals},%
+    emph={[2]std,this_thread,chrono,chrono_literals,filesystem,execution,numbers,pmr,literals,
+          Program,Version1,Version2},%
     emphstyle={[2]\color{oblivionnamespace}\bfseries},%
     % Methods / free functions you care to highlight in examples
     emph={[3]get_id,native_handle,getpid,pthread_self,syscall,make_unique,make_shared,

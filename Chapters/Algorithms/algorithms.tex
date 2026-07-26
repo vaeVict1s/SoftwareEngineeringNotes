@@ -323,6 +323,9 @@ worth detecting in production.
 See Chapter~\ref{chap:containers} for container APIs. 
 This subsection compares order-book-specific representations only.
 \newline
+\highlight{Feed level $\neq$ local storage:} you can subscribe to L2 or L3 and still keep only 
+L1 (or a shallow depth window) in memory --- store what the strategy reads on the hot path.
+\newline
 You need: fast \highlight{find level by price}, fast \highlight{BBO}, and (often) 
 walk levels in price order. Common choices:
 \begin{itemize}
@@ -339,6 +342,10 @@ walk levels in price order. Common choices:
           by id), each level holds a FIFO list (price-time priority). Aggregate-only books 
           store quantity per price and skip per-order lists.
 \end{itemize}
+
+\toclessnparagraph{Aggregate book (L2-style storage)}
+Quantity (and optional order count) per price --- no per-order queues. Matches an L2 feed, 
+or an L3 feed that you collapse locally.
 \begin{lstlisting}[language=C++]
 #include <cstdint>
 #include <map>
@@ -352,8 +359,37 @@ struct Level {
 std::map<int64_t, Level, std::greater<int64_t>> bids;
 std::map<int64_t, Level, std::less<int64_t>>    asks;
 \end{lstlisting}
+
+\toclessnparagraph{Order-by-order book (L3-style storage)}
+Per-level FIFO for price--time priority, plus an id index for $O(1)$ modify/cancel.
+\begin{lstlisting}[language=C++]
+#include <cstdint>
+#include <deque>
+#include <map>
+#include <unordered_map>
+
+using Price   = int64_t;
+using OrderId = uint64_t;
+
+struct Order {
+    OrderId id{};
+    Price   px{};
+    int64_t qty{0};
+};
+
+struct PriceLevel {
+    int64_t total_qty{0};
+    std::deque<Order> queue;  // price-time FIFO at this price
+};
+
+std::map<Price, PriceLevel, std::greater<>> bids;
+std::map<Price, PriceLevel>                 asks;
+std::unordered_map<OrderId, Order*>         by_id;
+\end{lstlisting}
 \par\noindent\textbf{Interview tip:} say \highlight{what} you optimize (BBO vs deep book vs cancel-by-id) before 
-picking the structure.
+picking the structure. In real HFT stacks, generic \texttt{std::map} is often replaced by 
+tick-indexed arrays or pooled trees when the price range is bounded 
+(Chapter~\ref{chap:quantbasics}).
 
 \subsection{Add, Update, and Remove}
 \label{subsec:order-book-operations}
