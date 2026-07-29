@@ -1,0 +1,46 @@
+% Trade lifecycle: strategy intent → PnL (externalized)
+\centering
+\tikzfig{trade_lifecycle}
+\begin{tikzpicture}[
+    font=\sffamily\footnotesize,
+    stage/.style={
+        draw=black,
+        thick,
+        rounded corners=1pt,
+        align=center,
+        minimum height=1.05cm,
+        text width=1.7cm,
+        inner sep=2pt
+    },
+    arr/.style={-{Stealth[length=2mm]}, thick},
+    note/.style={font=\sffamily\scriptsize, align=center, text=oblivioncomment}
+]
+    % Row 1: outbound path
+    \node[stage] (strat) {Strategy};
+    \node[stage, right=0.28cm of strat] (risk) {Risk\\check};
+    \node[stage, right=0.28cm of risk] (gw) {Order\\gateway};
+    \node[stage, right=0.28cm of gw] (exch) {Exchange\\/ venue};
+    \node[stage, right=0.28cm of exch] (match) {Matching\\engine};
+
+    \draw[arr] (strat) -- (risk);
+    \draw[arr] (risk) -- (gw);
+    \draw[arr] (gw) -- (exch);
+    \draw[arr] (exch) -- (match);
+
+    \node[note, above=0.12cm of strat] {intent};
+    \node[note, above=0.12cm of match] {fill / reject};
+
+    % Row 2: feedback path
+    \node[stage, below=1.0cm of strat] (pnl) {PnL\\update};
+    \node[stage, right=0.28cm of pnl] (pos) {Position\\update};
+    \node[stage, right=0.28cm of pos] (md) {Market-data\\update};
+    \node[stage, right=0.28cm of md] (exec) {Trade\\execution\\report};
+
+    \draw[arr] (match.south) -- ++(0,-0.35) -| (exec.north);
+    \draw[arr] (exec) -- (md);
+    \draw[arr] (md) -- (pos);
+    \draw[arr] (pos) -- (pnl);
+
+    \node[note, below=0.12cm of exec] {venue $\rightarrow$ firm};
+    \node[note, below=0.12cm of pnl] {accounting};
+\end{tikzpicture}

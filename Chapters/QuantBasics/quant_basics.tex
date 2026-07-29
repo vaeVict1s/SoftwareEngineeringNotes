@@ -9,6 +9,9 @@ before. Formulas are there for precision; the prose is what you should read firs
 
 \subsection*{How to read this chapter}
 \begin{enumerate}
+    \item \textbf{Section~\ref{sec:quant-dev-role},~\ref{sec:trade-lifecycle},
+          and~\ref{sec:market-structure}:} 
+          Role, trade lifecycle, and market structure (who trades where).
     \item \textbf{Sections~\ref{sec:plain-options}--\ref{sec:plain-volatility}:} 
           What is being traded and what ``price an option'' means.
     \item \textbf{Sections~\ref{sec:sde-intuition}--\ref{sec:bs-pde}:} 
@@ -18,10 +21,171 @@ before. Formulas are there for precision; the prose is what you should read firs
           The closed-form price and the \emph{greeks} (sensitivities) --- 
           partial derivatives, exactly like in perturbation theory.
     \item \textbf{Sections~\ref{sec:pnl-explain} onward:} 
-          How desks use this in practice (P\&L, smiles, code).
+          How desks use this in practice (P\&L, smiles, code), plus interview Q\&A 
+          on market data and latency.
 \end{enumerate}
 Each section has a stable \texttt{\textbackslash label} so it can be expanded later 
-into full textbook depth without moving content.
+without moving content.
+\newline
+\noindent\textit{Roadmap (markets expansion):} instruments (B), spot/futures infrastructure (C), 
+complex derivatives systems notes (D), crypto (E), and microstructure polish (F) 
+remain; deep order-book layout stays in Chapter~\ref{chap:algorithms}. 
+Market structure (A) is Section~\ref{sec:market-structure}.
+
+\section{What a Quant Developer Does}
+\label{sec:quant-dev-role}
+At systematic trading firms, a \highlight{Senior Quant Developer} typically:
+\begin{itemize}
+    \item Writes C++ (or similar) to \textbf{price} options and compute \textbf{greeks}.
+    \item Makes libraries \textbf{fast, deterministic, and tested} on paths that affect 
+          live \highlight{P\&L} (profit and loss).
+    \item Connects \textbf{market data} (prices, rates, vol surfaces) to those libraries.
+    \item Explains daily P\&L: ``how much was stock move vs vol move vs time decay?''
+\end{itemize}
+\par\noindent\textbf{Interview tip:} understand \emph{both} the model and \emph{where production breaks} 
+(wrong units, stale data, smile not flat, etc.).
+
+% Phase 0 placement: markets/trading spine sits after the role section and before
+% the pricing arc. Phase 1 fills the lifecycle; phases 2+ add A--F around/after it.
+
+\section{Trade Lifecycle: From Intent to P\&L}
+\label{sec:trade-lifecycle}
+An interview classic: walk an order from the moment a strategy wants to trade until 
+the firm updates position and P\&L. This is the \highlight{control-plane + data-plane} 
+story of a trading system --- complementary to tick-to-trade latency 
+(Section~\ref{qa:latency-composition}), which zooms in on the hot path only.
+
+\begin{center}
+\input{./Chapters/QuantBasics/TikzInclude/trade_lifecycle.tex}
+\captionof{figure}{Trade lifecycle (simplified). Outbound intent on top; venue feedback and firm state below.}
+\label{fig:trade-lifecycle}
+\end{center}
+
+\toclessnparagraph{Strategy}
+Signal or model decides to buy/sell (or adjust a quote). Output is an 
+\highlight{order intent}: instrument, side, quantity, order type, and constraints 
+(e.g.\ limit price, time-in-force). No money has moved yet.
+
+\toclessnparagraph{Risk check}
+Pre-trade gates: position / exposure limits, fat-finger checks, forbidden instruments, 
+credit, kill-switches. Fail here $\Rightarrow$ no order leaves the firm. In HFT this 
+must be \highlight{cheap and deterministic} (Chapter~\ref{chap:lowlatency}).
+
+\toclessnparagraph{Order gateway}
+Firm-side component that owns the venue session: encodes the native protocol, 
+assigns client order ids, handles heartbeats/reconnects, and is often the last 
+process before the wire. Think of it as the \highlight{door to the exchange}.
+
+\toclessnparagraph{Exchange / venue}
+Your order is now their problem: throttling, fee logic, and admission into the 
+matching engine. For OTC there may be no central book --- a dealer or platform 
+stands in the middle (Section~\ref{sec:exchange-vs-otc}).
+
+\toclessnparagraph{Matching engine}
+Applies venue rules --- typically \highlight{price--time priority} 
+(Chapter~\ref{chap:algorithms}) --- and either \highlight{fills} (full/partial), 
+\highlight{rests} the order in the book, or \highlight{rejects} it. This is where 
+``liquidity'' becomes concrete: who was available at which price.
+
+\toclessnparagraph{Trade execution (report)}
+Fill notices (and cancel/reject acks) travel back to the firm. Your gateway 
+normalizes them into internal events. Until this lands, strategy state and risk 
+may still be optimistic --- design for that.
+
+\toclessnparagraph{Market-data update}
+Public (or private) feeds update trades and/or book changes caused by your fill 
+and everyone else's. Your local book and marks move 
+(Section~\ref{sec:quant-interview-qa}). Sequence numbers matter: gaps force 
+snapshot rebuilds.
+
+\toclessnparagraph{Position update}
+Inventory and open orders change: filled qty, average price, remaining working 
+orders. Downstream risk and strategy both read this.
+
+\toclessnparagraph{P\&L update}
+Mark-to-market and/or realized P\&L refresh (Section~\ref{sec:pnl-explain} for the 
+options greeks decomposition). Ops and desks care that this matches the venue's 
+view within known lags.
+
+\par\noindent\textbf{Interview tip:} say the pipeline in order, then pick 
+\highlight{one} stage you owned (e.g.\ gateway, book, or risk) and name the 
+failure mode (gap, partial fill, risk reject, clock jump). Interviewers want 
+system thinking, not a memorized list.
+
+\section{Market Structure}
+\label{sec:market-structure}
+Before pricing models: \emph{who} trades, \emph{where}, and what ``a market'' 
+actually does. Keep this vocabulary ready for desk and systems interviews.
+
+\subsection{What is a financial market?}
+\label{subsec:what-is-financial-market}
+A \highlight{financial market} is a venue (or network of venues) where buyers and 
+sellers agree prices for assets or contracts. Two jobs matter for engineers:
+\begin{itemize}
+    \item \highlightbf{Liquidity} --- how easily you can trade size near a fair price 
+          without moving the market much. Thin books $\Rightarrow$ larger slippage and 
+          worse fills.
+    \item \highlightbf{Price discovery} --- the process by which publicly observed 
+          prices (and books) incorporate information. Matching engines and continuous 
+          quoting are the machinery behind that.
+\end{itemize}
+No liquidity $\Rightarrow$ your strategy cannot exit; broken price discovery $\Rightarrow$ 
+marks and risk are fiction.
+
+\subsection{Market participants}
+\label{subsec:market-participants}
+\begin{itemize}
+    \item \highlightbf{Retail} --- individuals; usually small size, often via brokers' 
+          apps; rarely colocated.
+    \item \highlightbf{Institutional investors} --- asset managers, pensions, insurers; 
+          large tickets, care about cost of trading and benchmarks.
+    \item \highlightbf{Hedge funds / prop firms} --- absolute-return or firm-capital 
+          strategies; many hire quant developers for research \emph{and} production 
+          systems (your ProMarket / HFT lane).
+    \item \highlightbf{Market makers} --- continuously post bid and ask, earn spread, 
+          manage inventory risk; often the ``other side'' of flow.
+    \item \highlightbf{Exchanges / venues} --- run matching, publish market data, set 
+          rules (fees, tick size, sessions).
+    \item \highlightbf{Brokers} --- route client orders to venues (or internalize); 
+          provide access, clearing introductions, and sometimes algo execution.
+\end{itemize}
+\par\noindent\textbf{Interview tip:} say which participant \emph{you} built for 
+(e.g.\ prop desk vs exchange) --- incentives differ.
+
+\subsection{Exchange vs OTC}
+\label{sec:exchange-vs-otc}
+\label{subsec:exchange-vs-otc}
+\begin{itemize}
+    \item \highlightbf{Exchange-traded:} standardized contracts, central matching 
+          (order book), clearing house, transparent feeds. Examples: listed equities, 
+          futures, many listed options.
+    \item \highlightbf{OTC (over-the-counter):} bilaterally negotiated (or via a 
+          dealer platform), customized terms, \highlight{counterparty risk} unless 
+          cleared. Classic: many forwards, bespoke swaps, a large share of FX.
+\end{itemize}
+Same economic exposure can be exchange \emph{or} OTC (e.g.\ forward vs future). 
+Ops and eng change: protocols, credit, confirmation, and how you get a ``book.''
+
+\subsection{Major venues (orientation only)}
+\label{subsec:major-venues}
+Names interviewers expect you to place on the map --- not memorize every product:
+\begin{itemize}
+    \item \highlightbf{NYSE} --- US cash equities; hybrid auction + continuous trading 
+          heritage; listed stocks.
+    \item \highlightbf{NASDAQ} --- US cash equities; electronic matching; many tech 
+          names; related venues/feeds in the US equity complex.
+    \item \highlightbf{CME} (Chicago Mercantile Exchange Group) --- futures and options 
+          on futures (rates, equity indices, FX, commodities, \ldots); sessionized 
+          products and rolls matter for data (Phase~4 / Section~C).
+    \item \highlightbf{Crypto exchanges} (e.g.\ Binance, Coinbase, Deribit for options) 
+          --- often 24/7, venue-specific derivatives (perps); API and custody models 
+          differ from traditional CME/NYSE stacks (Phase~5).
+\end{itemize}
+Your stack always binds to a \highlight{specific market-data and order-entry protocol} 
+for a venue --- ``equities'' or ``FX'' alone is not an interface.
+
+\par\noindent\textbf{Interview tip:} contrast \highlight{central limit order book} 
+venues with \highlight{dealer / OTC} FX: connectivity and ``what is the book?'' change.
 
 \section{Stocks and Options in Plain Language}
 \label{sec:plain-options}
@@ -81,19 +245,6 @@ standard annualized sense.
 Higher $\sigma$ $\Rightarrow$ more uncertainty $\Rightarrow$ an option (which pays off 
 in the tails) is usually \textbf{worth more}. That is the economic content of \highlight{vega} 
 (Section~\ref{sec:greeks}).
-
-\section{What a Quant Developer Does}
-\label{sec:quant-dev-role}
-At systematic trading firms, a \highlight{Senior Quant Developer} typically:
-\begin{itemize}
-    \item Writes C++ (or similar) to \textbf{price} options and compute \textbf{greeks}.
-    \item Makes libraries \textbf{fast, deterministic, and tested} on paths that affect 
-          live \highlight{P\&L} (profit and loss).
-    \item Connects \textbf{market data} (prices, rates, vol surfaces) to those libraries.
-    \item Explains daily P\&L: ``how much was stock move vs vol move vs time decay?''
-\end{itemize}
-\par\noindent\textbf{Interview tip:} understand \emph{both} the model and \emph{where production breaks} 
-(wrong units, stale data, smile not flat, etc.).
 
 \section{Modelling the Stock: Random Walk and GBM}
 \label{sec:sde-intuition}
@@ -372,6 +523,11 @@ stricter latency and determinism requirements.
 \label{sec:quant-interview-cheat-sheet}
 After reading the chapter once, rehearse these aloud:
 \begin{itemize}
+    \item \textbf{Lifecycle:} strategy $\to$ risk $\to$ gateway $\to$ venue/match $\to$ 
+          exec $\to$ MD $\to$ position $\to$ P\&L (Section~\ref{sec:trade-lifecycle}).
+    \item \textbf{Market structure:} liquidity + price discovery; participants; 
+          exchange vs OTC; name a venue you actually connected to 
+          (Section~\ref{sec:market-structure}).
     \item \textbf{Option:} right to receive $\max(S_T-K,0)$ at $T$; priced by no-arbitrage 
           + hedging, not by guessing $\mu$.
     \item \textbf{BS:} GBM, constant $\sigma$, replicate with $\Delta$ shares $\Rightarrow$ PDE 
