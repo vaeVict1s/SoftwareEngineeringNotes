@@ -9,11 +9,11 @@ before. Formulas are there for precision; the prose is what you should read firs
 
 \subsection*{How to read this chapter}
 \begin{enumerate}
-    \item \textbf{Section~\ref{sec:quant-dev-role},~\ref{sec:trade-lifecycle},
-          and~\ref{sec:market-structure}:} 
-          Role, trade lifecycle, and market structure (who trades where).
+    \item \textbf{Sections~\ref{sec:quant-dev-role}--\ref{sec:instruments}:} 
+          Role, lifecycle, market structure, and the instrument map 
+          (spot through swaps).
     \item \textbf{Sections~\ref{sec:plain-options}--\ref{sec:plain-volatility}:} 
-          What is being traded and what ``price an option'' means.
+          Option pricing vocabulary in more detail (leads into Black--Scholes).
     \item \textbf{Sections~\ref{sec:sde-intuition}--\ref{sec:bs-pde}:} 
           Why the stock is modelled as a diffusion, and how hedging leads to the 
           Black--Scholes equation (the heart of the theory).
@@ -27,10 +27,11 @@ before. Formulas are there for precision; the prose is what you should read firs
 Each section has a stable \texttt{\textbackslash label} so it can be expanded later 
 without moving content.
 \newline
-\noindent\textit{Roadmap (markets expansion):} instruments (B), spot/futures infrastructure (C), 
+\noindent\textit{Roadmap (markets expansion):} spot/futures infrastructure (C), 
 complex derivatives systems notes (D), crypto (E), and microstructure polish (F) 
 remain; deep order-book layout stays in Chapter~\ref{chap:algorithms}. 
-Market structure (A) is Section~\ref{sec:market-structure}.
+Done so far: market structure (A,~Section~\ref{sec:market-structure}) and 
+instruments (B,~Section~\ref{sec:instruments}).
 
 \section{What a Quant Developer Does}
 \label{sec:quant-dev-role}
@@ -187,8 +188,144 @@ for a venue --- ``equities'' or ``FX'' alone is not an interface.
 \par\noindent\textbf{Interview tip:} contrast \highlight{central limit order book} 
 venues with \highlight{dealer / OTC} FX: connectivity and ``what is the book?'' change.
 
+\section{Asset Classes and Instruments}
+\label{sec:instruments}
+A map of \emph{what} is traded. Pricing depth for equities options continues in 
+Section~\ref{sec:plain-options}; infrastructure differences (spot vs futures wires, 
+rolls, implieds) come in Phase~4 / Section~C.
+
+\subsection{Asset classes (tour sheet)}
+\label{subsec:asset-classes}
+\begin{itemize}
+    \item \highlightbf{Stocks (equities)} --- ownership shares; cash market + listed 
+          options/futures on single names or indices.
+    \item \highlightbf{Bonds} --- debt; price moves mainly with rates and credit; 
+          huge OTC component.
+    \item \highlightbf{ETFs} --- exchange-traded funds; trade like stocks, hold a 
+          basket or strategy exposure.
+    \item \highlightbf{Commodities} --- oil, metals, ags, \ldots; often futures-first.
+    \item \highlightbf{FX (foreign exchange)} --- currency pairs; enormous OTC spot 
+          and forwards, plus exchange-traded FX futures.
+    \item \highlightbf{Crypto} --- digital assets; spot, futures, perpetuals, options; 
+          24/7 venues (compact treatment in Phase~5).
+\end{itemize}
+
+\subsection{Spot}
+\label{subsec:spot}
+A \highlight{spot} trade is for (near) \highlight{immediate} delivery of the asset 
+at the agreed price --- ``cash'' market, not a dated forward.
+\newline
+\highlightbf{Settlement lag:} many cash equities settle \highlight{T+1} or 
+\highlight{T+2} (trade date + $N$ business days) even though the price is ``spot.'' 
+The lag is operational (clearing/settlement), not a forward contract by design.
+\newline
+\highlightbf{Crypto} spot is often effectively \highlight{T+0} on the venue 
+(balance updates as soon as the trade matches) --- still venue- and custody-dependent.
+\par\noindent\textbf{Interview tip:} ``spot'' $=$ economic immediacy; always ask 
+what the \emph{settlement calendar} is for that market.
+
+\subsection{Forward contracts}
+\label{subsec:forwards}
+A \highlight{forward} locks in a price today for delivery at a future date $T$.
+\begin{itemize}
+    \item Usually \highlight{OTC} and \highlight{customized} (size, date, underlying).
+    \item \highlight{Counterparty risk}: you care whether the other side pays; may be 
+          mitigated by collateral or clearing.
+    \item No exchange mark-to-market by default (unlike listed futures).
+\end{itemize}
+Fair forward level ties to spot, rates, and carry (see Section~\ref{sec:plain-rates-divs} 
+for the equity-style $F = S e^{(r-q)(T-t)}$ intuition).
+
+\subsection{Futures}
+\label{subsec:futures}
+A \highlight{future} is the \highlight{exchange-traded}, standardized cousin of a 
+forward: fixed contract specs, central clearing, and a public order book.
+\begin{itemize}
+    \item \highlightbf{Margin} --- post collateral, not the full notional.
+    \item \highlightbf{Leverage} --- small margin controls large notional (risk cuts 
+          both ways).
+    \item \highlightbf{Expiration} --- contracts die; desks \highlight{roll} into later 
+          months (data and strategy must know the front month).
+\end{itemize}
+
+\toclessnparagraph{Initial margin, maintenance margin, mark-to-market}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Initial margin} & Collateral required to \emph{open} a futures position. \\
+\hline
+\textbf{Maintenance margin} & Floor; if your account equity falls below this after losses, 
+you get a \highlight{margin call} (post more or reduce). \\
+\hline
+\textbf{Mark-to-market (MtM)} & Daily (or intraday) revaluation: gains/losses settled 
+in cash against the clearing house. Keeps counterparty risk manageable. \\
+\hline
+\end{tabularx}
+\end{center}
+MtM is why listed futures feel different from a quiet OTC forward: P\&L hits the 
+account continuously, not only at expiry.
+
+\subsection{Options (light intro)}
+\label{subsec:options-light}
+An \highlight{option} is the right (not obligation) to buy (\highlight{call}) or sell 
+(\highlight{put}) an underlying at a \highlight{strike} $K$ by/at an 
+\highlight{expiration}. You pay a \highlight{premium} up front.
+\newline
+Listed options are exchange-traded with a chain of strikes and expiries; OTC options 
+can be bespoke. Full pricing path (European call/put, Black--Scholes, greeks) starts 
+in Section~\ref{sec:plain-options}.
+
+\subsection{Swaps (panorama)}
+\label{subsec:swaps-panorama}
+A \highlight{swap} exchanges cash-flow streams. Know the names; deep pricing is a 
+rates/credit book, not this chapter's core:
+\begin{itemize}
+    \item \highlightbf{Interest rate swap (IRS)} --- typically fixed vs floating rate 
+          payments on a notional.
+    \item \highlightbf{Currency / FX swap} --- exchange principals and/or interest in 
+          two currencies (related to FX forwards).
+    \item \highlightbf{Credit default swap (CDS)} --- protection against a credit event; 
+          premium vs contingent payoff (overview only here; more in Phase~7 / D).
+\end{itemize}
+Mostly OTC historically; much is now cleared. Eng impact: confirmations, curves, and 
+lifecycle events --- not a simple L2 equity book.
+
+\subsection{Why derivatives exist}
+\label{subsec:why-derivatives}
+\begin{itemize}
+    \item \highlightbf{Hedging} --- transfer unwanted risk (e.g.\ airline hedges jet fuel).
+    \item \highlightbf{Speculation} --- express a view with defined payoff / leverage.
+    \item \highlightbf{Leverage} --- futures/options embed gearing via margin or premium.
+    \item \highlightbf{Price discovery} --- futures and options markets reveal forwards 
+          and implied vol used across the industry.
+\end{itemize}
+
+\subsection{Spot vs futures --- interview staple}
+\label{subsec:spot-vs-futures}
+\textbf{Why trade futures instead of spot?}
+\begin{itemize}
+    \item \highlight{Leverage and capital efficiency} via margin vs full notional cash.
+    \item \highlight{Shorting / expressing views} without locating stock or holding cash FX 
+          balances the same way.
+    \item \highlight{Standardization and liquidity} on major contracts; easy roll of 
+          exposure.
+    \item \highlight{Clearing} reduces bilateral counterparty risk vs many OTC forwards.
+    \item Operational: no (or different) physical/cash settlement until expiry; 
+          daily MtM.
+\end{itemize}
+Trade-offs: basis vs spot, roll cost, expiry pin risk, and session/roll data complexity 
+(Phase~4). FX spot shops (e.g.\ prop FX) often stay in continuous OTC/ECN spot because 
+that \emph{is} the product they trade --- futures are an alternative listing, not a 
+universal upgrade.
+
+\par\noindent\textbf{Interview tip:} answer with \highlight{capital, shorting, clearing, 
+and basis} --- then mention roll/expiry if they push on operations.
+
 \section{Stocks and Options in Plain Language}
 \label{sec:plain-options}
+Instrument taxonomy is in Section~\ref{sec:instruments}; this section deepens the 
+\highlight{equity option} story used for Black--Scholes.
 
 \subsection{Stock}
 A \highlight{stock} (share) is a piece of ownership in a company. Its \highlight{spot price} 
@@ -528,6 +665,9 @@ After reading the chapter once, rehearse these aloud:
     \item \textbf{Market structure:} liquidity + price discovery; participants; 
           exchange vs OTC; name a venue you actually connected to 
           (Section~\ref{sec:market-structure}).
+    \item \textbf{Instruments:} spot vs forward vs future vs option vs swap; 
+          margins/MtM; why derivatives; why futures instead of spot 
+          (Section~\ref{sec:instruments}).
     \item \textbf{Option:} right to receive $\max(S_T-K,0)$ at $T$; priced by no-arbitrage 
           + hedging, not by guessing $\mu$.
     \item \textbf{BS:} GBM, constant $\sigma$, replicate with $\Delta$ shares $\Rightarrow$ PDE 
@@ -545,6 +685,21 @@ After reading the chapter once, rehearse these aloud:
 \label{sec:quant-interview-qa}
 Short answers you can expand on a whiteboard. For order-book data structures in more depth, 
 see also Chapter~\ref{chap:algorithms} (order book section).
+
+\subsection{Markets and instruments}
+\toclessnparagraph{Exchange-traded vs OTC?}
+Exchange: standardized, central matching, clearing, public book/feeds. 
+OTC: bilateral or dealer, often customized, counterparty risk unless cleared 
+(Section~\ref{sec:exchange-vs-otc}).
+
+\toclessnparagraph{Why would someone trade futures instead of spot?}
+Capital efficiency (margin), easier short/levered exposure, liquidity on major 
+contracts, clearing --- at the cost of basis, rolls, and expiry 
+(Section~\ref{subsec:spot-vs-futures}).
+
+\toclessnparagraph{Initial vs maintenance margin? What is mark-to-market?}
+Initial to open; maintenance is the floor that triggers margin calls; MtM settles 
+daily P\&L with the clearing house (Section~\ref{subsec:futures}).
 
 \subsection{Market data and the order book}
 
