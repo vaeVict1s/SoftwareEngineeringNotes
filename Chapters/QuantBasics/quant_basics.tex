@@ -20,16 +20,19 @@ before. Formulas are there for precision; the prose is what you should read firs
     \item \textbf{Sections~\ref{sec:bs-closed-form}--\ref{sec:greeks}:} 
           The closed-form price and the \emph{greeks} (sensitivities) --- 
           partial derivatives, exactly like in perturbation theory.
-    \item \textbf{Sections~\ref{sec:pnl-explain} onward:} 
-          How desks use this in practice (P\&L, smiles, code), plus interview Q\&A 
-          on market data and latency.
+    \item \textbf{Sections~\ref{sec:pnl-explain}--\ref{sec:complex-derivatives-systems}:} 
+          P\&L, smiles, numerics, and systems notes for swaps / Americans / 
+          large option universes.
+    \item \textbf{Interview cheat sheet and Q\&A:} rehearse aloud; market data and 
+          latency drills at the end.
 \end{enumerate}
 
-\noindent\textit{Roadmap (markets expansion):} complex derivatives systems notes (D) 
-remain; deep order-book \emph{layout} stays in Chapter~\ref{chap:algorithms}. 
-Done so far: A~\ref{sec:market-structure}, B~\ref{sec:instruments}, 
-C~\ref{sec:spot-futures-infra}, E~\ref{sec:crypto-markets}, 
-F~\ref{sec:microstructure}.
+\noindent\textit{Roadmap (markets expansion):} A--F complete for the markets spine; 
+deep order-book \emph{layout} stays in Chapter~\ref{chap:algorithms}. 
+Phase~8 will rewrite ``How to read'' and drop roadmap scaffolding.
+Done: A~\ref{sec:market-structure}, B~\ref{sec:instruments}, 
+C~\ref{sec:spot-futures-infra}, D~\ref{sec:complex-derivatives-systems}, 
+E~\ref{sec:crypto-markets}, F~\ref{sec:microstructure}.
 
 \section{What a Quant Developer Does}
 \label{sec:quant-dev-role}
@@ -284,7 +287,8 @@ rates/credit book, not this chapter's core:
     \item \highlightbf{Currency / FX swap} --- exchange principals and/or interest in 
           two currencies (related to FX forwards).
     \item \highlightbf{Credit default swap (CDS)} --- protection against a credit event; 
-          premium vs contingent payoff (overview only here; more in Phase~7 / D).
+          premium vs contingent payoff (systems notes in 
+          Section~\ref{sec:complex-derivatives-systems}).
 \end{itemize}
 Mostly OTC historically; much is now cleared. Eng impact: confirmations, curves, and 
 lifecycle events --- not a simple L2 equity book.
@@ -755,7 +759,8 @@ Read these once; depth can come later.
           inferred from option prices.
     \item \textbf{Exotic} --- non-vanilla payoff (barrier, Asian average, digital); 
           often priced by Monte Carlo or PDE on a grid.
-    \item \textbf{American} --- can exercise before $T$; worth at least European.
+    \item \textbf{American} --- can exercise before $T$; worth at least European; 
+          no vanilla BS closed form --- see Section~\ref{subsec:american-options}.
     \item \textbf{Vanna / volga} --- cross and second derivatives w.r.t.\ $S$ and $\sigma$; 
           matter on large joint moves.
     \item \textbf{Bid--ask / order book} --- where theoretical price meets tradable price 
@@ -819,14 +824,85 @@ payoffs --- works for path-dependent exotics; error $\propto 1/\sqrt{N}$.
 \newline
 \textbf{PDE / finite differences:} discretize Eq.~\eqref{eq:bs-pde} on a grid in $(S,t)$; 
 needed for Americans and some barriers. As quant dev you choose method + validate against 
-known cases (BS, parity).
+known cases (BS, parity). American early-exercise intuition: 
+Section~\ref{subsec:american-options}.
+
+\section{Complex Derivatives: Systems Notes}
+\label{sec:complex-derivatives-systems}
+Pricing theory for vanilla Europeans is above. Here: what changes when the book is 
+swaps, Americans, or \emph{tens of thousands} of listed options --- the interview 
+angle at places like Optiver / Citadel Securities style shops.
+
+\subsection{IRS and CDS (systems view)}
+\label{subsec:irs-cds-systems}
+Still not a rates textbook --- know the \emph{objects} your code touches.
+\begin{itemize}
+    \item \highlightbf{Interest rate swap (IRS):} exchange fixed vs floating cash flows 
+          on a notional. Valuation needs a \highlight{yield curve} (discount factors / 
+          forward rates), schedules (payment dates, day-count), and often a clearing 
+          / collateral story. Eng work: curve build from instruments, schedule 
+          generators, PV and DV01 (sensitivity to rate bumps), lifecycle 
+          (fixings, payments, compressions).
+    \item \highlightbf{Credit default swap (CDS):} buyer pays a spread; seller pays 
+          on a credit event (default, etc.). Needs hazard / credit curves, recovery 
+          assumptions, and careful event calendars. Eng work: reference-entity 
+          master data, curve bootstrapping, and rare but critical event handling.
+\end{itemize}
+Compared with an equity L2 book: more \highlight{reference data and schedules}, 
+fewer nanosecond book updates --- but bad curve or date bugs still blow P\&L.
+
+\subsection{American options}
+\label{subsec:american-options}
+\highlight{American} contracts can be exercised \emph{any time} up to expiry 
+(or on discrete exercise dates). European BS closed forms do \textbf{not} apply 
+in general: the holder chooses optimally, which adds a free-boundary / 
+early-exercise premium.
+\newline
+Common numerical routes (you already named them in Section~\ref{sec:monte-carlo}):
+\begin{itemize}
+    \item \highlightbf{Binomial / tree:} roll backward; at each node take 
+          $\max(\mathrm{exercise},\, \mathrm{continuation})$.
+    \item \highlightbf{PDE / finite difference:} same BS operator with an inequality 
+          / obstacle condition (complementarity) for early exercise.
+    \item Longstaff--Schwartz--style MC for some path-dependent Americans --- heavier.
+\end{itemize}
+Validate against European (American $\ge$ European) and known put cases. As quant 
+dev: pick method, freeze seeds/grids, regression-test parity and early-exercise 
+boundary sanity.
+
+\subsection{Streaming greeks on a large options universe}
+\label{subsec:options-universe-greeks}
+A single underlying can have \highlight{thousands} of strikes $\times$ expiries. 
+Risk may want greeks for $10^4$--$10^5$ contracts as underlyings and vols tick. 
+Interviewers care how you avoid melting the cache and the allocator.
+\begin{itemize}
+    \item \highlightbf{Instrument table:} dense contiguous array indexed by 
+          \texttt{option\_id} (or \texttt{(expiry, strike, right)} packed key) --- 
+          not a deep tree of \texttt{std::map} per tick.
+    \item \highlightbf{Hot fields together:} store $\Delta,\Gamma,\nu,\Theta$ (and 
+          maybe bid/ask theo) in SoA or tight AoS so a full scan touches few cache 
+          lines (Chapter~\ref{chap:cacheperformance}).
+    \item \highlightbf{Invalidate narrowly:} on an underlying tick, reprice / rebucket 
+          only the chain for that underlying (or only near-ATM + large gamma), not 
+          the whole firm inventory. Vol-surface bumps invalidate by expiry slice.
+    \item \highlightbf{Two cadences:} ultra-hot path may carry cached greeks + 
+          first-order update ($\Delta\,\delta S$); full recalibration on a slower 
+          thread or after $N$ ticks / timer.
+    \item \highlightbf{No alloc on the greek storm:} pre-size buffers; bump or analytic 
+          into preallocated output; publish via SPSC to risk 
+          (Chapters~\ref{chap:memorymodel},~\ref{chap:concurrency}).
+\end{itemize}
+\par\noindent\textbf{Interview tip:} ``I keep a dense per-underlying chain, SoA greeks, 
+narrow invalidation on $S$ and surface slices, and a slow full rebuild --- so a 
+spot tick does not thrash 50k independent heap objects.''
 
 \section{Production Architecture (Lite)}
 \label{sec:pricer-risk-design}
 Typical pipeline: \textbf{market data snapshot} $\to$ \textbf{curves/surfaces} $\to$ 
 \textbf{pricer} $\to$ \textbf{risk aggregator}. Version snapshots so you can replay 
-``what did we think P\&L was at 10:00?'' See Chapter~\ref{chap:lowlatency} for hot-path 
-engineering and Chapter~\ref{chap:concurrency} for thread-safe shared state.
+``what did we think P\&L was at 10:00?'' For listed options at scale see 
+Section~\ref{subsec:options-universe-greeks}. See Chapter~\ref{chap:lowlatency} for 
+hot-path engineering and Chapter~\ref{chap:concurrency} for thread-safe shared state.
 
 \section{Testing and Python/C++ Split}
 \label{sec:testing-quant-code}
@@ -854,6 +930,9 @@ After reading the chapter once, rehearse these aloud:
     \item \textbf{Microstructure:} bid/ask/mid/spread; L1--L3; price--time; 
           market/limit/stop/IOC/FOK/GTC (Section~\ref{sec:microstructure}; 
           book layout in Chapter~\ref{chap:algorithms}).
+    \item \textbf{Complex derivatives (systems):} IRS/CDS objects; American numerics; 
+          dense chains + narrow greek invalidation 
+          (Section~\ref{sec:complex-derivatives-systems}).
     \item \textbf{Option:} right to receive $\max(S_T-K,0)$ at $T$; priced by no-arbitrage 
           + hedging, not by guessing $\mu$.
     \item \textbf{BS:} GBM, constant $\sigma$, replicate with $\Delta$ shares $\Rightarrow$ PDE 
@@ -1127,6 +1206,16 @@ step size and noise.
 \toclessnparagraph{How do you explain daily P\&L?}
 Taylor: $\Delta\,\delta S + \tfrac{1}{2}\Gamma(\delta S)^2 + \nu\,\delta\sigma + \Theta\,\delta t + \cdots$ 
 plus residual (data/model/hedge error).
+
+\toclessnparagraph{Why is there no Black--Scholes closed form for Americans?}
+Early exercise is an optimal-control decision; the price solves a free-boundary 
+problem. Use trees or PDE with an exercise obstacle; American $\ge$ European 
+(Section~\ref{subsec:american-options}).
+
+\toclessnparagraph{How do you stream greeks for tens of thousands of options?}
+Dense per-underlying tables, contiguous greek storage, \highlight{narrow invalidation} 
+on spot/vol-slice changes, optional slow full rebuild --- avoid per-tick heap churn 
+across the whole universe (Section~\ref{subsec:options-universe-greeks}).
 
 \subsection{Behavioural / role}
 
