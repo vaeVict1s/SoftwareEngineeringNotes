@@ -9,9 +9,9 @@ before. Formulas are there for precision; the prose is what you should read firs
 
 \subsection*{How to read this chapter}
 \begin{enumerate}
-    \item \textbf{Sections~\ref{sec:quant-dev-role}--\ref{sec:crypto-markets}:} 
-          Role, lifecycle, market structure, instruments, spot/futures infra, 
-          and a compact crypto markets map.
+    \item \textbf{Sections~\ref{sec:quant-dev-role}--\ref{sec:microstructure}:} 
+          Role through markets map, plus microstructure vocabulary 
+          (book, order types, feeds) --- layout depth in Chapter~\ref{chap:algorithms}.
     \item \textbf{Sections~\ref{sec:plain-options}--\ref{sec:plain-volatility}:} 
           Option pricing vocabulary in more detail (leads into Black--Scholes).
     \item \textbf{Sections~\ref{sec:sde-intuition}--\ref{sec:bs-pde}:} 
@@ -25,11 +25,11 @@ before. Formulas are there for precision; the prose is what you should read firs
           on market data and latency.
 \end{enumerate}
 
-\noindent\textit{Roadmap (markets expansion):} complex derivatives systems notes (D) and 
-microstructure polish (F) remain; deep order-book layout stays in 
-Chapter~\ref{chap:algorithms}. 
+\noindent\textit{Roadmap (markets expansion):} complex derivatives systems notes (D) 
+remain; deep order-book \emph{layout} stays in Chapter~\ref{chap:algorithms}. 
 Done so far: A~\ref{sec:market-structure}, B~\ref{sec:instruments}, 
-C~\ref{sec:spot-futures-infra}, E~\ref{sec:crypto-markets}.
+C~\ref{sec:spot-futures-infra}, E~\ref{sec:crypto-markets}, 
+F~\ref{sec:microstructure}.
 
 \section{What a Quant Developer Does}
 \label{sec:quant-dev-role}
@@ -432,6 +432,74 @@ funding schedules are product logic; perps $\neq$ CME-style dated futures
 \par\noindent\textbf{Interview tip:} explain funding in one sentence and that 
 liquidations are a mechanical flow your book will see in the tape.
 
+\section{Microstructure Essentials}
+\label{sec:microstructure}
+Interview vocabulary for the book and the order. Data-structure depth: 
+Chapter~\ref{chap:algorithms}. Feed reconstruction drill: 
+Section~\ref{sec:quant-interview-qa}.
+
+\subsection{Bid, ask, mid, spread, liquidity}
+\label{subsec:bbo-spread-liquidity}
+\begin{itemize}
+    \item \highlightbf{Bid} --- highest price buyers will pay (best bid = top of buy side).
+    \item \highlightbf{Ask} (offer) --- lowest price sellers will take.
+    \item \highlightbf{Mid} --- often $(\mathrm{best\ bid} + \mathrm{best\ ask})/2$; 
+          a mark when you need a single number (not a tradable price).
+    \item \highlightbf{Spread} --- $\mathrm{best\ ask} - \mathrm{best\ bid}$; 
+          cost of crossing / tightness of the touch.
+    \item \highlightbf{Liquidity} --- size available near a fair price without moving 
+          the market much (depth + resilience). Thin book $\Rightarrow$ slippage.
+\end{itemize}
+Healthy continuous books usually have best bid $<$ best ask. Crossed/locked books 
+are a feed, race, or auction-state smell (Chapter~\ref{chap:algorithms}).
+
+\subsection{L1 / L2 / L3 and matching}
+\label{subsec:l1-l2-l3-matching}
+\begin{itemize}
+    \item \highlightbf{L1} --- top of book / BBO (+ often last trade).
+    \item \highlightbf{L2} --- depth by price (aggregated size per level).
+    \item \highlightbf{L3} --- each resting order id (full queue).
+\end{itemize}
+Matching on most equity/futures books is \highlight{price--time priority}: better 
+price first; at the same price, earlier resting orders first. Your L3 model must 
+preserve FIFO at a level if you care about queue position.
+
+\subsection{Order types and time-in-force}
+\label{subsec:order-types}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Market} & Take liquidity now; walk the book; price uncertain. \\
+\hline
+\textbf{Limit} & Rest (or take if marketable) at a limit price; you control worst price. \\
+\hline
+\textbf{Stop} & Becomes a market order when a trigger price trades/quotes through. \\
+\hline
+\textbf{Stop-limit} & Becomes a \emph{limit} order at a limit price once triggered. \\
+\hline
+\textbf{IOC} (immediate-or-cancel) & Fill what you can now; cancel the rest --- no rest. \\
+\hline
+\textbf{FOK} (fill-or-kill) & Full size now or cancel entirely --- all-or-nothing. \\
+\hline
+\textbf{GTC} (good-till-cancel) & Rest until filled or explicitly canceled (venue rules / session ends may still cancel). \\
+\hline
+\end{tabularx}
+\end{center}
+HFT cares about \highlight{make vs take} (rest vs cross), fees, and whether the order 
+can rest. Venue names and exact stop semantics differ --- say what \emph{your} 
+gateway encoded.
+
+\subsection{Market-data shapes (recap)}
+\label{subsec:md-shapes-recap}
+\highlight{Trades} vs \highlight{quotes}; \highlight{snapshot} then 
+\highlight{incremental} updates; \highlight{sequence numbers} for gaps. Full Q\&A 
+in Section~\ref{sec:quant-interview-qa}. Core-engineer interviews often jump from 
+here straight into: ``show me your book update path'' and ``what do you do on a gap?''
+
+\par\noindent\textbf{Interview tip:} define BBO/spread in one breath, then name the 
+order types you actually sent in production (e.g.\ limit + IOC), not the whole menu.
+
 \section{Stocks and Options in Plain Language}
 \label{sec:plain-options}
 Instrument taxonomy is in Section~\ref{sec:instruments}; this section deepens the 
@@ -783,6 +851,9 @@ After reading the chapter once, rehearse these aloud:
           (Section~\ref{sec:spot-futures-infra}).
     \item \textbf{Crypto:} spot / dated futures / perps + funding; liquidations; 
           24/7 ops (Section~\ref{sec:crypto-markets}).
+    \item \textbf{Microstructure:} bid/ask/mid/spread; L1--L3; price--time; 
+          market/limit/stop/IOC/FOK/GTC (Section~\ref{sec:microstructure}; 
+          book layout in Chapter~\ref{chap:algorithms}).
     \item \textbf{Option:} right to receive $\max(S_T-K,0)$ at $T$; priced by no-arbitrage 
           + hedging, not by guessing $\mu$.
     \item \textbf{BS:} GBM, constant $\sigma$, replicate with $\Delta$ shares $\Rightarrow$ PDE 
@@ -931,6 +1002,19 @@ queue order if you model fill probability at the touch.
 \highlight{Market:} take liquidity now at whatever prices are available (walk the book). 
 \highlight{Limit:} rest at a price (or take if marketable). HFT cares about 
 \highlight{make} vs \highlight{take}, fees, and queue position.
+See also Section~\ref{subsec:order-types}.
+
+\toclessnparagraph{What are IOC, FOK, and GTC?}
+\textbf{IOC:} fill now, cancel remainder (no rest). 
+\textbf{FOK:} full size now or nothing. 
+\textbf{GTC:} rest until filled/canceled (venue may still expire at session end). 
+Stops / stop-limits trigger into market or limit when a price is hit 
+(Section~\ref{subsec:order-types}).
+
+\toclessnparagraph{Define mid and spread.}
+Mid $\approx (\mathrm{bid}+\mathrm{ask})/2$; spread $= \mathrm{ask}-\mathrm{bid}$. 
+Liquidity is how much you can trade near mid without moving the market 
+(Section~\ref{subsec:bbo-spread-liquidity}).
 
 \subsection{Latency and systems (quant-dev)}
 
