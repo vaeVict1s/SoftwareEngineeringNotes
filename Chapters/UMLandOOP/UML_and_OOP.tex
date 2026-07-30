@@ -533,53 +533,150 @@
 \newpage
 %%% OOP.
 \section{Object Oriented Programming}
-    \subsection{Polymorphism}
-    In C++ there are different kinds of polymorphism, summarized it 
-    the figure~\ref{fig:cpp-poly}
-    \begin{figure}[H]
-        \centering
-        \includegraphics[scale=0.5]{OOPandUML/cpp_polymorphism}
-        \caption{Polymorphism in C++}
-        \label{fig:cpp-poly}
-    \end{figure}
-    \subsubsection*{Compile time polymorphism}
-    \highlightit{Overloaded functions} are invoked by matching the type 
-    and number of arguments at compile time, because the compiler already has all the 
-    information needed. This is know by the name of 
-    \highlightit{static binding} or \highlightit{early binding}.
-    \subsubsection*{Run time polymorphism}
-
-%~ Polymorphism can be distinguished by when the implementation is selected: 
-%~ statically (at compile time) or dynamically (at run time, typically via a virtual function). 
-%~ This is known respectively as static dispatch and dynamic dispatch, 
-%~ and the corresponding forms of polymorphism are accordingly called static 
-%~ polymorphism and dynamic polymorphism.
-
-%~ Static polymorphism executes faster, because there is no dynamic dispatch 
-%~ overhead, but requires additional compiler support. Further, static polymorphism 
-%~ allows greater static analysis by compilers (notably for optimization), 
-%~ source code analysis tools, and human readers (programmers). 
-%~ Dynamic polymorphism is more flexible but slower—for example, 
-%~ dynamic polymorphism allows duck typing, and a dynamically linked library 
-%~ may operate on objects without knowing their full type.
-
-%~ Static polymorphism typically occurs in ad hoc polymorphism and parametric 
-%~ polymorphism, whereas dynamic polymorphism is usual for subtype polymorphism. 
-%~ However, it is possible to achieve static polymorphism with subtyping 
-%~ through more sophisticated use of template metaprogramming, 
-%~ namely the curiously recurring template pattern.
-
-%~ When polymorphism is exposed via a library, 
-%~ static polymorphism becomes impossible for dynamic libraries as there 
-%~ is no way of knowing what types the parameters are when the shared object is built. 
-%~ While languages like C++ and Rust use monomorphized templates, 
-%~ the Swift programming language makes extensive use of dynamic dispatch 
-%~ to build the application binary interface for these libraries by default. 
-%~ As a result, more code can be shared for a reduced system size at the 
-%~ cost of runtime overhead.[11] 
-
-\subsection{Interface vs Abstract class}
+\subsection{Polymorphism}
+\label{sec:cpp-polymorphism}
+Polymorphism means the \highlight{same syntactic call} can select 
+\highlight{different implementations}. In C++ it helps to separate two axes 
+(Figure~\ref{fig:cpp-poly}):
 \begin{itemize}
-    \item Interface can contain only body-less abstract 
-    \item Abstract Class
+    \item \highlightbf{Binding time} --- compile-time (\highlightit{static} / early) 
+          vs run-time (\highlightit{dynamic} / late).
+    \item \highlightbf{Kind} (Cardelli) --- \highlightit{ad-hoc}, 
+          \highlightit{parametric}, or \highlightit{subtype}.
 \end{itemize}
+Tutorial diagrams that only show ``overloading vs virtuals'' miss templates 
+and CRTP; both are important in modern C++ (and in HFT hot paths, static 
+dispatch is often preferred).
+
+\begin{center}
+\input{./Chapters/UMLandOOP/TikzInclude/cpp_polymorphism.tex}
+\captionof{figure}{Polymorphism in C++: binding time (top split) and kind (labels under leaves).}
+\label{fig:cpp-poly}
+\end{center}
+
+\subsubsection*{Compile-time polymorphism}
+\label{subsec:compile-time-poly}
+The implementation is fixed when the call is compiled 
+(\highlightit{static binding}). No vtable lookup on the hot path.
+
+\toclessnparagraph{Ad-hoc: overloading}
+\highlightit{Function} and \highlightit{operator} overloading: the compiler 
+picks an overload from the argument types (and count). Same name, different 
+signatures --- resolved entirely at compile time.
+
+\toclessnparagraph{Parametric: templates}
+Function and class \highlighttt{template}s are \highlightit{parametric} 
+polymorphism: one definition is \highlight{monomorphized} per used type set. 
+The generated code is specialized and usually inlinable. Cost: code size 
+(and no single binary entry point usable from an unknown dynamic library 
+client without type erasure).
+
+\toclessnparagraph{Static subtype: CRTP}
+Inheritance can also be static: the Curiously Recurring Template Pattern 
+(CRTP) lets a base call into the derived type via \texttt{static\char`_cast}, 
+without virtuals. See Section~\ref{subsec:crtp}.
+
+\par\noindent\textbf{Interview tip:} ``compile-time polymorphism'' is not only 
+overloading --- say \highlight{templates} (and CRTP when relevant). Prefer static 
+dispatch on latency-critical paths when the set of types is known at compile time.
+
+\subsubsection*{Run-time polymorphism}
+\label{subsec:run-time-poly}
+The implementation is selected \highlight{while the program runs} 
+(\highlightit{dynamic binding}), typically through a 
+\highlighttt{virtual} function.
+
+\begin{itemize}
+    \item Declare \texttt{virtual} in a base; override in derived types. 
+          Call through a \highlight{base pointer or reference} so the dynamic 
+          type can differ from the static type.
+    \item Mechanically: object has a \highlighttt{vptr}; the call indexes a 
+          \highlighttt{vtable}. Extra indirection vs a direct/inlined call; 
+          harder for the optimizer to see through.
+    \item A class with at least one pure virtual (\texttt{= 0}) is 
+          \highlightit{abstract} and cannot be instantiated 
+          (Section~\ref{subsec:interface-vs-abstract}).
+    \item If you delete through a base pointer, the base destructor should be 
+          \texttt{virtual} (otherwise undefined behaviour).
+\end{itemize}
+Dynamic dispatch is the usual tool when the concrete type is not known until 
+run time (plugins, heterogeneous containers of ``instruments'', strategy 
+objects swapped live). When the ABI must stay stable across a shared library 
+boundary and clients are unknown, dynamic dispatch (or type erasure) is often 
+necessary --- templates alone cannot monomorphize what the library never saw.
+
+\par\noindent\textbf{Interview tip:} virtual call $=$ base ptr/ref $+$ 
+\texttt{virtual} $+$ override; cost is indirection / missed inlining, not 
+``virtual is always slow''. Use \texttt{override} / \texttt{final} to make 
+intent checkable.
+
+\subsection{Interface vs Abstract Class}
+\label{subsec:interface-vs-abstract}
+C++ has \highlight{no \texttt{interface} keyword}. In interview / Java / C\# 
+language, people still say ``interface''; map that vocabulary onto C++ 
+cleanly.
+
+\begin{itemize}
+    \item An \highlightbf{abstract class} is any class with \emph{at least one} 
+          pure virtual function (\texttt{virtual \ldots{} = 0}). It may also 
+          have data members, constructors, and methods with bodies. You cannot 
+          instantiate it directly.
+    \item An \highlightbf{interface} (in the Java/C\# sense) is modelled in C++ 
+          as a \highlightit{pure abstract class}: typically 
+          \emph{only} pure virtual functions (plus often a virtual destructor), 
+          \emph{no} data members, and no implemented behaviour beyond defaults 
+          you deliberately allow (e.g.\ C++20 \texttt{= default} on the 
+          destructor).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{0.26\textwidth}|p{0.32\textwidth}|p{0.32\textwidth}|}
+\hline
+ & \textbf{Interface (C++ idiom)} & \textbf{Abstract class} \\
+\hline
+Language support &
+  Convention (pure ABC), not a keyword &
+  At least one \texttt{= 0} virtual \\
+\hline
+Data members &
+  Prefer none &
+  Allowed (shared state) \\
+\hline
+Implemented methods &
+  Prefer none (contract only) &
+  Allowed (shared behaviour) \\
+\hline
+Multiple inheritance &
+  Common for interface mix-in &
+  Heavier; watch the diamond \\
+\hline
+Typical use &
+  Stable API / capability surface &
+  Partial implementation + extension points \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{lstlisting}[language=C++]
+// "Interface": pure abstract class (contract only)
+struct IOrderSink {
+    virtual ~IOrderSink() = default;
+    virtual void on_fill(int id, int qty, double px) = 0;
+};
+
+// Abstract class: pure virtual + shared state / helpers
+struct Instrument {
+    explicit Instrument(std::string s) : symbol_(std::move(s)) {}
+    virtual ~Instrument() = default;
+    virtual double mid() const = 0;                 // must implement
+    const std::string& symbol() const { return symbol_; }  // shared
+protected:
+    std::string symbol_;
+};
+\end{lstlisting}
+
+\par\noindent\textbf{Interview tip:} say ``C++ has no interface keyword; we use 
+pure abstract classes.'' Contrast with Java \texttt{interface} / 
+\texttt{abstract class} only after that mapping is clear.

@@ -1,0 +1,53 @@
+% Polymorphism in C++: binding time + Cardelli kinds (externalized)
+% Wide leaf boxes so "Function / operator" stays on one line; whole figure
+% scaled to fit \textwidth (A4 with 33mm margins).
+\centering
+\tikzfig{cpp_polymorphism}
+\begin{tikzpicture}[
+    scale=0.78,
+    every node/.style={transform shape},
+    font=\sffamily\footnotesize,
+    box/.style={
+        draw=black,
+        thick,
+        rounded corners=1.5pt,
+        align=center,
+        inner sep=4pt,
+        minimum height=0.95cm
+    },
+    root/.style={box, text width=3.2cm, fill=whitesmoke},
+    branch/.style={box, text width=3.5cm, fill=myblueiii},
+    leaf/.style={box, text width=3.7cm, fill=white},
+    arr/.style={-{Stealth[length=2.2mm]}, thick},
+    kind/.style={font=\sffamily\scriptsize, text=oblivioncomment, align=center},
+    axis/.style={font=\sffamily\scriptsize\itshape, text=oblivioncomment}
+]
+    % Root
+    \node[root] (poly) at (0,0) {Polymorphism};
+    \node[axis] at (0,0.9) {when is the implementation selected?};
+
+    % Binding-time split (compile centred over its three leaves)
+    \node[branch] (compile) at (-4.7,-2.0) {Compile-time\\(static binding)};
+    \node[branch] (runtime) at (5.2,-2.0) {Run-time\\(dynamic binding)};
+
+    \draw[arr] (poly.south) -- ++(0,-0.4) -| (compile.north);
+    \draw[arr] (poly.south) -- ++(0,-0.4) -| (runtime.north);
+
+    % Compile-time leaves: ~4.4cm centre spacing (> 3.7cm width) for a clear gap
+    \node[leaf] (adhoc) at (-9.1,-4.45) {Function / operator\\overloading};
+    \node[leaf] (param) at (-4.7,-4.45) {Function / class\\templates};
+    \node[leaf] (crtp)  at (-0.3,-4.45) {CRTP\\(static subtype)};
+
+    \draw[arr] (compile.south) -- ++(0,-0.3) -| (adhoc.north);
+    \draw[arr] (compile.south) -- (param.north);
+    \draw[arr] (compile.south) -- ++(0,-0.3) -| (crtp.north);
+
+    \node[kind, below=0.12cm of adhoc] {ad-hoc};
+    \node[kind, below=0.12cm of param] {parametric};
+    \node[kind, below=0.12cm of crtp]  {subtype (static)};
+
+    % Run-time leaf
+    \node[leaf] (virt) at (5.2,-4.45) {Virtual functions\\(+ inheritance)};
+    \draw[arr] (runtime.south) -- (virt.north);
+    \node[kind, below=0.12cm of virt] {subtype (dynamic)};
+\end{tikzpicture}
