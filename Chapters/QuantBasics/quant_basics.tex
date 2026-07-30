@@ -6,33 +6,46 @@ See~\cite{hull-options},~\cite{shreve-finance},~\cite{wilmott-quant}.
 This chapter assumes you know \highlight{math and programming}, but \emph{not} finance. 
 It builds ideas in order --- like a physics course where each section uses only what came 
 before. Formulas are there for precision; the prose is what you should read first.
+Order-book \emph{data structures} live in Chapter~\ref{chap:algorithms}; latency 
+engineering in Part~II (Low Latency, NUMA, Cache).
 
 \subsection*{How to read this chapter}
+Two tracks share the same chapter. Pick the path that matches the interview, then 
+skim the other once.
+
+\paragraph*{Track A --- Markets and trading systems (quant-dev / HFT core)}
 \begin{enumerate}
-    \item \textbf{Sections~\ref{sec:quant-dev-role}--\ref{sec:microstructure}:} 
-          Role through markets map, plus microstructure vocabulary 
-          (book, order types, feeds) --- layout depth in Chapter~\ref{chap:algorithms}.
-    \item \textbf{Sections~\ref{sec:plain-options}--\ref{sec:plain-volatility}:} 
-          Option pricing vocabulary in more detail (leads into Black--Scholes).
-    \item \textbf{Sections~\ref{sec:sde-intuition}--\ref{sec:bs-pde}:} 
-          Why the stock is modelled as a diffusion, and how hedging leads to the 
-          Black--Scholes equation (the heart of the theory).
-    \item \textbf{Sections~\ref{sec:bs-closed-form}--\ref{sec:greeks}:} 
-          The closed-form price and the \emph{greeks} (sensitivities) --- 
-          partial derivatives, exactly like in perturbation theory.
-    \item \textbf{Sections~\ref{sec:pnl-explain}--\ref{sec:complex-derivatives-systems}:} 
-          P\&L, smiles, numerics, and systems notes for swaps / Americans / 
-          large option universes.
-    \item \textbf{Interview cheat sheet and Q\&A:} rehearse aloud; market data and 
-          latency drills at the end.
+    \item \textbf{Role and lifecycle} 
+          (Sections~\ref{sec:quant-dev-role}--\ref{sec:trade-lifecycle}): 
+          what you build, and the path from intent to P\&L.
+    \item \textbf{Market map} 
+          (Sections~\ref{sec:market-structure}--\ref{sec:microstructure}): 
+          who trades where; instruments; spot vs futures infra; crypto; 
+          bid/ask/order types. Rehearse the interview Q\&A at the end of the chapter.
+    \item \textbf{Optional depth:} Complex derivatives systems notes 
+          (Section~\ref{sec:complex-derivatives-systems}) if the role touches 
+          options risk or swaps.
+    \item \textbf{Close:} Interview cheat sheet 
+          (Section~\ref{sec:quant-interview-cheat-sheet}) --- say each bullet aloud.
 \end{enumerate}
 
-\noindent\textit{Roadmap (markets expansion):} A--F complete for the markets spine; 
-deep order-book \emph{layout} stays in Chapter~\ref{chap:algorithms}. 
-Phase~8 will rewrite ``How to read'' and drop roadmap scaffolding.
-Done: A~\ref{sec:market-structure}, B~\ref{sec:instruments}, 
-C~\ref{sec:spot-futures-infra}, D~\ref{sec:complex-derivatives-systems}, 
-E~\ref{sec:crypto-markets}, F~\ref{sec:microstructure}.
+\paragraph*{Track B --- Pricing and risk (options / QR-flavoured loops)}
+\begin{enumerate}
+    \item \textbf{Plain language} 
+          (Sections~\ref{sec:plain-options}--\ref{sec:plain-volatility}): 
+          stock, option, rates, vol.
+    \item \textbf{Model core} 
+          (Sections~\ref{sec:sde-intuition}--\ref{sec:greeks}): 
+          GBM intuition through Black--Scholes and greeks.
+    \item \textbf{Desk practice} 
+          (Sections~\ref{sec:pnl-explain}--\ref{sec:testing-quant-code}): 
+          P\&L explain, smile, code, Americans / large universes, production.
+    \item \textbf{Close:} Cheat sheet + pricing Q\&A 
+          (Sections~\ref{sec:quant-interview-cheat-sheet}--\ref{sec:quant-interview-qa}).
+\end{enumerate}
+
+\noindent First pass: Track~A \emph{or} Track~B in one sitting. Second pass: the other 
+track plus any gap that showed up in a mock interview.
 
 \section{What a Quant Developer Does}
 \label{sec:quant-dev-role}
@@ -46,9 +59,6 @@ At systematic trading firms, a \highlight{Senior Quant Developer} typically:
 \end{itemize}
 \par\noindent\textbf{Interview tip:} understand \emph{both} the model and \emph{where production breaks} 
 (wrong units, stale data, smile not flat, etc.).
-
-% Phase 0 placement: markets/trading spine sits after the role section and before
-% the pricing arc. Phase 1 fills the lifecycle; phases 2+ add A--F around/after it.
 
 \section{Trade Lifecycle: From Intent to P\&L}
 \label{sec:trade-lifecycle}
