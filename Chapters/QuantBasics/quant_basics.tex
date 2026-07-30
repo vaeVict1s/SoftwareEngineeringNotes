@@ -9,9 +9,9 @@ before. Formulas are there for precision; the prose is what you should read firs
 
 \subsection*{How to read this chapter}
 \begin{enumerate}
-    \item \textbf{Sections~\ref{sec:quant-dev-role}--\ref{sec:instruments}:} 
-          Role, lifecycle, market structure, and the instrument map 
-          (spot through swaps).
+    \item \textbf{Sections~\ref{sec:quant-dev-role}--\ref{sec:crypto-markets}:} 
+          Role, lifecycle, market structure, instruments, spot/futures infra, 
+          and a compact crypto markets map.
     \item \textbf{Sections~\ref{sec:plain-options}--\ref{sec:plain-volatility}:} 
           Option pricing vocabulary in more detail (leads into Black--Scholes).
     \item \textbf{Sections~\ref{sec:sde-intuition}--\ref{sec:bs-pde}:} 
@@ -24,14 +24,12 @@ before. Formulas are there for precision; the prose is what you should read firs
           How desks use this in practice (P\&L, smiles, code), plus interview Q\&A 
           on market data and latency.
 \end{enumerate}
-Each section has a stable \texttt{\textbackslash label} so it can be expanded later 
-without moving content.
-\newline
-\noindent\textit{Roadmap (markets expansion):} spot/futures infrastructure (C), 
-complex derivatives systems notes (D), crypto (E), and microstructure polish (F) 
-remain; deep order-book layout stays in Chapter~\ref{chap:algorithms}. 
-Done so far: market structure (A,~Section~\ref{sec:market-structure}) and 
-instruments (B,~Section~\ref{sec:instruments}).
+
+\noindent\textit{Roadmap (markets expansion):} complex derivatives systems notes (D) and 
+microstructure polish (F) remain; deep order-book layout stays in 
+Chapter~\ref{chap:algorithms}. 
+Done so far: A~\ref{sec:market-structure}, B~\ref{sec:instruments}, 
+C~\ref{sec:spot-futures-infra}, E~\ref{sec:crypto-markets}.
 
 \section{What a Quant Developer Does}
 \label{sec:quant-dev-role}
@@ -177,10 +175,10 @@ Names interviewers expect you to place on the map --- not memorize every product
           names; related venues/feeds in the US equity complex.
     \item \highlightbf{CME} (Chicago Mercantile Exchange Group) --- futures and options 
           on futures (rates, equity indices, FX, commodities, \ldots); sessionized 
-          products and rolls matter for data (Phase~4 / Section~C).
+          products and rolls matter for data (Section~\ref{sec:spot-futures-infra}).
     \item \highlightbf{Crypto exchanges} (e.g.\ Binance, Coinbase, Deribit for options) 
           --- often 24/7, venue-specific derivatives (perps); API and custody models 
-          differ from traditional CME/NYSE stacks (Phase~5).
+          differ from traditional CME/NYSE stacks (Section~\ref{sec:crypto-markets}).
 \end{itemize}
 Your stack always binds to a \highlight{specific market-data and order-entry protocol} 
 for a venue --- ``equities'' or ``FX'' alone is not an interface.
@@ -191,8 +189,8 @@ venues with \highlight{dealer / OTC} FX: connectivity and ``what is the book?'' 
 \section{Asset Classes and Instruments}
 \label{sec:instruments}
 A map of \emph{what} is traded. Pricing depth for equities options continues in 
-Section~\ref{sec:plain-options}; infrastructure differences (spot vs futures wires, 
-rolls, implieds) come in Phase~4 / Section~C.
+Section~\ref{sec:plain-options}; wires, rolls, and implied books are in 
+Section~\ref{sec:spot-futures-infra}.
 
 \subsection{Asset classes (tour sheet)}
 \label{subsec:asset-classes}
@@ -207,7 +205,7 @@ rolls, implieds) come in Phase~4 / Section~C.
     \item \highlightbf{FX (foreign exchange)} --- currency pairs; enormous OTC spot 
           and forwards, plus exchange-traded FX futures.
     \item \highlightbf{Crypto} --- digital assets; spot, futures, perpetuals, options; 
-          24/7 venues (compact treatment in Phase~5).
+          24/7 venues (Section~\ref{sec:crypto-markets}).
 \end{itemize}
 
 \subsection{Spot}
@@ -315,12 +313,124 @@ lifecycle events --- not a simple L2 equity book.
           daily MtM.
 \end{itemize}
 Trade-offs: basis vs spot, roll cost, expiry pin risk, and session/roll data complexity 
-(Phase~4). FX spot shops (e.g.\ prop FX) often stay in continuous OTC/ECN spot because 
-that \emph{is} the product they trade --- futures are an alternative listing, not a 
-universal upgrade.
+(Section~\ref{sec:spot-futures-infra}). FX spot shops (e.g.\ prop FX) often stay in 
+continuous OTC/ECN spot because that \emph{is} the product they trade --- futures are 
+an alternative listing, not a universal upgrade.
 
 \par\noindent\textbf{Interview tip:} answer with \highlight{capital, shorting, clearing, 
 and basis} --- then mention roll/expiry if they push on operations.
+
+\section{Spot vs Futures Infrastructure}
+\label{sec:spot-futures-infra}
+Section~\ref{sec:instruments} compared the \emph{contracts}. Here the question is 
+what you \highlight{build and operate}: sessions, settlement, rolls, and (for futures) 
+\highlight{implied} liquidity that the exchange synthesizes across contract months.
+
+\subsection{Spot workflows}
+\label{subsec:spot-workflows}
+Cash / FX spot systems emphasize \highlight{continuous connectivity} and fast 
+path from quote to fill to position:
+\begin{itemize}
+    \item \highlightbf{Trading} --- stream prices (ECN / dealer / venue), decide, send 
+          orders; often 24/5 or long hours for FX.
+    \item \highlightbf{Clearing / confirmation} --- trade confirmations with 
+          counterparties or the platform; breaks show up as ops tickets, not only as 
+          strategy bugs.
+    \item \highlightbf{Settlement} --- move cash/currency on the settlement calendar 
+          (T+0 / T+1 / T+2). Engineering still cares: failed settlement is a P\&L and 
+          credit event even if matching was correct.
+\end{itemize}
+\par\noindent\textbf{FX spot / prop angle:} at a firm like ProMarket the product \emph{is} 
+continuous FX spot (and related OTC). The hot path is market data + routing + risk 
+on always-on sessions --- not roll calendars. Latency budgets, sequence gaps, and 
+failover (e.g.\ Binary Star–style redundancy) dominate over ``which expiry is front.''
+
+\subsection{Futures workflows}
+\label{subsec:futures-workflows}
+Listed futures add calendar structure your code must own:
+\begin{itemize}
+    \item \highlightbf{Expiration} --- each contract has a last trade / delivery date; 
+          after that the symbol is dead.
+    \item \highlightbf{Rolling} --- keep exposure by closing the near contract and 
+          opening a further one (calendar spread). Strategies and risk need a 
+          \highlight{roll schedule}; naive ``always trade the ticker string'' breaks 
+          at roll.
+    \item \highlightbf{Sessionized data} --- many futures markets have defined open, 
+          close, auctions, and halt rules. Timestamps, volume profiles, and 
+          ``session bars'' depend on the venue calendar (CME Globex vs pit heritage, 
+          etc.). Replay and research pipelines must use the \emph{same} session 
+          definition as production.
+\end{itemize}
+\par\noindent\textbf{Interview tip:} if you say you built futures MD, expect 
+``how do you handle roll?'' and ``what is your session clock?''
+
+\subsection{Implied orders and synthetic liquidity}
+\label{subsec:futures-implieds}
+On many futures complexes the exchange does not only show outright bids/asks per 
+month. It also publishes \highlight{implied} (synthetic) liquidity: a bid or offer 
+in one contract that is \emph{derived} by combining resting orders in related 
+contracts (e.g.\ calendar spreads + another outright). Traders see deeper 
+effective books; the matching engine may fill you against a combination of legs.
+\newline
+For a market-data handler this means:
+\begin{itemize}
+    \item Messages may carry \highlight{outright} levels and \highlight{implied} 
+          levels (sometimes separate channels or flags).
+    \item Your local book must decide: show implieds to strategy, keep them in a 
+          side structure, or ignore them for BBO-only strategies --- but 
+          \highlight{never confuse} implied qty with firm resting qty if risk cares.
+    \item Book updates can touch \highlight{multiple instruments} from one economic 
+          event; update order and atomicity matter.
+\end{itemize}
+
+\toclessnparagraph{Parsing efficiently in C++}
+Handbook sketch (venue-specific details vary):
+\begin{itemize}
+    \item Decode once into a flat event (\texttt{instrument\_id}, side, px, qty, 
+          flags: outright vs implied, seq). Avoid stringly-typed months on the hot 
+          path --- map \texttt{symbol $\rightarrow$ int} at session start.
+    \item Keep per-instrument books contiguous (tick ladder or flat map); implied 
+          overlays as a second layer or tagged levels so a depth walk can skip them.
+    \item Prefer \highlight{preallocated} pools; no \texttt{std::string} per tick 
+          (Chapters~\ref{chap:memorymodel},~\ref{chap:lowlatency}).
+    \item If one packet updates several legs, apply in venue-defined order under a 
+          single sequence check --- gap $\Rightarrow$ snapshot, not silent desync.
+\end{itemize}
+\par\noindent\textbf{Interview tip:} ``implieds are exchange-generated synthetic 
+liquidity across months; my book tags them so strategy and risk know what is real 
+resting interest.''
+
+\section{Crypto Markets (Compact)}
+\label{sec:crypto-markets}
+Same microstructure ideas (books, makers, latency) --- different ops envelope. 
+This is orientation for interviews, not a trading manual.
+
+\begin{itemize}
+    \item \highlightbf{Spot} --- buy/sell the coin vs quote currency (or stablecoin); 
+          balances update on the venue, often effectively T+0 
+          (Section~\ref{subsec:spot}). Custody and withdrawal rules are part of risk.
+    \item \highlightbf{Futures} --- dated contracts (more like traditional futures); 
+          expiry and delivery/settlement rules are venue-specific.
+    \item \highlightbf{Perpetual futures (``perps'')} --- no expiry; exposure stays 
+          open until you close. To keep the perp near spot, venues use a 
+          \highlight{funding rate}: longs and shorts periodically pay each other 
+          depending on mark vs spot. Funding is a first-class P\&L line, not a 
+          footnote.
+    \item \highlightbf{Options} --- calls/puts on crypto underlyings (e.g.\ Deribit); 
+          chains can be large; pricing still uses vol surfaces, but underlying 
+          trades 24/7.
+    \item \highlightbf{Liquidations} --- leveraged positions forced closed when 
+          margin is exhausted. Cascades move spot and perps together; MD and risk 
+          must handle bursty cancel/fill storms.
+    \item \highlightbf{24/7 trading} --- no neat equity ``close.'' Sessions for 
+          research bars are \emph{your} convention; maintenance windows and venue 
+          incidents replace the closing auction.
+\end{itemize}
+\par\noindent\textbf{Eng takeaways:} reconnect/gap logic never sleeps; clocks and 
+funding schedules are product logic; perps $\neq$ CME-style dated futures 
+(Section~\ref{sec:spot-futures-infra}).
+\par\noindent\textbf{Interview tip:} explain funding in one sentence and that 
+liquidations are a mechanical flow your book will see in the tape.
 
 \section{Stocks and Options in Plain Language}
 \label{sec:plain-options}
@@ -668,6 +778,11 @@ After reading the chapter once, rehearse these aloud:
     \item \textbf{Instruments:} spot vs forward vs future vs option vs swap; 
           margins/MtM; why derivatives; why futures instead of spot 
           (Section~\ref{sec:instruments}).
+    \item \textbf{Spot/futures infra:} continuous FX spot vs rolls/sessions; 
+          implied liquidity and tagged book updates 
+          (Section~\ref{sec:spot-futures-infra}).
+    \item \textbf{Crypto:} spot / dated futures / perps + funding; liquidations; 
+          24/7 ops (Section~\ref{sec:crypto-markets}).
     \item \textbf{Option:} right to receive $\max(S_T-K,0)$ at $T$; priced by no-arbitrage 
           + hedging, not by guessing $\mu$.
     \item \textbf{BS:} GBM, constant $\sigma$, replicate with $\Delta$ shares $\Rightarrow$ PDE 
@@ -700,6 +815,17 @@ contracts, clearing --- at the cost of basis, rolls, and expiry
 \toclessnparagraph{Initial vs maintenance margin? What is mark-to-market?}
 Initial to open; maintenance is the floor that triggers margin calls; MtM settles 
 daily P\&L with the clearing house (Section~\ref{subsec:futures}).
+
+\toclessnparagraph{What breaks in futures market data that spot FX often does not have?}
+Contract \highlight{rolls}, \highlight{session} calendars, and 
+\highlight{implied} (synthetic) book levels across months --- tag implieds, map 
+symbols to ids, and define the session clock explicitly 
+(Section~\ref{sec:spot-futures-infra}).
+
+\toclessnparagraph{What is a perpetual futures contract? What is funding?}
+A leveraged futures-like product \highlight{without expiry}. The 
+\highlight{funding rate} is a periodic payment between longs and shorts that 
+pulls the perp mark toward spot (Section~\ref{sec:crypto-markets}).
 
 \subsection{Market data and the order book}
 
