@@ -4,7 +4,9 @@
 Chapter~\ref{chap:concurrency} lists the C++ APIs (\texttt{std::atomic}, mutexes, 
 \texttt{memory\char`_order} enumerators). This chapter explains the \highlight{rules}: when two 
 threads may see each other's writes, which orders are enough for a handoff, and how to 
-build a small \highlight{lock-free SPSC} queue used on HFT hot paths.
+build a small \highlight{lock-free SPSC} queue used on HFT hot paths, then two 
+classic CAS structures (Treiber stack, Michael--Scott queue) that interviewers 
+often expect next.
 
 \section{C++ Memory Model}
 \label{sec:cpp-memory-model}
@@ -138,7 +140,8 @@ without a mutex. It is a standard HFT building block (feed thread $\rightarrow$ 
 \label{subsec:spsc-model}
 Exactly \highlight{one} thread pushes, exactly \highlight{one} thread pops. That restriction allows 
 a simple design with two indices and no CAS loops for the common path. Multi-producer or 
-multi-consumer queues need different algorithms (and are harder to get right).
+multi-consumer queues need different algorithms (Sections~\ref{sec:treiber-stack}--\ref{sec:michael-scott-queue}) 
+and are harder to get right.
 
 \subsection{Head and Tail Indices}
 \label{subsec:spsc-head-tail}
@@ -223,6 +226,255 @@ public:
 
 \par\noindent\textbf{Interview tip:} SPSC only; release/acquire on indices; cache-line separation; 
 preallocate \texttt{buf\_} (no \texttt{new} on the hot path).
+
+\section{Lock-Free Stack (Treiber)}
+\label{sec:treiber-stack}
+See~\cite{wiki-treiber-stack}. The \highlight{Treiber stack} is the usual first 
+multi-producer / multi-consumer lock-free structure after SPSC: a linked list with a 
+single atomic \texttt{head}, updated with CAS.
+\newline
+Any thread may push or pop. Progress of one operation does not need a mutex, but a 
+slow thread can still starve if CAS keeps failing (lock-free $\neq$ wait-free).
+
+\subsection{Push and Pop}
+\label{subsec:treiber-push-pop}
+\begin{itemize}
+    \item \highlightbf{push:} allocate a node, set \texttt{node->next = head}, 
+          \texttt{compare\char`_exchange} \texttt{head} from old head to \texttt{node}; 
+          retry on failure.
+    \item \highlightbf{pop:} load \texttt{head}; if null, empty; else CAS 
+          \texttt{head} from \texttt{old} to \texttt{old->next}; retry on failure; 
+          then read the value out of \texttt{old}.
+\end{itemize}
+Ordering sketch: \texttt{release} on successful push publish; \texttt{acquire} on 
+pop's load/CAS so the node fields are visible.
+
+\subsection{Implementation Sketch}
+\label{subsec:treiber-implementation}
+
+\begin{lstlisting}[language=C++]
+#include <atomic>
+#include <utility>
+
+template <typename T>
+class TreiberStack {
+    struct Node {
+        T value;
+        Node* next;
+    };
+
+    std::atomic<Node*> head_{nullptr};
+
+public:
+    void push(T v)
+    {
+        Node* n = new Node{std::move(v), nullptr};
+        Node* old = head_.load(std::memory_order_relaxed);
+        do {
+            n->next = old;
+        } while (!head_.compare_exchange_weak(
+            old, n,
+            std::memory_order_release,
+            std::memory_order_relaxed));
+    }
+
+    bool try_pop(T& out)
+    {
+        Node* old = head_.load(std::memory_order_acquire);
+        do {
+            if (old == nullptr) {
+                return false;
+            }
+        } while (!head_.compare_exchange_weak(
+            old, old->next,
+            std::memory_order_acquire,
+            std::memory_order_acquire));
+
+        out = std::move(old->value);
+        // delete old;  // unsafe without a reclamation scheme (see below)
+        return true;
+    }
+};
+\end{lstlisting}
+
+\subsection{ABA and Memory Reclamation}
+\label{subsec:treiber-aba}
+Two hard parts interviewers probe:
+\begin{itemize}
+    \item \highlightbf{ABA:} thread~A reads \texttt{head == X}; another thread pops 
+          \texttt{X}, pushes other nodes, then pushes a recycled \texttt{X}; A's CAS 
+          succeeds even though the list changed. Mitigations: tagged pointers 
+          (version + pointer in a wide CAS), or never reuse addresses while a 
+          lagged reader might still CAS them.
+    \item \highlightbf{Safe reclamation:} you cannot \texttt{delete} a popped node 
+          while another thread might still be reading \texttt{old->next}. Real systems 
+          use hazard pointers, epoch-based reclamation, RCU-style schemes, or a 
+          freelist with enough tagging --- not raw \texttt{delete} on the hot path.
+\end{itemize}
+\par\noindent\textbf{Interview tip:} draw the CAS loop on \texttt{head}; name 
+\highlight{ABA} and \highlight{reclamation} as the reasons production stacks are 
+more than ten lines. HFT often avoids unbounded Treiber stacks on the hot path 
+(allocation + reclamation) and prefers preallocated SPSC/MPMC rings.
+
+\section{Lock-Free Queue (Michael--Scott)}
+\label{sec:michael-scott-queue}
+See~\cite{wiki-michael-scott-queue},~\cite{michael-scott-1996}. The 
+\highlight{Michael--Scott} queue is the classic lock-free \highlight{MPMC FIFO}: 
+atomic \texttt{head} and \texttt{tail}, a dummy node so enqueue and dequeue touch 
+different ends, and CAS on \texttt{next} / \texttt{head} / \texttt{tail}.
+\newline
+Harder than Treiber; worth knowing the story even if you ship a bounded ring in 
+production.
+
+\subsection{Structure}
+\label{subsec:ms-structure}
+\begin{itemize}
+    \item Each node holds a value and an atomic \texttt{next} (initially null).
+    \item The queue always contains at least a \highlight{dummy} node. 
+          \texttt{head} points at the dummy (dequeue end); \texttt{tail} points at 
+          the last node (enqueue end).
+    \item \highlightbf{enqueue} swings \texttt{tail->next}, then helps advance 
+          \texttt{tail}.
+    \item \highlightbf{dequeue} advances \texttt{head} over the dummy to the first 
+          real node, returns that value, and makes the old first node the new dummy.
+\end{itemize}
+
+\subsection{Enqueue / Dequeue (logic)}
+\label{subsec:ms-enqueue-dequeue}
+\textbf{Enqueue} of value $v$:
+\begin{enumerate}
+    \item Allocate node $n$ with value $v$, \texttt{next = nullptr}.
+    \item Loop: read \texttt{tail}; read \texttt{tail->next}.
+    \item If \texttt{tail} is still the observed tail:
+          \begin{itemize}
+              \item If \texttt{tail->next} is null, CAS it to $n$ (link). On success, 
+                    try to CAS \texttt{tail} to $n$ (may fail --- another thread helps).
+              \item Else (tail lagging), CAS \texttt{tail} forward to \texttt{tail->next} 
+                    (help) and retry.
+          \end{itemize}
+\end{enumerate}
+\textbf{Dequeue:}
+\begin{enumerate}
+    \item Loop: read \texttt{head}, \texttt{tail}, and \texttt{head->next} (first real).
+    \item If \texttt{head} is still current:
+          \begin{itemize}
+              \item If \texttt{head == tail} and \texttt{head->next} is null $\Rightarrow$ empty.
+              \item If \texttt{head == tail} and \texttt{head->next} is non-null $\Rightarrow$ 
+                    help advance \texttt{tail}, retry.
+              \item Else CAS \texttt{head} from old head to \texttt{head->next}; on success 
+                    the value in the new head (former first real node) is yours; retire 
+                    the old dummy.
+          \end{itemize}
+\end{enumerate}
+Helping keeps the algorithm lock-free: a stalled enqueuer does not permanently block 
+dequeuers.
+
+\subsection{Implementation Sketch}
+\label{subsec:ms-implementation}
+Didactic sketch (same ABA / reclamation caveats as Treiber; not production-ready):
+
+\begin{lstlisting}[language=C++]
+#include <atomic>
+#include <optional>
+#include <utility>
+
+template <typename T>
+class MichaelScottQueue {
+    struct Node {
+        std::optional<T> value;                 // dummy starts empty
+        std::atomic<Node*> next{nullptr};
+        explicit Node(std::optional<T> v = std::nullopt)
+            : value(std::move(v)) {}
+    };
+
+    std::atomic<Node*> head_;
+    std::atomic<Node*> tail_;
+
+public:
+    MichaelScottQueue()
+    {
+        Node* dummy = new Node{};               // no value
+        head_.store(dummy, std::memory_order_relaxed);
+        tail_.store(dummy, std::memory_order_relaxed);
+    }
+
+    void enqueue(T v)
+    {
+        Node* n = new Node{std::move(v)};
+        for (;;) {
+            Node* t = tail_.load(std::memory_order_acquire);
+            Node* next = t->next.load(std::memory_order_acquire);
+            if (t != tail_.load(std::memory_order_acquire)) {
+                continue;                       // stale tail
+            }
+            if (next == nullptr) {
+                if (t->next.compare_exchange_weak(
+                        next, n,
+                        std::memory_order_release,
+                        std::memory_order_relaxed)) {
+                    tail_.compare_exchange_strong(
+                        t, n,
+                        std::memory_order_release,
+                        std::memory_order_relaxed);  // help OK if fails
+                    return;
+                }
+            } else {
+                tail_.compare_exchange_weak(
+                    t, next,
+                    std::memory_order_release,
+                    std::memory_order_relaxed);  // help advance tail
+            }
+        }
+    }
+
+    bool try_dequeue(T& out)
+    {
+        for (;;) {
+            Node* h = head_.load(std::memory_order_acquire);
+            Node* t = tail_.load(std::memory_order_acquire);
+            Node* next = h->next.load(std::memory_order_acquire);
+            if (h != head_.load(std::memory_order_acquire)) {
+                continue;
+            }
+            if (h == t) {
+                if (next == nullptr) {
+                    return false;               // empty
+                }
+                tail_.compare_exchange_weak(
+                    t, next,
+                    std::memory_order_release,
+                    std::memory_order_relaxed);
+                continue;
+            }
+            // next is the first real node; claim it by swinging head
+            if (head_.compare_exchange_weak(
+                    h, next,
+                    std::memory_order_release,
+                    std::memory_order_relaxed)) {
+                out = std::move(*next->value);
+                // retire h (old dummy) via a reclamation scheme
+                return true;
+            }
+        }
+    }
+};
+\end{lstlisting}
+
+\subsection{HFT Takeaway}
+\label{subsec:ms-hft-takeaway}
+\begin{itemize}
+    \item Michael--Scott teaches \highlight{CAS + helping} and why MPMC FIFO is subtle.
+    \item On latency-critical paths, shops often prefer \highlight{bounded} rings 
+          (SPSC, or a known MPMC ring with preallocated slots) over unbounded 
+          linked queues: no \texttt{new} on the hot path, simpler failure mode 
+          (``full''), friendlier to caches.
+    \item Still: if an interviewer asks for ``a lock-free queue,'' outlining 
+          Michael--Scott (dummy node, CAS next, help tail, ABA/reclamation) is the 
+          expected answer --- then say what you would ship instead and why.
+\end{itemize}
+\par\noindent\textbf{Interview tip:} SPSC = indices + release/acquire; Treiber = CAS 
+\texttt{head}; Michael--Scott = dummy + CAS \texttt{next}/\texttt{head}/\texttt{tail} 
++ helping. Always mention \highlight{ABA} and \highlight{memory reclamation}.
 
 \section{Synchronization}
 \label{sec:synchronization-theory}
