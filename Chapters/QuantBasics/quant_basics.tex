@@ -18,6 +18,10 @@ skim the other once.
     \item \textbf{Role and lifecycle} 
           (Sections~\ref{sec:quant-dev-role}--\ref{sec:trade-lifecycle}): 
           what you build, and the path from intent to P\&L.
+    \item \textbf{Wire protocols} 
+          (Section~\ref{sec:market-wire-protocols}): 
+          FIX vs native binary vs crypto APIs --- what the gateway and MD 
+          handler actually speak.
     \item \textbf{Market map} 
           (Sections~\ref{sec:market-structure}--\ref{sec:microstructure}): 
           who trades where; instruments; spot vs futures infra; crypto; 
@@ -124,6 +128,134 @@ view within known lags.
 failure mode (gap, partial fill, risk reject, clock jump). Interviewers want 
 system thinking, not a memorized list.
 
+\section{Market Wire Protocols}
+\label{sec:market-wire-protocols}
+The order gateway and market-data handler do not speak ``equities'' or ``FX'': 
+they speak a \highlight{venue (or broker) protocol}. This section is vocabulary 
+for interviews and onboarding --- not a protocol encyclopedia. Networking 
+mechanics (TCP, UDP multicast, kernel bypass) live in Part~II; here the question 
+is \emph{what rides on the wire}. See~\cite{wiki-fix},~\cite{fixtrading-fix}.
+
+\subsection{Two planes}
+\label{subsec:protocol-two-planes}
+\begin{itemize}
+    \item \highlightbf{Market data (MD)} --- venue $\rightarrow$ firm: trades, book 
+          updates, sometimes reference data. Often \highlight{UDP multicast} on 
+          exchange campuses; sequence numbers and gap recovery matter 
+          (Section~\ref{sec:quant-interview-qa}).
+    \item \highlightbf{Order entry (OE)} --- firm $\rightarrow$ venue: new order, 
+          cancel, replace; venue $\rightarrow$ firm: acks, rejects, fills. Usually 
+          \highlight{sessionful} (TCP or a reliable session on top), with heartbeats 
+          and recovery.
+\end{itemize}
+One firm may use \highlight{different} protocols for MD and OE to the same venue 
+(e.g.\ binary MD + FIX OE, or two native binaries).
+
+\subsection{FIX}
+\label{subsec:fix-protocol}
+\highlightbf{FIX} (Financial Information eXchange) is the industry workhorse for 
+many buy-side / sell-side / broker links: a mostly \highlight{text} 
+\texttt{tag=value} encoding delimited by SOH (\texttt{0x01}).
+
+\toclessnparagraph{Shape of a message}
+Fields are numbered tags, e.g.\ \texttt{35=D} (MsgType = New Order Single), 
+\texttt{55=MSFT} (Symbol), \texttt{44=178.50} (Price). A message has a header 
+(including MsgType and sequence number), a body, and a trailer (checksum). 
+Humans can read a capture; parsers still must be careful (repeating groups, 
+optional fields, version drift).
+
+\toclessnparagraph{Session vs application}
+\begin{itemize}
+    \item \highlightbf{Session layer} --- Logon / Logout, Heartbeat / Test Request, 
+          sequence numbers, Resend Request when gaps appear. If the session dies, 
+          you \highlight{must} recover state before trusting live flow again.
+    \item \highlightbf{Application layer} --- business messages. Classics interviewers 
+          expect: \highlighttt{NewOrderSingle} (MsgType~\texttt{D}), 
+          \highlighttt{ExecutionReport} (MsgType~\texttt{8}: ack, fill, reject, 
+          cancel confirm, \ldots), cancel / cancel-replace.
+\end{itemize}
+``FIX'' in conversation often means both the wire encoding and the session 
+behaviour. Variants exist (FIXML, FIX over different transports); the mental 
+model above is enough for most quant-dev interviews.
+
+\toclessnparagraph{Latency reality}
+Classic text FIX is \highlight{not} what colocated HFT typically uses against the 
+matching engine. It is still everywhere for broker connectivity, drop copies, 
+slower venues, and ops tooling. Saying ``we speak FIX'' without naming 
+\emph{which} hop (broker vs exchange native) is imprecise.
+
+\par\noindent\textbf{Interview tip:} walk one happy path --- Logon $\rightarrow$ 
+NewOrderSingle $\rightarrow$ ExecutionReport(s) --- then one failure 
+(sequence gap / disconnect $\rightarrow$ resend / replay).
+
+\subsection{Native binary protocols}
+\label{subsec:native-binary-protocols}
+Exchange hot paths usually use \highlight{venue-specific binary} layouts: fixed 
+or schema-described structs, integer prices (ticks), compact enums, and explicit 
+sequence spaces. Examples of the \emph{pattern} (names vary by venue and era):
+\begin{itemize}
+    \item \highlightbf{Market data} --- Nasdaq TotalView-\highlight{ITCH}-style feeds: 
+          typed binary messages (add/order/execute/delete/\ldots) on multicast; 
+          rebuild L3 from the event stream (plus snapshot/recovery channels).
+    \item \highlightbf{Order entry} --- \highlight{OUCH}-style (and peers): binary 
+          enter/replace/cancel and terse acks --- designed for speed and simple 
+          state machines, not human readability.
+    \item \highlightbf{Futures / others} --- each major venue ships its own MD/OE 
+          pair (e.g.\ CME-style MDP binaries). Learn the \emph{local} spec when you 
+          join; the engineering themes repeat.
+\end{itemize}
+Common engineering chores: map wire symbols $\rightarrow$ internal ids at session 
+start, validate sequences, handle snapshots after gaps, and never allocate on the 
+hot decode path (Chapter~\ref{chap:lowlatency}).
+
+\subsection{SBE and other compact encodings}
+\label{subsec:sbe-and-friends}
+\highlightbf{SBE} (Simple Binary Encoding) is a binary message schema used in some 
+low-latency stacks (including FIX-world tooling). Think: generated codecs, fixed 
+layouts, fewer parsing surprises than free-form text --- still not a substitute for 
+knowing the venue's actual MD/OE contract. Other shops roll their own IDL $\rightarrow$ 
+C++ structs. The interview point: \highlight{schema + codegen} beats ad-hoc 
+\texttt{memcpy} folklore when messages evolve.
+
+\subsection{Crypto and modern HTTP APIs}
+\label{subsec:crypto-wire-apis}
+Crypto venues (Section~\ref{sec:crypto-markets}) often expose:
+\begin{itemize}
+    \item \highlightbf{REST} --- slow path: account, config, sometimes order entry.
+    \item \highlightbf{WebSocket} --- streaming MD and/or OE over a persistent 
+          connection; JSON or compact payloads depending on the venue.
+\end{itemize}
+Useful and ubiquitous, but \highlight{not} the same latency class as colocated 
+UDP/binary exchange feeds. Design for reconnects, snapshot-after-gap, and 
+rate limits; do not assume exchange-grade sequence semantics unless the docs 
+promise them.
+
+\subsection{Orientation table}
+\label{subsec:protocol-orientation-table}
+\begin{center}
+\small
+\begin{tabular}{|l|p{3.6cm}|p{4.4cm}|}
+\hline
+\textbf{Family} & \textbf{Typical use} & \textbf{Engineering flavour} \\
+\hline
+FIX (text) & Brokers, many OE/drop-copy links & Tags, sessions, resend; readable; heavier parse \\
+\hline
+Native binary MD & Exchange firehose (often multicast) & Structs, seq gaps, book rebuild \\
+\hline
+Native binary OE & Colocated / low-latency entry & Tight state machine, fast encode \\
+\hline
+SBE / schema binary & Low-latency messaging & Codegen codecs, versioned layouts \\
+\hline
+REST / WebSocket & Crypto and some retail APIs & JSON, reconnect, rate limits \\
+\hline
+\end{tabular}
+\end{center}
+
+\par\noindent\textbf{Interview tip:} name \highlight{MD vs OE}, then one protocol 
+you actually shipped (or studied). Prefer ``binary ITCH-like MD + session OE'' 
+over buzzword lists. Cross-ref: gateway role in Section~\ref{sec:trade-lifecycle}; 
+kernel/multicast path in Chapters~\ref{chap:linuxnetworking}--\ref{chap:kernelbypass}.
+
 \section{Market Structure}
 \label{sec:market-structure}
 Before pricing models: \emph{who} trades, \emph{where}, and what ``a market'' 
@@ -194,7 +326,8 @@ Names interviewers expect you to place on the map --- not memorize every product
           differ from traditional CME/NYSE stacks (Section~\ref{sec:crypto-markets}).
 \end{itemize}
 Your stack always binds to a \highlight{specific market-data and order-entry protocol} 
-for a venue --- ``equities'' or ``FX'' alone is not an interface.
+for a venue --- ``equities'' or ``FX'' alone is not an interface 
+(Section~\ref{sec:market-wire-protocols}).
 
 \par\noindent\textbf{Interview tip:} contrast \highlight{central limit order book} 
 venues with \highlight{dealer / OTC} FX: connectivity and ``what is the book?'' change.
@@ -926,6 +1059,10 @@ After reading the chapter once, rehearse these aloud:
 \begin{itemize}
     \item \textbf{Lifecycle:} strategy $\to$ risk $\to$ gateway $\to$ venue/match $\to$ 
           exec $\to$ MD $\to$ position $\to$ P\&L (Section~\ref{sec:trade-lifecycle}).
+    \item \textbf{Wire protocols:} MD vs OE; FIX session + NewOrderSingle / 
+          ExecutionReport; native binary (ITCH/OUCH-style); crypto REST/WebSocket; 
+          text FIX $\neq$ colocated hot path 
+          (Section~\ref{sec:market-wire-protocols}).
     \item \textbf{Market structure:} liquidity + price discovery; participants; 
           exchange vs OTC; name a venue you actually connected to 
           (Section~\ref{sec:market-structure}).
@@ -1106,6 +1243,19 @@ Liquidity is how much you can trade near mid without moving the market
 (Section~\ref{subsec:bbo-spread-liquidity}).
 
 \subsection{Latency and systems (quant-dev)}
+
+\toclessnparagraph{What is FIX, and when do you use it?}
+FIX is a \highlight{tag=value} messaging standard with a session layer (logon, 
+heartbeats, sequence recovery) and application messages such as NewOrderSingle 
+and ExecutionReport (Section~\ref{subsec:fix-protocol}). Common for broker and 
+many non-colocated order links. Colocated HFT against an exchange matching engine 
+usually uses \highlight{native binary} MD/OE instead; say which hop you mean.
+
+\toclessnparagraph{ITCH vs OUCH (or ``binary MD vs binary OE'') --- what is the split?}
+Same idea as MD vs OE (Section~\ref{subsec:protocol-two-planes}): an 
+\highlight{ITCH}-style feed is a typed binary \emph{market-data} stream (book/trade 
+events, often multicast); an \highlight{OUCH}-style protocol is \emph{order entry} 
+(enter/cancel/replace + acks). Venues rename these; the split remains.
 
 \toclessnparagraph{How is tick-to-trade latency composed?}
 \label{qa:latency-composition}
