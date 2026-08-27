@@ -1,0 +1,1457 @@
+\chapter{Algorithmic Problem-Solving Patterns}
+\label{chap:algo-patterns}
+See~\cite{algo-patterns-clrs},~\cite{algo-patterns-skiena},~\cite{neetcode-roadmap}.
+\newline
+This chapter is a \highlight{pattern catalog} for coding interviews: recognize the shape,
+pick a recipe, sketch one clean solution. It complements Chapter~\ref{chap:algorithms}
+(asymptotics and the order book), it does not replace timed practice.
+Complexity vocabulary (\emph{worst} / \emph{average--expected} / \emph{amortized})
+is defined in Section~\ref{sec:time-complexity}; hash-table
+\texttt{find} costs are in Section~\ref{subsec:unordered-find-complexity}.
+
+\subsection*{How to use}
+\begin{itemize}
+    \item Learn the \textbf{trigger} (``I see intervals $\rightarrow$ sort + scan'').
+    \item Know the \textbf{complexity} of the recipe you claim.
+    \item Code one canonical sketch; variants come from drilling problems.
+\end{itemize}
+
+\paragraph*{Track A (quant-dev / HFT screens --- learn first)}
+Arrays \& hash maps, two pointers, sliding window, binary search, intervals, heaps / top-$K$,
+linked-list cycle / reverse, stack (matching).
+
+\paragraph*{Track B (full loops --- after Track~A)}
+Trees, graphs, backtracking, DP.
+
+\section{Arrays and Hash Maps}
+\label{sec:pat-arrays-hash}
+Hash maps turn ``have I seen this?'' and ``how often?'' into \highlight{expected}
+$O(1)$ lookups (worst case per op $O(n)$ --- Section~\ref{subsec:unordered-find-complexity}).
+Prefer \texttt{unordered\char`_map} / \texttt{unordered\char`_set} when order does not matter;
+use a plain array when the key domain is tiny (ASCII, digits, small enums).
+
+\subsection{Frequency map}
+\label{subsec:pat-freq-map}
+Many problems ask about counts: anagrams, majority element, ``unique frequencies'',
+``characters that appear exactly $k$ times''. The recipe is to build a map from
+value to occurrence count in one pass, then either answer from the map or make a
+second pass that consults it.
+
+\textbf{Trigger:} counts, anagrams, majority, unique frequency.
+\newline
+\textbf{Complexity:} expected $O(n)$ time with hashing (or $O(n)$ with a fixed array),
+$O(k)$ space ($k$ = distinct keys).
+
+\begin{lstlisting}[language=C++]
+// true iff s and t are anagrams
+bool isAnagram(const std::string& s, const std::string& t) {
+    if (s.size() != t.size()) return false;
+    std::array<int, 26> freq{};
+    for (char c : s) ++freq[c - 'a'];
+    for (char c : t) if (--freq[c - 'a'] < 0) return false;
+    return true;
+}
+\end{lstlisting}
+
+\subsection{Lookup / complement}
+\label{subsec:pat-lookup-complement}
+When you need a pair (or more) that satisfies a relation like ``sum to target'',
+scan once and remember what you have already seen. For each new value $x$, ask
+whether the complement (\texttt{target - x}) is in the map. Storing the index
+lets you return positions, not only existence.
+
+\textbf{Trigger:} Two Sum, ``pair with target'', ``seen before?''.
+\newline
+\textbf{Complexity:} expected $O(n)$ time, $O(n)$ space
+(each \texttt{find}/\texttt{insert} expected $O(1)$).
+
+\begin{lstlisting}[language=C++]
+std::pair<int,int> twoSum(const std::vector<int>& a, int target) {
+    std::unordered_map<int, int> seen;  // value -> index
+    for (int i = 0; i < (int)a.size(); ++i) {
+        auto it = seen.find(target - a[i]);
+        if (it != seen.end()) return {it->second, i};
+        seen[a[i]] = i;
+    }
+    return {-1, -1};
+}
+\end{lstlisting}
+
+\subsection{Prefix sum}
+\label{subsec:pat-prefix-sum}
+Range sums become $O(1)$ after an $O(n)$ prefix build:
+\texttt{pref[i]} holds the sum of the first $i$ elements (often 1-indexed or
+length $n{+}1$ with \texttt{pref[0] = 0}). Subarray sum equals $k$ is the same
+idea plus a hash of prefix values seen so far.
+
+\textbf{Trigger:} range sum queries, subarray sum equals $k$.
+\newline
+\textbf{Complexity:} $O(n)$ build, $O(1)$ per range query.
+
+\begin{lstlisting}[language=C++]
+std::vector<long long> buildPref(const std::vector<int>& a) {
+    int n = (int)a.size();
+    std::vector<long long> pref(n + 1);
+    for (int i = 0; i < n; ++i) pref[i + 1] = pref[i] + a[i];
+    return pref;  // sum a[L..R] = pref[R+1] - pref[L]
+}
+
+// number of subarrays with sum == k
+int subarraySum(const std::vector<int>& a, int k) {
+    std::unordered_map<long long, int> seen{{0, 1}};
+    long long pref = 0;
+    int ans = 0;
+    for (int x : a) {
+        pref += x;
+        ans += seen[pref - k];
+        ++seen[pref];
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\subsection{Prefix / suffix aggregation}
+\label{subsec:pat-prefix-suffix}
+Some answers depend on ``everything to the left'' and ``everything to the right''
+at each index (product except self, prefix/suffix maxima, best buy/sell around $i$).
+Build a left-to-right aggregate, then a right-to-left aggregate, and combine.
+With care you can overwrite one array in place and keep $O(1)$ extra memory.
+
+\textbf{Trigger:} product except self, rain water, best-so-far from left/right.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(n)$ or $O(1)$ extra space.
+
+\begin{lstlisting}[language=C++]
+std::vector<int> productExceptSelf(const std::vector<int>& a) {
+    int n = (int)a.size();
+    std::vector<int> out(n, 1);
+    for (int i = 1; i < n; ++i) out[i] = out[i - 1] * a[i - 1];  // left products
+    int right = 1;
+    for (int i = n - 1; i >= 0; --i) {
+        out[i] *= right;
+        right *= a[i];
+    }
+    return out;
+}
+\end{lstlisting}
+
+\section{Two Pointers}
+\label{sec:pat-two-pointers}
+Two indices cooperate so each element is considered a constant number of times.
+On \textbf{sorted} data, this often reduces a brute-force pair scan from $O(n^2)$
+to $O(n)$. If sorting is required first, the total is usually $O(n\log n)$.
+
+\subsection{Opposite-direction pointers}
+\label{subsec:pat-opp-pointers}
+Place \texttt{L} at the start and \texttt{R} at the end of a sorted array (or string).
+Move the side that can improve the invariant: if the sum is too small, advance
+\texttt{L}; if too large, retreat \texttt{R}. The same skeleton works for
+container-with-most-water and two-sided palindrome checks.
+
+\par\noindent\textbf{Why it works:} after sorting, if \texttt{a[L] + a[R] < target},
+every pair that still uses \texttt{a[L]} with an index $\le R$ is also too small,
+so advancing \texttt{L} is safe. Symmetrically, if the sum is too large, every
+pair that still uses \texttt{a[R]} with an index $\ge L$ is too large, so
+\texttt{R} can retreat. Ordering lets you discard whole sets of candidates
+without testing them one by one.
+
+\textbf{Trigger:} sorted pair sum, container with most water, palindrome check.
+\newline
+\textbf{Complexity:} $O(n)$ after an optional $O(n\log n)$ sort.
+
+\begin{lstlisting}[language=C++]
+bool hasPairSum(std::vector<int> a, int target) {
+    std::sort(a.begin(), a.end());
+    int l = 0, r = (int)a.size() - 1;
+    while (l < r) {
+        int s = a[l] + a[r];
+        if (s == target) return true;
+        if (s < target) ++l; else --r;
+    }
+    return false;
+}
+\end{lstlisting}
+
+\subsection{Same-direction pointers}
+\label{subsec:pat-same-pointers}
+Both pointers move forward. A common shape is \texttt{read} / \texttt{write}:
+\texttt{read} scans every element; \texttt{write} marks where the next kept
+element should go. Use this for in-place duplicate removal, partitioning, and
+stable ``filter'' passes without a second buffer.
+
+\textbf{Trigger:} remove duplicates in place, partition, slow write index.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(1)$ extra space.
+
+\begin{lstlisting}[language=C++]
+// remove duplicates from sorted array; return new length
+int removeDuplicates(std::vector<int>& a) {
+    if (a.empty()) return 0;
+    int w = 1;
+    for (int r = 1; r < (int)a.size(); ++r)
+        if (a[r] != a[w - 1]) a[w++] = a[r];
+    return w;
+}
+\end{lstlisting}
+
+\subsection{Fast / slow pointers}
+\label{subsec:pat-fast-slow}
+Advance one pointer by one step and another by two. Meeting detects a cycle;
+the same speed relationship places slow near the middle when fast reaches the end.
+Full sketches (middle, Floyd cycle) live in Section~\ref{sec:pat-linked-lists}.
+
+\textbf{Trigger:} cycle in list, middle of list, happy number.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(1)$ space.
+
+\section{Sliding Window}
+\label{sec:pat-sliding-window}
+A window is a contiguous segment \texttt{[L, R]} whose aggregate you maintain
+incrementally. Expanding and shrinking by one index avoids rebuilding from scratch,
+so many string/array window problems become $O(n)$.
+
+\subsection{Fixed window}
+\label{subsec:pat-fixed-window}
+When every candidate subarray has the same length $k$, maintain the aggregate of
+the current block of $k$ elements. Slide by subtracting the element that leaves
+and adding the element that enters.
+
+\textbf{Trigger:} max/sum of every subarray of length $k$.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(1)$ extra space for sum/max of scalars.
+
+\begin{lstlisting}[language=C++]
+int maxSumFixedWindow(const std::vector<int>& a, int k) {
+    long long sum = 0, best = LLONG_MIN;
+    for (int i = 0; i < (int)a.size(); ++i) {
+        sum += a[i];
+        if (i >= k) sum -= a[i - k];
+        if (i >= k - 1) best = std::max(best, sum);
+    }
+    return (int)best;
+}
+\end{lstlisting}
+
+\subsection{Variable window}
+\label{subsec:pat-var-window}
+Grow \texttt{R} freely; whenever the window becomes invalid (too many distinct
+characters, sum too large, missing a required character), advance \texttt{L}
+until it is valid again. Track the best length or the best concrete window
+along the way.
+
+\par\noindent\textbf{Why it works:} each index enters and leaves the window at
+most once, so the total work is $O(n)$ (plus $O(1)$ or $O(|\Sigma|)$ state
+updates). You never rebuild the window from scratch.
+
+\textbf{Trigger:} longest substring with $\le k$ distinct, minimum covering window.
+\newline
+\textbf{Complexity:} $O(n)$ for typical char/int alphabets.
+
+\begin{lstlisting}[language=C++]
+int longestWithAtMostKDistinct(const std::string& s, int k) {
+    std::unordered_map<char, int> freq;
+    int best = 0;
+    for (int r = 0, l = 0; r < (int)s.size(); ++r) {
+        ++freq[s[r]];
+        while ((int)freq.size() > k) {
+            if (--freq[s[l]] == 0) freq.erase(s[l]);
+            ++l;
+        }
+        best = std::max(best, r - l + 1);
+    }
+    return best;
+}
+\end{lstlisting}
+
+\subsection{Frequency map + window}
+\label{subsec:pat-freq-window}
+Combine a sliding window with a frequency (or deficit) map when the validity
+condition is about counts: ``contains an anagram of $p$'', ``permutation of
+\texttt{need}'', ``all characters of $t$ covered''. Maintain how many constraints
+are currently satisfied and update that score as characters enter and leave.
+
+\textbf{Trigger:} anagrams in a string, permutation in string.
+\newline
+\textbf{Complexity:} $O(n)$ over a fixed alphabet.
+
+\begin{lstlisting}[language=C++]
+// true if s2 contains a permutation of s1
+bool checkInclusion(const std::string& s1, const std::string& s2) {
+    if (s1.size() > s2.size()) return false;
+    std::array<int, 26> need{}, win{};
+    for (char c : s1) ++need[c - 'a'];
+    int m = (int)s1.size();
+    for (int i = 0; i < (int)s2.size(); ++i) {
+        ++win[s2[i] - 'a'];
+        if (i >= m) --win[s2[i - m] - 'a'];
+        if (i >= m - 1 && win == need) return true;
+    }
+    return false;
+}
+\end{lstlisting}
+
+\section{Stack and Monotonic Stack}
+\label{sec:pat-stack}
+A stack matches nested structure and, when kept monotonic, answers ``next
+greater/smaller'' queries in \highlight{amortized} $O(1)$ per index
+(each index is pushed and popped at most once; a single step may pop many,
+but the total over $n$ indices is $O(n)$ --- Section~\ref{subsec:amortized-vs-average}).
+
+\subsection{Matching / parsing}
+\label{subsec:pat-stack-match}
+Push opening tokens; on a closer, pop and verify the match. The same idea
+simplifies paths (\texttt{..}, \texttt{.}), evaluates RPN, and validates nesting.
+Empty stack at the end (and never popping empty) is the usual success criterion.
+
+\textbf{Trigger:} valid parentheses, path simplify, nested structures.
+\newline
+\textbf{Complexity:} $O(n)$ time and space.
+
+\begin{lstlisting}[language=C++]
+bool isValid(const std::string& s) {
+    std::stack<char> st;
+    for (char c : s) {
+        if (c == '(' || c == '[' || c == '{') st.push(c);
+        else {
+            if (st.empty()) return false;
+            char o = st.top(); st.pop();
+            if ((c == ')' && o != '(') ||
+                (c == ']' && o != '[') ||
+                (c == '}' && o != '{')) return false;
+        }
+    }
+    return st.empty();
+}
+\end{lstlisting}
+
+\subsection{Next greater / smaller}
+\label{subsec:pat-next-greater}
+Scan left to right (or right to left). While the stack's top is ``beaten'' by the
+current value, pop it and record the current index/value as its next greater
+(or smaller). Indices not resolved by the end have no next greater.
+
+\textbf{Trigger:} daily temperatures, next greater element.
+\newline
+\textbf{Complexity:} $O(n)$ total / amortized $O(1)$ per index --- each index
+pushed and popped at most once.
+
+\begin{lstlisting}[language=C++]
+// ans[i] = days until a warmer temperature, or 0
+std::vector<int> dailyTemperatures(const std::vector<int>& t) {
+    int n = (int)t.size();
+    std::vector<int> ans(n);
+    std::stack<int> st;  // indices, temps strictly decreasing
+    for (int i = 0; i < n; ++i) {
+        while (!st.empty() && t[i] > t[st.top()]) {
+            int j = st.top(); st.pop();
+            ans[j] = i - j;
+        }
+        st.push(i);
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\subsection{Monotonic stack}
+\label{subsec:pat-mono-stack}
+Keep indices whose values are strictly increasing or decreasing. When an index
+is popped, you know the first barrier to its left/right, which unlocks histogram
+area, contribution tricks, and range-minimum style answers without a segment tree.
+
+\par\noindent\textbf{Why it works:} the stack invariant (e.g.\ strictly increasing
+heights) means the first smaller bar to the right is exactly when an index is
+popped; with the inequality used in the sketch, the new top identifies the
+nearest remaining candidate on the left. Amortized
+linearity follows because each index enters/leaves the stack once.
+
+\textbf{Trigger:} largest rectangle in histogram, contribution of each bar.
+\newline
+\textbf{Complexity:} $O(n)$ total (amortized $O(1)$ per index).
+
+\begin{lstlisting}[language=C++]
+int largestRectangleArea(std::vector<int> h) {
+    h.push_back(0);  // sentinel flush
+    std::stack<int> st;
+    int best = 0;
+    for (int i = 0; i < (int)h.size(); ++i) {
+        while (!st.empty() && h[i] < h[st.top()]) {
+            int height = h[st.top()]; st.pop();
+            int left = st.empty() ? -1 : st.top();
+            best = std::max(best, height * (i - left - 1));
+        }
+        st.push(i);
+    }
+    return best;
+}
+\end{lstlisting}
+
+\section{Queue and Deque}
+\label{sec:pat-queue-deque}
+Queues drive BFS. Deques that stay monotonic answer sliding-window extrema in $O(n)$.
+
+\subsection{BFS}
+\label{subsec:pat-bfs-queue}
+Enqueue the start; while the queue is non-empty, pop front and push unseen
+neighbours. Mark visited when you \emph{enqueue} (not when you pop) to avoid
+duplicate work.
+
+\par\noindent\textbf{Why it works:} on an unweighted graph, edges all cost $1$,
+so the queue explores in non-decreasing distance. The first time you reach a
+node is therefore a shortest path.
+
+\textbf{Trigger:} shortest path in unweighted graph/grid, level-order tree.
+\newline
+\textbf{Complexity:} $O(V+E)$.
+
+\begin{lstlisting}[language=C++]
+int shortestPathGrid(std::vector<std::vector<int>>& g) {
+    int n = (int)g.size(), m = (int)g[0].size();
+    if (g[0][0] || g[n-1][m-1]) return -1;
+    const int dr[] = {1,-1,0,0}, dc[] = {0,0,1,-1};
+    std::queue<std::pair<int,int>> q;
+    q.push({0, 0});
+    g[0][0] = 1;  // mark visited / steps
+    while (!q.empty()) {
+        auto [r, c] = q.front(); q.pop();
+        if (r == n - 1 && c == m - 1) return g[r][c];
+        for (int k = 0; k < 4; ++k) {
+            int nr = r + dr[k], nc = c + dc[k];
+            if (nr < 0 || nc < 0 || nr >= n || nc >= m || g[nr][nc]) continue;
+            g[nr][nc] = g[r][c] + 1;
+            q.push({nr, nc});
+        }
+    }
+    return -1;
+}
+\end{lstlisting}
+
+\subsection{Monotonic deque}
+\label{subsec:pat-mono-deque}
+\label{subsec:pat-window-extrema}
+Store indices in a deque so values are decreasing (for window maximum) or
+increasing (for minimum). The front is always the current extremum. Before
+pushing a new index, pop from the back every index that can no longer be the
+extremum once the new value is present.
+
+\par\noindent\textbf{Checklist} (same algorithm for max or min): for each right
+endpoint, (1)~drop indices that left the window from the front, (2)~drop
+dominated candidates from the back, (3)~push \texttt{R}, (4)~read
+\texttt{a[dq.front()]}. Prefer this over a naive $O(nk)$ scan of each window.
+
+\textbf{Trigger:} sliding-window maximum/minimum.
+\newline
+\textbf{Complexity:} $O(n)$ --- each index enters/leaves the deque at most once
+(amortized $O(1)$ per index).
+
+\begin{lstlisting}[language=C++]
+std::vector<int> maxSlidingWindow(const std::vector<int>& a, int k) {
+    std::deque<int> dq;  // indices, a[] decreasing
+    std::vector<int> out;
+    for (int i = 0; i < (int)a.size(); ++i) {
+        if (!dq.empty() && dq.front() <= i - k) dq.pop_front();
+        while (!dq.empty() && a[dq.back()] <= a[i]) dq.pop_back();
+        dq.push_back(i);
+        if (i >= k - 1) out.push_back(a[dq.front()]);
+    }
+    return out;
+}
+
+// min variant: keep a[] increasing (compare with >= when popping back)
+std::vector<int> minSlidingWindow(const std::vector<int>& a, int k) {
+    std::deque<int> dq;
+    std::vector<int> out;
+    for (int i = 0; i < (int)a.size(); ++i) {
+        if (!dq.empty() && dq.front() <= i - k) dq.pop_front();
+        while (!dq.empty() && a[dq.back()] >= a[i]) dq.pop_back();
+        dq.push_back(i);
+        if (i >= k - 1) out.push_back(a[dq.front()]);
+    }
+    return out;
+}
+\end{lstlisting}
+
+\section{Binary Search}
+\label{sec:pat-binary-search}
+On a monotonic predicate, binary search finds a boundary in $O(\log n)$ probes.
+Prefer half-open ranges \texttt{[lo, hi)} and the STL bounds helpers when the
+predicate is ``first position satisfying \ldots''.
+
+\subsection{Exact search}
+\label{subsec:pat-bs-exact}
+Classic search for a key in a sorted array: compare mid, discard half. In
+interviews, state whether the array may contain duplicates and what you return
+on a miss.
+
+\textbf{Trigger:} find exact value in sorted data.
+\newline
+\textbf{Complexity:} $O(\log n)$.
+
+\begin{lstlisting}[language=C++]
+int binarySearch(const std::vector<int>& a, int x) {
+    int lo = 0, hi = (int)a.size();  // [lo, hi)
+    while (lo < hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] == x) return mid;
+        if (a[mid] < x) lo = mid + 1;
+        else            hi = mid;
+    }
+    return -1;
+}
+\end{lstlisting}
+
+\subsection{\texttt{lower\_bound} / \texttt{upper\_bound}}
+\label{subsec:pat-bs-bounds}
+\texttt{lower\char`_bound} is the first position $\ge x$; \texttt{upper\char`_bound}
+is the first $> x$. Together they give the half-open equal range and the insert
+position. Prefer the standard algorithms over hand-rolled off-by-one bugs when
+allowed.
+
+\textbf{Trigger:} first $\ge x$, first $> x$, insert position.
+\newline
+\textbf{Complexity:} $O(\log n)$.
+
+\begin{lstlisting}[language=C++]
+int lowerBoundIdx(const std::vector<int>& a, int x) {
+    return (int)(std::lower_bound(a.begin(), a.end(), x) - a.begin());
+}
+int upperBoundIdx(const std::vector<int>& a, int x) {
+    return (int)(std::upper_bound(a.begin(), a.end(), x) - a.begin());
+}
+// count of value x: upperBoundIdx(a,x) - lowerBoundIdx(a,x)
+\end{lstlisting}
+
+\subsection{First / last valid element}
+\label{subsec:pat-bs-first-last}
+When duplicates exist, run a binary search for the first index where a predicate
+becomes true (e.g.\ \texttt{a[i] >= x}), and optionally another for the last.
+This is the same lower/upper-bound idea written by hand.
+
+\textbf{Trigger:} first and last position of a target in a sorted array.
+\newline
+\textbf{Complexity:} $O(\log n)$.
+
+\begin{lstlisting}[language=C++]
+// first index with a[i] >= x, or n if none
+int firstGe(const std::vector<int>& a, int x) {
+    int lo = 0, hi = (int)a.size();
+    while (lo < hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] < x) lo = mid + 1;
+        else            hi = mid;
+    }
+    return lo;
+}
+\end{lstlisting}
+
+\subsection{Binary search on answer}
+\label{subsec:pat-bs-answer}
+Sometimes the searchable space is not an index but a candidate answer
+(minimum possible max load, eating speed, split threshold). Binary-search the
+answer range; for each mid, run a linear feasibility check.
+
+\par\noindent\textbf{Why it works:} correctness needs \highlight{monotonicity}:
+if capacity \texttt{mid} is feasible, every larger capacity is too (or the
+symmetric ``every smaller'' form). That turns the answer domain into a sorted
+predicate so binary search is valid.
+
+\textbf{Trigger:} minimize max load, koko eating bananas, split-array largest sum.
+\newline
+\textbf{Complexity:} $O(\textit{check}\cdot\log\textit{range})$.
+
+\begin{lstlisting}[language=C++]
+// minimum capacity to ship packages within D days
+int shipWithinDays(const std::vector<int>& w, int days) {
+    auto ok = [&](int cap) {
+        int d = 1, load = 0;
+        for (int x : w) {
+            if (load + x > cap) { ++d; load = 0; }
+            load += x;
+        }
+        return d <= days;
+    };
+    int lo = *std::max_element(w.begin(), w.end());
+    int hi = std::accumulate(w.begin(), w.end(), 0);
+    while (lo < hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (ok(mid)) hi = mid; else lo = mid + 1;
+    }
+    return lo;
+}
+\end{lstlisting}
+
+\section{Sorting-Based Patterns}
+\label{sec:pat-sorting}
+Sorting imposes order so a linear scan, two pointers, or a greedy choice becomes
+obvious. Pay $O(n\log n)$ once; the rest is usually $O(n)$.
+
+\subsection{Sort + scan}
+\label{subsec:pat-sort-scan}
+Sort, then walk once looking at neighbours or running aggregates: merge
+intervals, consecutive gap checks, unique pairs after sorting. State clearly
+what the sort key is.
+
+\textbf{Trigger:} merge intervals, unique pairs, consecutive gaps.
+\newline
+\textbf{Complexity:} $O(n\log n)$.
+
+\begin{lstlisting}[language=C++]
+int maxGapAfterSort(std::vector<int> a) {
+    if (a.size() < 2) return 0;
+    std::sort(a.begin(), a.end());
+    int best = 0;
+    for (int i = 1; i < (int)a.size(); ++i)
+        best = std::max(best, a[i] - a[i - 1]);
+    return best;
+}
+\end{lstlisting}
+
+\subsection{Sort + two pointers}
+\label{subsec:pat-sort-two-ptr}
+After sorting, fix one index and run opposite pointers on the remainder
+(3Sum, 3Sum closest). Skip duplicates deliberately if the problem wants unique
+triplets.
+
+\textbf{Trigger:} 3Sum, pair sums after sorting.
+\newline
+\textbf{Complexity:} $O(n^2)$ typical for 3Sum.
+
+\begin{lstlisting}[language=C++]
+std::vector<std::vector<int>> threeSum(std::vector<int> a) {
+    std::sort(a.begin(), a.end());
+    std::vector<std::vector<int>> out;
+    int n = (int)a.size();
+    for (int i = 0; i < n; ++i) {
+        if (i && a[i] == a[i - 1]) continue;
+        int l = i + 1, r = n - 1;
+        while (l < r) {
+            int s = a[i] + a[l] + a[r];
+            if (s == 0) {
+                out.push_back({a[i], a[l], a[r]});
+                while (l < r && a[l] == a[l + 1]) ++l;
+                while (l < r && a[r] == a[r - 1]) --r;
+                ++l; --r;
+            } else if (s < 0) ++l;
+            else --r;
+        }
+    }
+    return out;
+}
+\end{lstlisting}
+
+\subsection{Custom comparator}
+\label{subsec:pat-custom-cmp}
+Pass a lambda (or functor) to \texttt{std::sort} when the order is not the
+natural key order: sort by end time, by ratio, by concatenated string value.
+The comparator must define a strict weak ordering (irreflexive, transitive
+asymmetry) or you risk undefined behaviour.
+
+\textbf{Trigger:} sort by second field, largest number arrangement, ratio order.
+\newline
+\textbf{Complexity:} $O(n\log n)$.
+
+\begin{lstlisting}[language=C++]
+// arrange integers to form the largest number (as string)
+std::string largestNumber(std::vector<int> nums) {
+    std::vector<std::string> s;
+    for (int x : nums) s.push_back(std::to_string(x));
+    std::sort(s.begin(), s.end(), [](const std::string& a, const std::string& b) {
+        return a + b > b + a;
+    });
+    if (s[0] == "0") return "0";
+    std::string out;
+    for (auto& t : s) out += t;
+    return out;
+}
+\end{lstlisting}
+
+\subsection{Partial sorting / \texttt{nth\_element}}
+\label{subsec:pat-nth-element}
+When you only need the $k$-th order statistic (or the $k$ largest unordered),
+full sort is wasteful. \texttt{std::nth\char`_element} rearranges the range so the
+element at the requested position is in place, with all preceding elements
+$\le$ it and all following elements $\ge$ it, average $O(n)$. A size-$k$ heap
+is the alternative when streaming.
+
+\textbf{Trigger:} $k$-th largest without full sort.
+\newline
+\textbf{Complexity:} average $O(n)$ for \texttt{nth\char`_element}.
+
+\begin{lstlisting}[language=C++]
+int findKthLargest(std::vector<int> a, int k) {
+    std::nth_element(a.begin(), a.end() - k, a.end());
+    return a[a.size() - k];
+}
+\end{lstlisting}
+
+\section{Intervals}
+\label{sec:pat-intervals}
+Interval problems almost always start with sorting by start or by end. After that,
+a linear scan or a sweep over events finishes the job.
+
+\subsection{Merge intervals}
+\label{subsec:pat-merge-intervals}
+Sort by start. Keep a running merged interval; if the next starts after the
+current end, append a new one; otherwise extend the end. This is the prototype
+``sort + scan'' on ranges.
+
+\textbf{Trigger:} merge overlapping ranges.
+\newline
+\textbf{Complexity:} $O(n\log n)$.
+
+\begin{lstlisting}[language=C++]
+std::vector<std::pair<int,int>> merge(
+        std::vector<std::pair<int,int>> v) {
+    std::sort(v.begin(), v.end());
+    std::vector<std::pair<int,int>> out;
+    for (auto [s, e] : v) {
+        if (out.empty() || s > out.back().second) out.push_back({s, e});
+        else out.back().second = std::max(out.back().second, e);
+    }
+    return out;
+}
+\end{lstlisting}
+
+\subsection{Overlap detection}
+\label{subsec:pat-overlap}
+To test whether any two intervals conflict (meeting rooms, resource exclusive
+use), sort by start and check each consecutive pair: overlap iff
+\texttt{next.start < prev.end} (adjust for closed/open conventions).
+
+\textbf{Trigger:} can attend all meetings?
+\newline
+\textbf{Complexity:} $O(n\log n)$.
+
+\begin{lstlisting}[language=C++]
+bool canAttendMeetings(std::vector<std::pair<int,int>> v) {
+    std::sort(v.begin(), v.end());
+    for (int i = 1; i < (int)v.size(); ++i)
+        if (v[i].first < v[i - 1].second) return false;
+    return true;
+}
+\end{lstlisting}
+
+\subsection{Interval scheduling}
+\label{subsec:pat-interval-sched}
+Maximum number of non-overlapping intervals: greedy by earliest finishing time.
+Sort by end; repeatedly take the next interval that starts at or after the last
+chosen end. This is optimal for the classic unweighted scheduling problem.
+
+\textbf{Trigger:} max number of non-overlapping intervals.
+\newline
+\textbf{Complexity:} $O(n\log n)$.
+
+\begin{lstlisting}[language=C++]
+int eraseOverlapCount(std::vector<std::pair<int,int>> v) {
+    // returns how many to remove to eliminate overlaps
+    if (v.empty()) return 0;
+    std::sort(v.begin(), v.end(),
+              [](auto& a, auto& b) { return a.second < b.second; });
+    int kept = 1, end = v[0].second;
+    for (int i = 1; i < (int)v.size(); ++i) {
+        if (v[i].first >= end) { ++kept; end = v[i].second; }
+    }
+    return (int)v.size() - kept;
+}
+\end{lstlisting}
+
+\subsection{Sweep line}
+\label{subsec:pat-sweep}
+Turn intervals into events: $+1$ at start, $-1$ at end (process ends before
+starts at the same coordinate if you need open/closed care). Sort events and
+scan with a running counter for ``how many active now''; max overlap, skyline
+variants follow the same skeleton.
+
+\textbf{Trigger:} skyline, maximum overlapping intervals.
+\newline
+\textbf{Complexity:} $O(n\log n)$.
+
+\begin{lstlisting}[language=C++]
+int maxOverlap(const std::vector<std::pair<int,int>>& v) {
+    std::vector<std::pair<int,int>> ev;  // {time, delta}
+    for (auto [s, e] : v) {
+        ev.push_back({s, +1});
+        ev.push_back({e, -1});  // treat end as exclusive
+    }
+    std::sort(ev.begin(), ev.end());
+    int cur = 0, best = 0;
+    for (auto [t, d] : ev) {
+        cur += d;
+        best = std::max(best, cur);
+    }
+    return best;
+}
+\end{lstlisting}
+
+\section{Linked Lists}
+\label{sec:pat-linked-lists}
+Prefer iterative pointer rewiring: fewer allocations, clearer $O(1)$ space.
+Draw \texttt{prev}/\texttt{cur}/\texttt{next} before coding.
+
+\subsection{Reverse}
+\label{subsec:pat-ll-reverse}
+Three pointers: save \texttt{next}, point \texttt{cur} back to \texttt{prev},
+advance. Return the new head (\texttt{prev} after the loop). The same idea
+reverses a sublist between two positions.
+
+\textbf{Trigger:} reverse whole list or a segment.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(1)$ space.
+
+\begin{lstlisting}[language=C++]
+struct ListNode { int val; ListNode* next; };
+
+ListNode* reverseList(ListNode* head) {
+    ListNode* prev = nullptr;
+    while (head) {
+        ListNode* nxt = head->next;
+        head->next = prev;
+        prev = head;
+        head = nxt;
+    }
+    return prev;
+}
+\end{lstlisting}
+
+\subsection{Fast / slow}
+\label{subsec:pat-ll-fast-slow}
+Start both at the head (or slow at head and fast one step ahead, depending on
+even/odd conventions). When fast cannot move twice, slow is at the middle ---
+useful to split for merge sort on lists or palindrome checks.
+
+\textbf{Trigger:} middle node, split list in half.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(1)$ space.
+
+\begin{lstlisting}[language=C++]
+ListNode* middleNode(ListNode* head) {
+    ListNode *slow = head, *fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    return slow;
+}
+\end{lstlisting}
+
+\subsection{Cycle detection}
+\label{subsec:pat-ll-cycle}
+Floyd's algorithm: if slow and fast meet, a cycle exists. Optional second phase:
+reset one pointer to head and advance both by one; they meet at the cycle entry.
+
+\textbf{Trigger:} linked-list cycle, find cycle entrance.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(1)$ space.
+
+\begin{lstlisting}[language=C++]
+bool hasCycle(ListNode* head) {
+    ListNode *slow = head, *fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) return true;
+    }
+    return false;
+}
+\end{lstlisting}
+
+\subsection{Merge}
+\label{subsec:pat-ll-merge}
+Merge two sorted lists with a dummy head and a tail pointer: always attach the
+smaller of the two fronts. For $k$ lists, push current heads into a min-heap
+(see K-way merge).
+
+\textbf{Trigger:} merge two / $k$ sorted lists.
+\newline
+\textbf{Complexity:} $O(n)$ for two lists; $O(N\log k)$ for $k$ lists.
+
+\begin{lstlisting}[language=C++]
+ListNode* mergeTwoLists(ListNode* a, ListNode* b) {
+    ListNode dummy{0, nullptr}, *tail = &dummy;
+    while (a && b) {
+        if (a->val < b->val) { tail->next = a; a = a->next; }
+        else                 { tail->next = b; b = b->next; }
+        tail = tail->next;
+    }
+    tail->next = a ? a : b;
+    return dummy.next;
+}
+\end{lstlisting}
+
+\section{Trees}
+\label{sec:pat-trees}
+A useful first heuristic: path/aggregate questions often suggest DFS;
+level or unweighted-distance questions often suggest BFS. Always clarify
+null-child handling.
+
+\subsection{DFS}
+\label{subsec:pat-tree-dfs}
+Recurse (or use an explicit stack) in preorder, inorder, or postorder.
+Preorder suits serialize/clone; inorder suits BST; postorder suits delete and
+``compute child answers then combine''.
+
+\textbf{Trigger:} depth, path sums, serialize, subtree properties.
+\newline
+\textbf{Complexity:} $O(n)$ time, $O(h)$ stack.
+
+\begin{lstlisting}[language=C++]
+struct TreeNode { int val; TreeNode *left, *right; };
+
+int maxDepth(TreeNode* root) {
+    if (!root) return 0;
+    return 1 + std::max(maxDepth(root->left), maxDepth(root->right));
+}
+\end{lstlisting}
+
+\subsection{BFS}
+\label{subsec:pat-tree-bfs}
+Queue the root; process level by level by recording the queue size at the start
+of each round. Natural for level averages, zigzag order, and ``right side view''.
+
+\textbf{Trigger:} level-order, per-level aggregates.
+\newline
+\textbf{Complexity:} $O(n)$ time and space.
+
+\begin{lstlisting}[language=C++]
+std::vector<std::vector<int>> levelOrder(TreeNode* root) {
+    std::vector<std::vector<int>> out;
+    if (!root) return out;
+    std::queue<TreeNode*> q;
+    q.push(root);
+    while (!q.empty()) {
+        int sz = (int)q.size();
+        out.emplace_back();
+        for (int i = 0; i < sz; ++i) {
+            TreeNode* u = q.front(); q.pop();
+            out.back().push_back(u->val);
+            if (u->left)  q.push(u->left);
+            if (u->right) q.push(u->right);
+        }
+    }
+    return out;
+}
+\end{lstlisting}
+
+\subsection{BST}
+\label{subsec:pat-bst}
+Search / insert follow the key: left if smaller, right if larger. Inorder
+traversal yields sorted keys --- use that for validation (``strictly increasing'')
+and for $k$-th smallest.
+
+\textbf{Trigger:} search, insert, validate BST, $k$-th smallest.
+\newline
+\textbf{Complexity:} $O(h)$ per op ($h$ height; balanced $\log n$).
+
+\begin{lstlisting}[language=C++]
+TreeNode* searchBST(TreeNode* root, int val) {
+    while (root && root->val != val)
+        root = val < root->val ? root->left : root->right;
+    return root;
+}
+\end{lstlisting}
+
+\subsection{LCA}
+\label{subsec:pat-lca}
+In a binary tree, recurse: if both targets lie in different subtrees of the
+current node, that node is the LCA. In a BST, walk from the root using key order
+until the path splits.
+
+\textbf{Trigger:} lowest common ancestor.
+\newline
+\textbf{Complexity:} $O(n)$ general tree; $O(h)$ BST.
+
+\begin{lstlisting}[language=C++]
+TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+    if (!root || root == p || root == q) return root;
+    TreeNode* L = lowestCommonAncestor(root->left, p, q);
+    TreeNode* R = lowestCommonAncestor(root->right, p, q);
+    if (L && R) return root;
+    return L ? L : R;
+}
+\end{lstlisting}
+
+\section{Graphs}
+\label{sec:pat-graphs}
+Represent with adjacency lists unless the grid itself is the graph.
+Always discuss directed vs undirected and whether weights are present before
+picking BFS, Dijkstra, or Union--Find.
+
+\subsection{DFS / BFS}
+\label{subsec:pat-graph-dfs-bfs}
+Both visit every reachable vertex once. BFS gives unweighted distances; DFS is
+often simpler for flood-fill, path existence, and ``explore whole component''.
+
+\textbf{Trigger:} traversal, reachability, grid flood fill.
+\newline
+\textbf{Complexity:} $O(V+E)$.
+
+\begin{lstlisting}[language=C++]
+void dfs(int u, const std::vector<std::vector<int>>& g,
+         std::vector<char>& seen) {
+    seen[u] = 1;
+    for (int v : g[u]) if (!seen[v]) dfs(v, g, seen);
+}
+\end{lstlisting}
+
+\subsection{Connected components}
+\label{subsec:pat-components}
+Count how many times you start a new DFS/BFS from an unvisited vertex, or run
+Union--Find over all edges and count roots. On a grid, each unvisited land cell
+starts a flood.
+
+\textbf{Trigger:} number of provinces / islands.
+\newline
+\textbf{Complexity:} $O(V+E)$.
+
+\begin{lstlisting}[language=C++]
+int numIslands(std::vector<std::vector<char>>& grid) {
+    int n = (int)grid.size(), m = (int)grid[0].size(), count = 0;
+    std::function<void(int,int)> flood = [&](int r, int c) {
+        if (r < 0 || c < 0 || r >= n || c >= m || grid[r][c] != '1') return;
+        grid[r][c] = '0';
+        flood(r+1,c); flood(r-1,c); flood(r,c+1); flood(r,c-1);
+    };
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < m; ++j)
+            if (grid[i][j] == '1') { ++count; flood(i, j); }
+    return count;
+}
+\end{lstlisting}
+
+\subsection{Cycle detection}
+\label{subsec:pat-graph-cycle}
+Undirected: DFS with parent tracking, or Union--Find on edges (unite fails $\Rightarrow$
+cycle). Directed: three-colour DFS (GRAY = on stack) or fail Kahn's algorithm
+when leftover nodes remain.
+
+\textbf{Trigger:} detect cycle in undirected / directed graphs.
+\newline
+\textbf{Complexity:} $O(V+E)$.
+
+\begin{lstlisting}[language=C++]
+bool hasCycleUndirected(const std::vector<std::vector<int>>& g) {
+    int n = (int)g.size();
+    std::vector<char> seen(n);
+    std::function<bool(int,int)> dfs = [&](int u, int parent) {
+        seen[u] = 1;
+        for (int v : g[u]) {
+            if (v == parent) continue;
+            if (seen[v] || dfs(v, u)) return true;
+        }
+        return false;
+    };
+    for (int i = 0; i < n; ++i)
+        if (!seen[i] && dfs(i, -1)) return true;
+    return false;
+}
+\end{lstlisting}
+
+\subsection{Topological sort}
+\label{subsec:pat-topo}
+Only on DAGs. Kahn: compute indegrees, queue zeros, peel layers. DFS: push nodes
+after exploring outbound edges, then reverse. If you cannot order all vertices,
+a cycle exists.
+
+\textbf{Trigger:} course schedule, build order, task dependencies.
+\newline
+\textbf{Complexity:} $O(V+E)$.
+
+\begin{lstlisting}[language=C++]
+std::vector<int> topoKahn(int n, const std::vector<std::pair<int,int>>& edges) {
+    std::vector<std::vector<int>> g(n);
+    std::vector<int> indeg(n);
+    for (auto [u, v] : edges) { g[u].push_back(v); ++indeg[v]; }
+    std::queue<int> q;
+    for (int i = 0; i < n; ++i) if (!indeg[i]) q.push(i);
+    std::vector<int> order;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        order.push_back(u);
+        for (int v : g[u]) if (--indeg[v] == 0) q.push(v);
+    }
+    if ((int)order.size() != n) return {};  // cycle
+    return order;
+}
+\end{lstlisting}
+
+\subsection{Union--Find (DSU)}
+\label{subsec:pat-uf}
+Maintain disjoint sets with path compression and union by rank. Ideal for
+dynamic connectivity, redundant edges, and Kruskal's MST.
+
+\par\noindent\textbf{Why it works (amortized):} path compression flattens trees
+on \texttt{find}; union by rank keeps them shallow. Over a sequence of ops the
+\emph{amortized} cost is effectively constant (inverse-Ackermann); interview
+speak: ``almost $O(1)$ amortized per op''
+(Section~\ref{subsec:amortized-vs-average}).
+
+\textbf{Trigger:} dynamic connectivity, redundant connection, Kruskal.
+\newline
+\textbf{Complexity:} almost $O(1)$ per op amortized.
+
+\begin{lstlisting}[language=C++]
+struct DSU {
+    std::vector<int> p, r;
+    DSU(int n) : p(n), r(n, 0) { std::iota(p.begin(), p.end(), 0); }
+    int find(int x) { return p[x] == x ? x : p[x] = find(p[x]); }
+    bool unite(int a, int b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        if (r[a] < r[b]) std::swap(a, b);
+        p[b] = a;
+        if (r[a] == r[b]) ++r[a];
+        return true;
+    }
+};
+\end{lstlisting}
+
+\subsection{Shortest paths}
+\label{subsec:pat-shortest}
+Pick by edge weights: unweighted $\rightarrow$ BFS; non-negative weights
+$\rightarrow$ Dijkstra with a binary heap
+(\textbf{Dijkstra requires non-negative edge weights});
+negative edges $\rightarrow$ Bellman--Ford
+(and say why Dijkstra would be wrong). Interview sketches usually stop at
+Dijkstra + BFS.
+
+\textbf{Trigger:} distances with / without weights.
+\newline
+\textbf{Complexity:} BFS $O(V+E)$; Dijkstra $O((V+E)\log V)$ with a binary heap.
+
+\begin{lstlisting}[language=C++]
+std::vector<long long> dijkstra(int src,
+        const std::vector<std::vector<std::pair<int,int>>>& g) {
+    const long long INF = (1LL << 62);
+    std::vector<long long> dist(g.size(), INF);
+    using Node = std::pair<long long,int>;
+    std::priority_queue<Node, std::vector<Node>, std::greater<>> pq;
+    dist[src] = 0;
+    pq.push({0, src});
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d != dist[u]) continue;
+        for (auto [v, w] : g[u]) {
+            if (dist[v] > d + w) {
+                dist[v] = d + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+    return dist;
+}
+\end{lstlisting}
+
+\section{Heaps}
+\label{sec:pat-heaps}
+\texttt{std::priority\char`_queue} is a max-heap by default; use
+\texttt{greater<>} for a min-heap. Heaps shine when you repeatedly need the
+current best among a changing candidate set.
+
+\subsection{Top-$K$}
+\label{subsec:pat-topk}
+Keep a size-$k$ min-heap of the best candidates so far (or max-heap of size $k$
+for the smallest $k$). Frequency top-$K$ first counts, then heapifies the map.
+
+\par\noindent\textbf{Why it works:} the heap root is the weakest member of the
+current top-$K$; if a new value beats it, replace. You never need more than $k$
+candidates, so each of $n$ items costs $O(\log k)$.
+
+\textbf{Trigger:} $k$ largest / most frequent.
+\newline
+\textbf{Complexity:} $O(n\log k)$.
+
+\begin{lstlisting}[language=C++]
+std::vector<int> topKFrequent(const std::vector<int>& a, int k) {
+    std::unordered_map<int, int> freq;
+    for (int x : a) ++freq[x];
+    using P = std::pair<int,int>;  // freq, value
+    std::priority_queue<P, std::vector<P>, std::greater<>> pq;
+    for (auto [val, f] : freq) {
+        pq.push({f, val});
+        if ((int)pq.size() > k) pq.pop();
+    }
+    std::vector<int> out;
+    while (!pq.empty()) { out.push_back(pq.top().second); pq.pop(); }
+    return out;
+}
+\end{lstlisting}
+
+\subsection{K-way merge}
+\label{subsec:pat-kway}
+Merge $k$ sorted sequences by storing the current head of each in a min-heap
+keyed by value (plus list id / index). Pop the global minimum, push that list's
+next element. Total $O(N\log k)$ for $N$ output elements.
+
+\textbf{Trigger:} merge $k$ sorted lists / arrays.
+\newline
+\textbf{Complexity:} $O(N\log k)$.
+
+\begin{lstlisting}[language=C++]
+std::vector<int> mergeKSorted(const std::vector<std::vector<int>>& lists) {
+    using T = std::tuple<int,int,int>;  // value, list, index
+    std::priority_queue<T, std::vector<T>, std::greater<>> pq;
+    for (int i = 0; i < (int)lists.size(); ++i)
+        if (!lists[i].empty()) pq.push({lists[i][0], i, 0});
+    std::vector<int> out;
+    while (!pq.empty()) {
+        auto [val, li, idx] = pq.top(); pq.pop();
+        out.push_back(val);
+        if (idx + 1 < (int)lists[li].size())
+            pq.push({lists[li][idx + 1], li, idx + 1});
+    }
+    return out;
+}
+\end{lstlisting}
+
+\subsection{Running median}
+\label{subsec:pat-median}
+Two heaps: max-heap for the lower half, min-heap for the upper half. Rebalance
+so sizes differ by at most one; the median is the top of the larger half (or the
+average of both tops).
+
+\textbf{Trigger:} median from data stream.
+\newline
+\textbf{Complexity:} $O(\log n)$ per insertion.
+
+\begin{lstlisting}[language=C++]
+struct MedianFinder {
+    std::priority_queue<int> low;  // max-heap
+    std::priority_queue<int, std::vector<int>, std::greater<>> high;
+    void addNum(int x) {
+        if (low.empty() || x <= low.top()) low.push(x); else high.push(x);
+        if ((int)low.size() > (int)high.size() + 1) {
+            high.push(low.top()); low.pop();
+        } else if ((int)high.size() > (int)low.size()) {
+            low.push(high.top()); high.pop();
+        }
+    }
+    double findMedian() const {
+        if (low.size() > high.size()) return low.top();
+        return 0.5 * (low.top() + high.top());
+    }
+};
+\end{lstlisting}
+
+\subsection{Scheduling}
+\label{subsec:pat-heap-sched}
+When events compete for a resource (meeting rooms, CPU tasks), a heap of
+end times or remaining work lets you always pick the earliest-free room or
+highest-priority job. Sort arrivals first; the heap tracks active state.
+
+\textbf{Trigger:} meeting rooms II, task scheduler with cooldown.
+\newline
+\textbf{Complexity:} typically $O(n\log n)$.
+
+\begin{lstlisting}[language=C++]
+int minMeetingRooms(std::vector<std::pair<int,int>> v) {
+    std::sort(v.begin(), v.end());
+    std::priority_queue<int, std::vector<int>, std::greater<>> end;  // end times
+    for (auto [s, e] : v) {
+        // Reuse the room that becomes free earliest, if available.
+        if (!end.empty() && end.top() <= s) end.pop();
+        end.push(e);
+    }
+    return (int)end.size();
+}
+\end{lstlisting}
+
+\section{Backtracking}
+\label{sec:pat-backtracking}
+The skeleton is always: choose $\rightarrow$ explore $\rightarrow$ unchoose.
+Prune as soon as a partial solution cannot lead to a valid complete one.
+
+\subsection{Subsets}
+\label{subsec:pat-subsets}
+For each index, either skip or take the element (then pop). Equivalent bit masks
+iterate $0 .. 2^n-1$. Output size dominates the complexity.
+
+\textbf{Trigger:} power set, subset-sum variants.
+\newline
+\textbf{Complexity:} $O(2^n\cdot n)$ output-sensitive.
+
+\begin{lstlisting}[language=C++]
+void subsetsDfs(int i, std::vector<int>& cur, const std::vector<int>& a,
+                std::vector<std::vector<int>>& out) {
+    if (i == (int)a.size()) { out.push_back(cur); return; }
+    subsetsDfs(i + 1, cur, a, out);          // skip
+    cur.push_back(a[i]);
+    subsetsDfs(i + 1, cur, a, out);          // take
+    cur.pop_back();
+}
+\end{lstlisting}
+
+\subsection{Permutations}
+\label{subsec:pat-perms}
+Swap the current position with each candidate to the right, recurse, then swap
+back. A \texttt{used[]} array with a path vector is equivalent and often clearer
+when duplicates need skipping.
+
+\textbf{Trigger:} all orderings of a collection.
+\newline
+\textbf{Complexity:} $O(n\cdot n!)$.
+
+\begin{lstlisting}[language=C++]
+void permuteDfs(int i, std::vector<int>& a,
+                std::vector<std::vector<int>>& out) {
+    if (i == (int)a.size()) { out.push_back(a); return; }
+    for (int j = i; j < (int)a.size(); ++j) {
+        std::swap(a[i], a[j]);
+        permuteDfs(i + 1, a, out);
+        std::swap(a[i], a[j]);
+    }
+}
+\end{lstlisting}
+
+\subsection{Combinations}
+\label{subsec:pat-combs}
+Choose $k$ of $n$: recurse with a \texttt{start} index so order inside a
+combination does not duplicate. Same prune opportunities as subset-sum when a
+target bound exists.
+
+\textbf{Trigger:} choose $k$ elements, combination sum.
+\newline
+\textbf{Complexity:} $O\!\left(\binom{n}{k}\cdot k\right)$ output-sensitive.
+
+\begin{lstlisting}[language=C++]
+void combineDfs(int start, int k, std::vector<int>& cur,
+                int n, std::vector<std::vector<int>>& out) {
+    if ((int)cur.size() == k) { out.push_back(cur); return; }
+    for (int x = start; x <= n; ++x) {
+        cur.push_back(x);
+        combineDfs(x + 1, k, cur, n, out);
+        cur.pop_back();
+    }
+}
+\end{lstlisting}
+
+\subsection{Pruning}
+\label{subsec:pat-prune}
+Before recursing, abandon branches that cannot succeed: partial sum already
+exceeds target, remaining slots cannot fill the deficit, or a placement attacks
+an existing queen. Pruning does not change the worst-case class but dominates
+practical runtime.
+
+\textbf{Trigger:} combination sum, N-queens, sudoku.
+\newline
+\textbf{Complexity:} still exponential worst case; much less work with tight cuts.
+
+\begin{lstlisting}[language=C++]
+void comboSum(int start, int remain, std::vector<int>& cur,
+              const std::vector<int>& a,
+              std::vector<std::vector<int>>& out) {
+    if (remain == 0) { out.push_back(cur); return; }
+    for (int i = start; i < (int)a.size(); ++i) {
+        if (a[i] > remain) break;          // prune (a sorted)
+        cur.push_back(a[i]);
+        comboSum(i, remain - a[i], cur, a, out);  // reuse allowed
+        cur.pop_back();
+    }
+}
+\end{lstlisting}
+
+\section{Dynamic Programming}
+\label{sec:pat-dp}
+Name the \highlight{state}, the \highlight{transition}, and the \highlight{base cases}
+before writing loops. Memoization and tabulation solve the same DAG of subproblems.
+
+\subsection{Memoization}
+\label{subsec:pat-memo}
+Top-down: recurse on the natural state; cache results in a map or array keyed by
+arguments. Easiest when the recurrence is obvious and many states are unused.
+
+\textbf{Trigger:} overlapping subproblems stated recursively.
+\newline
+\textbf{Complexity:} number of states $\times$ work per transition.
+
+\begin{lstlisting}[language=C++]
+int fib(int n, std::vector<int>& memo) {
+    if (n <= 1) return n;
+    if (memo[n] != -1) return memo[n];
+    return memo[n] = fib(n - 1, memo) + fib(n - 2, memo);
+}
+\end{lstlisting}
+
+\subsection{Tabulation}
+\label{subsec:pat-tab}
+Bottom-up: allocate the DP table and fill in an order that respects dependencies.
+Usually less recursion overhead and clearer $O(1)$ rolling-array optimisations.
+
+\textbf{Trigger:} same problems as memo, when you want iterative control.
+\newline
+\textbf{Complexity:} same as memo on the full state space.
+
+\begin{lstlisting}[language=C++]
+int fibTab(int n) {
+    if (n <= 1) return n;
+    int a = 0, b = 1;
+    for (int i = 2; i <= n; ++i) {
+        int c = a + b;
+        a = b; b = c;
+    }
+    return b;
+}
+\end{lstlisting}
+
+\subsection{1D / 2D DP}
+\label{subsec:pat-1d2d}
+\begin{itemize}
+    \item \textbf{1D:} state is an index or capacity --- climbing stairs, house robber,
+          coin change (unbounded knapsack flavour).
+    \item \textbf{2D:} state is a pair $(i,j)$ --- grid paths, LCS, edit distance.
+\end{itemize}
+\par\noindent\textbf{Interview tip:} speak state $\rightarrow$ transition $\rightarrow$
+base cases, then code.
+
+\begin{lstlisting}[language=C++]
+// 1D: fewest coins for amount (unbounded)
+int coinChange(const std::vector<int>& coins, int amount) {
+    std::vector<int> dp(amount + 1, amount + 1);
+    dp[0] = 0;
+    for (int x = 1; x <= amount; ++x)
+        for (int c : coins)
+            if (c <= x) dp[x] = std::min(dp[x], dp[x - c] + 1);
+    return dp[amount] > amount ? -1 : dp[amount];
+}
+
+// 2D: unique paths in an m x n grid (move right/down only)
+int uniquePaths(int m, int n) {
+    std::vector<std::vector<int>> dp(m, std::vector<int>(n, 1));
+    for (int i = 1; i < m; ++i)
+        for (int j = 1; j < n; ++j)
+            dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+    return dp[m - 1][n - 1];
+}
+\end{lstlisting}
+
+\section{Where C++ / systems interview topics live}
+\label{sec:pat-see-also}
+This chapter is algorithms only. C++ and systems screen topics sit elsewhere:
+\begin{itemize}
+    \item RAII, Rule of 0/5, move, ownership --- Chapters~\ref{chap:c++},
+          \ref{chap:idioms}, \ref{chap:smartpoint}.
+    \item Containers, iterator invalidation, \texttt{reserve}, \texttt{string\char`_view},
+          hash \texttt{find} cost --- Chapter~\ref{chap:containers}.
+    \item Stack vs heap, allocators, pools --- Chapter~\ref{chap:memmag}.
+    \item Cache locality, false sharing --- Chapter~\ref{chap:cacheperformance}.
+    \item Mutex, atomics, memory ordering, CVs, lock-free ---
+          Chapters~\ref{chap:concurrency}, \ref{chap:memorymodel}.
+    \item Worst / average / amortized --- Section~\ref{sec:time-complexity}.
+\end{itemize}
+
+\section{Interview Drill Sheet}
+\label{sec:pat-drill}
+Say aloud, then code once without notes:
+\begin{enumerate}
+    \item Two Sum (hash complement).
+    \item Valid parentheses (stack).
+    \item Merge intervals.
+    \item Binary search first/last position.
+    \item Linked-list cycle (Floyd).
+    \item Sliding-window maximum (mono deque); optionally also longest substring
+          with $\le k$ distinct.
+    \item Top-$K$ frequent (heap or \texttt{nth\char`_element}).
+    \item Subsets (backtracking).
+\end{enumerate}
+Then add tree BFS level-order and one DP (coin change or unique paths).
+
+\par\noindent\textbf{Reminder:} the catalog is not a substitute for a timer.
+Qube-style tests fail from speed and bugs, not from missing a section title.

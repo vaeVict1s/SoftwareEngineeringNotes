@@ -73,6 +73,11 @@ Choice guidance and a few idioms follow each family.
 Growth may reallocate: all iterators/references are invalidated when capacity changes.
 Prefer \texttt{reserve} when the final size is known (fewer allocations; ties to 
 Chapter~\ref{chap:memmag} and Section~\ref{sec:avoiding-allocations}).
+\newline
+\texttt{push\char`_back} is \highlight{amortized} $O(1)$: a single call may copy
+the whole buffer ($\Theta(n)$), but $n$ pushes with geometric growth cost $O(n)$
+total. That is \textbf{not} the same as average-case hashing --- see
+Section~\ref{subsec:amortized-vs-average}.
 
 \begin{lstlisting}[language=C++]
 std::vector<int> v;
@@ -193,10 +198,25 @@ Good average $O(1)$ needs a decent hash and not-too-high load factor.
 (or adversarial keys) can degrade toward $O(n)$ --- that is why ordered trees stay 
 attractive for predictable latency.
 
+\toclessnparagraph{\texttt{unordered\char`_map::find} complexity}
+\label{subsec:unordered-find-complexity}
+\texttt{find} / \texttt{insert} / \texttt{erase}:
+\begin{itemize}
+    \item \textbf{Average / expected:} $O(1)$ --- hash to a bucket, then scan a
+          short chain when the load factor is healthy.
+    \item \textbf{Worst case:} $O(n)$ --- many keys collide in one bucket
+          (or a rehash is forced elsewhere in the API).
+\end{itemize}
+So ``hash map lookup is $O(1)$'' in interview talk means \highlight{expected}
+$O(1)$, not a hard guarantee. Contrast with \texttt{map::find}: always
+$O(\log n)$. Vocabulary: Section~\ref{subsec:amortized-vs-average}.
+
 \subsection{Complexity cheat sheet}
 \label{subsec:container-complexity}
 Amortized / typical complexities interviewers expect (unique-key associative; 
 \texttt{multi*} similar). ``Random access'' means \texttt{operator[]}/iterator $+\,k$.
+Average-case (hashing) $\neq$ amortized (rare realloc / rebalance) ---
+Section~\ref{subsec:amortized-vs-average}.
 
 \begin{center}
 \footnotesize

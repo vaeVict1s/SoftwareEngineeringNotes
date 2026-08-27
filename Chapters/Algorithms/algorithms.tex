@@ -2,6 +2,7 @@
 \label{chap:algorithms}
 
 \section{Time Complexity}
+\label{sec:time-complexity}
 Time complexity for an algorithm has three different facets
 \begin{itemize}
     \item The \highlightit{worst-case} complexity of the algorithm is 
@@ -14,6 +15,34 @@ Time complexity for an algorithm has three different facets
           the algorithm, which is the function defined by the average 
           number of steps over all instances of size $n$. 
 \end{itemize}
+
+\subsection{Amortized vs average-case}
+\label{subsec:amortized-vs-average}
+These two phrases sound alike and are \textbf{not} the same.
+
+\begin{itemize}
+    \item \textbf{Average-case / expected} (e.g.\ \texttt{unordered\char`_map::find}):
+          the bound is over a \highlight{distribution of inputs} (or a random
+          hash). With a good hash, most lookups cost constant time; a bad
+          collision pattern can make one lookup $\Theta(n)$. The
+          \emph{expected} cost per op is $O(1)$; the \emph{worst} single op
+          is $O(n)$. See Chapter~\ref{chap:containers}.
+    \item \textbf{Amortized} (e.g.\ \texttt{vector::push\char`_back}):
+          the bound is over a \highlight{sequence of operations} on one
+          structure. One \texttt{push\char`_back} may reallocate and cost
+          $\Theta(n)$; most cost $\Theta(1)$. With geometric growth, $n$
+          pushes cost $O(n)$ \emph{total}, so the \highlight{amortized}
+          cost per push is $O(1)$. A single push can still be $\Theta(n)$
+          worst-case.
+\end{itemize}
+
+\par\noindent\textbf{Interview tip:} say which kind you mean.
+``\texttt{find} is expected $O(1)$, worst $O(n)$'' is about hashing;
+``\texttt{push\char`_back} is amortized $O(1)$'' is about spreading rare
+reallocations across many cheap inserts. Monotonic stack / Union--Find
+``amortized $O(1)$ per index'' uses the same idea: each element is charged
+a constant number of expensive pops over the whole run.
+
 \newpage
 \subsection{Big O notation}
 There exist constants $c > 0$ and $n_0$ such that
