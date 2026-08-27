@@ -13,8 +13,16 @@
         
     \dictentry{ADT}{Abstract Data Type}
 
+    \dictentry{AF\_XDP}{Address Family XDP: Linux socket type for high-performance 
+    packet I/O with zero-copy options; a kernel-bypass-adjacent path 
+    (Chapter~\ref{chap:kernelbypass}).}
+
     \dictentry{Allocate}{to assign, allot, distribute, or set apart for 
     a particular purpose}
+
+    \dictentry{Allocator (C++)}{type that satisfies the Allocator requirements and 
+    supplies \texttt{allocate}/\texttt{deallocate} for containers; PMR variants use 
+    a runtime \texttt{memory\char`_resource} (Section~\ref{subsec:custom-allocators}).}
 
     \dictentry{Atomic}{Objects of atomic types are the only C++ objects 
     that are free from data races; that is, if one thread writes to an 
@@ -33,10 +41,19 @@
     of the branching strategy, which could be different depending on 
     the specific svn used.}
 
+    \dictentry{Busy polling}{spinning on I/O or a queue instead of sleeping 
+    (e.g.\ \texttt{SO\char`_BUSY\char`_POLL}, epoll timeout 0); lower latency, 
+    higher CPU use (Chapter~\ref{chap:lowlatency}).}
+
 \end{multicols*}
 
 \subsection{C}
 \begin{multicols*}{2}
+
+    \dictentry{CAS}{Compare-And-Swap: atomic read-modify-write that updates a 
+    location only if it still holds an expected value 
+    (\texttt{compare\char`_exchange\char`_*} in C++); basis of many lock-free 
+    structures (Chapter~\ref{chap:memorymodel}).}
 
     \dictentry{constexpr}{a C++ specifier which declares that it is 
     possible to evaluate the value of the function or variable 
@@ -48,22 +65,34 @@
 
 \begin{multicols*}{2}
 
-    \dictentry{data race}{}
+    \dictentry{data race}{undefined behavior in C++ when two threads access the 
+    same memory location, at least one access is a write, and the accesses are 
+    not ordered by the memory model (Chapter~\ref{chap:memorymodel}).}
 
     \dictentry{deadlock}{any situation in which no member of some group 
     of entities can proceed because each waits for another member, 
     including itself, to take action, such as sending a message or, 
     more commonly, releasing a lock}
 
-    \dictentry{Dependency injection}{\href{https://en.wikipedia.org/wiki/Dependency_injection}{wikipedia}}
+    \dictentry{Dependency injection}{design technique where a component receives 
+    its dependencies from the outside (constructor/setter/framework) instead of 
+    creating them itself; improves testability and decoupling.}
+
+    \dictentry{DPDK}{Data Plane Development Kit: user-space packet processing 
+    with poll-mode drivers; a common kernel-bypass stack 
+    (Chapter~\ref{chap:kernelbypass}).}
 
     \dictentry{duck typing}{a concept related to \textit{dynamic typing}, 
     where the type or the class of an object is less important than the 
     methods it defines}
     
-    \dictentry{double dispatch}{\href{https://en.wikipedia.org/wiki/Double_dispatch}{wikipedia}}
+    \dictentry{double dispatch}{choosing a method from the runtime types of 
+    \emph{two} objects (e.g.\ Visitor): a single virtual call is not enough; 
+    typically one virtual on the element then a virtual on the visitor.}
     
-    \dictentry{dynamic binding}{}
+    \dictentry{dynamic binding}{selecting which function body runs at run time 
+    (typically via \texttt{virtual} functions); opposed to static / early binding 
+    (Section~\ref{sec:cpp-polymorphism}).}
 
 \end{multicols*}
 
@@ -72,10 +101,25 @@
 
     \dictentry{encapsulation}{preventing unauthorized access to some piece of information or functionality}
 
+    \dictentry{epoll}{Linux scalable I/O event notification 
+    (\texttt{epoll\char`_create}/\texttt{ctl}/\texttt{wait}); preferred over 
+    \texttt{select}/\texttt{poll} for many file descriptors 
+    (Chapter~\ref{chap:eventdrivenio}).}
+
 \end{multicols*}
 
-%~ \subsection{F}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{F}
+\begin{multicols*}{2}
+
+    \dictentry{False sharing}{performance pathology where threads update different 
+    variables on the same cache line, causing coherence ping-pong 
+    (Chapter~\ref{chap:cacheperformance}).}
+
+    \dictentry{FIX}{Financial Information eXchange: tag-value messaging standard 
+    for many order/broker links; not usually the colocated matching-engine hot path 
+    (Section~\ref{sec:market-wire-protocols}).}
+
+\end{multicols*}
 
 %~ \subsection{G}
 %~ \begin{multicols*}{2}\end{multicols*}
@@ -98,35 +142,77 @@
     projects often expressing a special feature in one or more 
     programming languages or libraries.}
 
+    \dictentry{isolcpus}{kernel boot parameter that removes CPUs from the general 
+    scheduler balance set; used with pinning for dedicated HFT cores 
+    (Chapter~\ref{chap:lowlatency}).}
+
 \end{multicols*}
 
 %~ \subsection{J}
 %~ \begin{multicols*}{2}\end{multicols*}
 
-%~ \subsection{K}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{K}
+\begin{multicols*}{2}
 
-%~ \subsection{L}
-%~ \begin{multicols*}{2}\end{multicols*}
+    \dictentry{Kernel bypass}{moving packet path out of the kernel networking 
+    stack (DPDK, OpenOnload, AF\_XDP, \ldots) to cut syscall/copy overhead 
+    (Chapter~\ref{chap:kernelbypass}).}
+
+\end{multicols*}
+
+\subsection{L}
+\begin{multicols*}{2}
+
+    \dictentry{Lock-free}{algorithm that guarantees system-wide progress even if 
+    some threads are delayed; typically built with atomics/CAS, not wait-free 
+    for every thread (Chapter~\ref{chap:memorymodel}).}
+
+\end{multicols*}
 
 \subsection{M}
 \begin{multicols*}{2}
 
-    \dictentry{method chaining}{}
+    \dictentry{MESI}{Modified / Exclusive / Shared / Invalid cache-coherence 
+    protocol states (Chapter~\ref{chap:cacheperformance}).}
 
-    \dictentry{mock}{}
+    \dictentry{method chaining}{API style where setters / builders return 
+    \texttt{*this} (or a proxy) so calls can be written 
+    \texttt{obj.setA(1).setB(2)}; common in the Named Parameter idiom.}
 
-    \dictentry{most vexing parsing}{}
+    \dictentry{mmap}{POSIX call that maps files or anonymous pages into a process 
+    address space; basis for memory-mapped I/O and some shared memory 
+    (Chapter~\ref{chap:memorymapping}).}
+
+    \dictentry{mock}{test double that stands in for a dependency and records / 
+    asserts how it was used (calls, arguments); contrasts with a stub, which 
+    mostly returns canned data.}
+
+    \dictentry{most vexing parsing}{C++ grammar ambiguity where a declaration 
+    looks like an object definition but is parsed as a function declaration 
+    (e.g.\ \texttt{TimeKeeper t(Timer());}); fix with extra parentheses or braces.}
 \end{multicols*}
 
-%~ \subsection{N}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{N}
+\begin{multicols*}{2}
+
+    \dictentry{nohz\_full}{kernel boot option reducing timer ticks on isolated CPUs; 
+    often paired with \texttt{isolcpus} / \texttt{rcu\char`_nocbs} 
+    (Chapter~\ref{chap:lowlatency}).}
+
+    \dictentry{NUMA}{Non-Uniform Memory Access: multi-socket systems where local 
+    DRAM is faster than remote; place threads, memory, and NICs carefully 
+    (Chapter~\ref{chap:numa}).}
+
+\end{multicols*}
 
 \subsection{O}
 
 \begin{multicols*}{2}
 
-    \dictentry{}{region of storage with associated semantics}
+    \dictentry{OpenOnload}{Solarflare/Xilinx kernel-bypass stack that accelerates 
+    sockets in user space (Chapter~\ref{chap:kernelbypass}).}
+
+    \dictentry{object}{region of storage with associated semantics}
 
     \dictentry{Overloading}{a compile time polymorphism achieved 
     specifying more than one function with the same name but different 
@@ -144,6 +230,14 @@
 
     \dictentry{Parameterized type}
               {another definition for \highlight{class templates}.}
+
+    \dictentry{PMR}{Polymorphic Memory Resource (\texttt{std::pmr}): runtime-selected 
+    \texttt{memory\char`_resource} behind containers 
+    (Section~\ref{subsec:custom-allocators}).}
+
+    \dictentry{poll}{POSIX I/O multiplexer; improves on \texttt{select} but still 
+    scales worse than \texttt{epoll} for large FD sets 
+    (Chapter~\ref{chap:eventdrivenio}).}
 
     \dictentry{Polymorphysm}
               {ability of different objects to be accessed by a common 
@@ -174,14 +268,24 @@
 
 \subsection{S}
 \begin{multicols*}{2}
+
+    \dictentry{select}{classic POSIX I/O multiplexer with an FD-count limit and 
+    $O(n)$ scans; prefer \texttt{poll}/\texttt{epoll} for scale 
+    (Chapter~\ref{chap:eventdrivenio}).}
     
-    \dictentry{static typing}{}
+    \dictentry{static typing}{types are checked at compile time; variables and 
+    expressions have types known to the compiler (as in C++), opposed to 
+    dynamic typing where much checking happens at run time.}
     
     \dictentry{SFINAE}{acronym for \textbf{Substitution} \textbf{Failure} 
     \textbf{Is} \textbf{Not} \textbf{An} \textbf{Error}, a technique 
     used in template programming which discards the specialization from 
     the overloaded set avoiding a compile error, when substituting the 
     explicitly specified or deduced type for the template parameter fails.}
+
+    \dictentry{SPSC}{Single-Producer Single-Consumer queue (often a ring buffer): 
+    lock-free handoff between exactly two threads 
+    (Section~\ref{sec:spsc-ring-buffer}).}
     
     \dictentry{Stack}{LIFO-ordered contiguous region of temporary memory 
     whose size is known to the compiler, which manages to allocate and 
@@ -190,7 +294,9 @@
     that memory is said to have been allocated on the stack, i.e. 
     stack-based memory allocation (SBMA).}
     
-    \dictentry{Stub}{}
+    \dictentry{Stub}{test double that provides canned answers to calls; lighter 
+    than a mock (which also verifies interaction). In broader software slang, 
+    also an unfinished placeholder implementation.}
 
 \end{multicols*}
 
@@ -204,6 +310,15 @@
 
     \dictentry{Test-driven Development}
               {\href{https://en.wikipedia.org/wiki/Test-driven_development}{wikipedia}}
+
+    \dictentry{TLB}{Translation Lookaside Buffer: CPU cache of 
+    virtual$\rightarrow$physical address translations 
+    (Chapter~\ref{chap:cacheperformance}).}
+
+    \dictentry{Type erasure}{hiding a concrete type behind a uniform interface 
+    (virtuals, \texttt{std::function}/\texttt{any}, or a custom eraser); related 
+    but not identical to opaque \texttt{void*} payloads 
+    (Section~\ref{subsec:type-erasure}).}
 
 \end{multicols*}
 
@@ -238,5 +353,4 @@
 
 \setboolean{@twoside}{false} 
 \pagestyle{basicstyle}
-
 

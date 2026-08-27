@@ -261,3 +261,67 @@ public:
 For low-latency hot paths, preallocate pools at startup and recycle on the 
 critical path (see Section~\ref{sec:avoiding-allocations}).
 
+\subsubsection{Custom allocators (STL and PMR)}
+\label{subsec:custom-allocators}
+Pools and arenas allocate raw bytes. A \highlight{C++ allocator} is the adaptor that 
+lets standard containers obtain that storage through a uniform interface.
+See~\cite{cppreference-allocator},~\cite{cppreference-pmr}.
+
+\toclessnparagraph{Minimal STL-style allocator}
+Modern containers mainly need \texttt{value\char`_type}, \texttt{allocate}, and 
+\texttt{deallocate} (plus equality). Sketch --- backs a \texttt{std::vector} with 
+\texttt{::operator new} (replace the body with a pool/arena in real code):
+
+\begin{lstlisting}[language=C++]
+#include <cstddef>
+#include <memory>
+#include <new>
+#include <vector>
+
+template <class T>
+struct Mallocator {
+    using value_type = T;
+
+    Mallocator() = default;
+    template <class U> Mallocator(const Mallocator<U>&) noexcept {}
+
+    T* allocate(std::size_t n) {
+        if (n > static_cast<std::size_t>(-1) / sizeof(T))
+            throw std::bad_array_new_length{};
+        return static_cast<T*>(::operator new(n * sizeof(T)));
+    }
+
+    void deallocate(T* p, std::size_t) noexcept {
+        ::operator delete(p);
+    }
+};
+
+template <class T, class U>
+bool operator==(const Mallocator<T>&, const Mallocator<U>&) { return true; }
+template <class T, class U>
+bool operator!=(const Mallocator<T>&, const Mallocator<U>&) { return false; }
+
+// std::vector<int, Mallocator<int>> v;
+\end{lstlisting}
+
+\toclessnparagraph{PMR (polymorphic memory resources)}
+C++17 \texttt{std::pmr} separates \emph{where} memory comes from 
+(\texttt{std::pmr::memory\char`_resource}: monotonic buffer, pool, new/delete) from 
+\emph{which} container type you write (\texttt{std::pmr::vector}, 
+\texttt{polymorphic\char`_allocator}). Same container spelling; swap the resource 
+behind it (e.g.\ a per-tick arena).
+
+\begin{lstlisting}[language=C++]
+#include <memory_resource>
+#include <vector>
+
+char buf[64 * 1024];
+std::pmr::monotonic_buffer_resource arena{buf, sizeof(buf)};
+std::pmr::vector<int> v{&arena};   // grows inside buf until exhausted
+\end{lstlisting}
+
+\par\noindent\textbf{Interview tip:} pool/arena = storage strategy; allocator/PMR = 
+how you \highlight{plumb} that strategy into \texttt{std::vector} and friends. On HFT 
+hot paths prefer preallocated pools; use allocators so cold/library code can share 
+them without rewriting containers.
+
