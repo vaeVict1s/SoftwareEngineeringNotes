@@ -48,6 +48,8 @@ Without them, core A could keep a stale copy while core B wrote a new value.
 
 \subsection{MESI}
 \label{subsec:mesi}
+See~\cite{intel-mesif}.
+\newline
 \highlight{MESI} is a classic write-invalidate protocol. Each cached line is in one of:
 \begin{itemize}
     \item \highlightbf{M (Modified)} --- this core has the only copy; it is dirty (differs from DRAM).
@@ -58,12 +60,36 @@ Without them, core A could keep a stale copy while core B wrote a new value.
 A write typically requires \highlight{Exclusive} or \highlight{Modified} ownership: 
 other cores' copies are invalidated first.
 
+\begin{figure}[H]
+\centering
+\input{./Chapters/CachePerformance/TikzInclude/mesi_protocol.tex}
+\caption{MESI states (sketch). Arrows are common transitions, not the full protocol.}
+\label{fig:mesi-protocol}
+\end{figure}
+
+\toclessnparagraph{Walkthrough (two cores, one line)}
+\begin{enumerate}
+    \item Both start \textbf{I}. Core~A reads $\Rightarrow$ line arrives in \textbf{E} on A.
+    \item Core~B reads the same address $\Rightarrow$ both hold \textbf{S} (A drops from E to S).
+    \item Core~A writes $\Rightarrow$ it must \highlight{invalidate} B's copy (B $\rightarrow$ \textbf{I}); 
+          A's line becomes \textbf{M}.
+    \item Core~B reads again $\Rightarrow$ miss; it may force A to write back, then both can end in 
+          \textbf{S} (or B gets a fresh copy and A is demoted). Exact bus messages vary by CPU; 
+          the interview point is \highlight{invalidation + refetch cost}.
+\end{enumerate}
+That bounce is what you feel as \highlight{coherence traffic}. False sharing 
+(Section~\ref{sec:false-sharing}) is the same mechanism when the ``shared'' line 
+holds unrelated variables.
+
 \subsubsection{Cache Invalidation}
 \label{subsec:cache-invalidation}
 When core A writes a line held as Shared elsewhere, it sends 
 \highlight{invalidations}. Other cores mark their copies Invalid. 
 Their next access \highlight{misses} and must refetch. 
 Frequent invalidations across cores = \highlight{coherence traffic} and latency spikes.
+
+\par\noindent\textbf{Interview tip:} name the four letters, then walk one write that 
+turns Shared copies into Invalid --- that is the link to false sharing.
 
 \section{False Sharing}
 \label{sec:false-sharing}

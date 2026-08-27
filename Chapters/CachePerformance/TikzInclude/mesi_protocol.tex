@@ -1,0 +1,50 @@
+% MESI states (externalized). Legend is a 2-column tabular so 2/4/6 line up.
+\begin{minipage}{\textwidth}
+\centering
+\tikzfig{mesi_protocol}
+\begin{tikzpicture}[
+    font=\sffamily\footnotesize,
+    state/.style={
+        draw=black,
+        thick,
+        circle,
+        minimum size=1.05cm,
+        align=center,
+        inner sep=1pt
+    },
+    arr/.style={-{Stealth[length=2mm]}, thick},
+    lab/.style={font=\sffamily\scriptsize, text=oblivioncomment, align=center},
+    tag/.style={font=\sffamily\tiny\bfseries, fill=white, inner sep=1.5pt}
+]
+    \node[state, fill=myblueiii]  (M) at (0,2.6) {\textbf{M}};
+    \node[state, fill=whitesmoke] (E) at (4.0,2.6) {\textbf{E}};
+    \node[state, fill=whitesmoke] (S) at (4.0,0) {\textbf{S}};
+    \node[state, fill=lightgray]  (I) at (0,0) {\textbf{I}};
+
+    \node[lab, above=0.28cm of M] {Modified\\{\scriptsize dirty, unique}};
+    \node[lab, above=0.28cm of E] {Exclusive\\{\scriptsize clean, unique}};
+    \node[lab, below=0.36cm of S] {Shared\\{\scriptsize clean, copies OK}};
+    \node[lab, below=0.36cm of I] {Invalid};
+
+    \draw[arr] (I) -- node[pos=0.5, above left=1pt and 2pt, tag] {1} (E);
+    \draw[arr] (E) -- node[pos=0.5, above=5pt, tag] {2} (M);
+    \draw[arr] (E) -- node[pos=0.5, right=5pt, tag] {3} (S);
+    \draw[arr] (S) -- node[pos=0.5, below=5pt, tag] {4} (I);
+    \draw[arr] (M) -- node[pos=0.5, left=5pt, tag] {5} (I);
+    % 6: toward S (down/right of the crossing), still on the dashed bend
+    \draw[arr, dashed] (S) to[bend left=22]
+        node[pos=0.28, below right=1pt and 2pt, tag] {6} (M);
+
+\end{tikzpicture}
+
+\vspace{0.35em}
+{\sffamily\scriptsize\color{oblivioncomment}%
+\begin{tabular}{@{}r@{\,:\,}p{5.4cm}@{\hspace{1.2em}}r@{\,:\,}p{5.4cm}@{}}
+1 & read miss / allocate (I$\rightarrow$E) &
+2 & local write (E$\rightarrow$M) \\
+3 & other core reads (E$\rightarrow$S) &
+4 & remote write / invalidate (S$\rightarrow$I) \\
+5 & writeback + invalidate (M$\rightarrow$I) &
+6 & write while Shared (dashed; invalidate others) \\
+\end{tabular}}
+\end{minipage}

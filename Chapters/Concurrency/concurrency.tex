@@ -441,6 +441,41 @@ void inc() {
 }
 \end{lstlisting}
 
+\toclessnparagraph{Shared mutex (readers / writers)}
+\label{npar:shared-mutex}
+See~\cite{cppreference-shared-mutex}.
+\newline
+\texttt{std::shared\char`_mutex} allows \highlight{many concurrent readers} or 
+\highlight{one writer}, not both at once:
+\begin{itemize}
+    \item Readers take \texttt{std::shared\char`_lock} (shared ownership).
+    \item Writers take \texttt{std::unique\char`_lock} (exclusive ownership).
+\end{itemize}
+Use when reads dominate and the critical section is non-trivial. Skip it when 
+writers are frequent or the work under the lock is tiny --- writer starvation 
+and lock overhead can make a plain \texttt{std::mutex} faster.
+
+\begin{lstlisting}[language=C++]
+#include <mutex>
+#include <shared_mutex>
+
+std::shared_mutex rw;
+int config = 0;   // read often, written rarely
+
+int read_config() {
+    std::shared_lock lock(rw);   // many readers OK
+    return config;
+}
+
+void set_config(int v) {
+    std::unique_lock lock(rw);   // exclusive
+    config = v;
+}
+\end{lstlisting}
+
+\par\noindent\textbf{Interview tip:} say ``shared lock for readers, unique lock for 
+writers''; then name the trade-off (writer latency / contention vs parallel reads).
+
 \subsection{Call once}
 \vspace{-8truemm}
 \begin{table}[H]
@@ -465,8 +500,12 @@ void use() {
 \end{lstlisting}
 
 \subsection{Condition variables}
+\label{subsec:condition-variables}
 See~\cite{cppreference-condition-variable}.
 \newline
+A \texttt{std::condition\char`_variable} lets a thread \highlight{sleep until a 
+condition may be true}, instead of spinning. It is always paired with a mutex 
+and a \highlight{predicate} (the actual boolean you care about).
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
          \cline{1-2}
@@ -486,7 +525,20 @@ See~\cite{cppreference-condition-variable}.
     \end{tabularx}
 \end{table}
 
-Always wait in a loop (or with a predicate) --- spurious wakeups are allowed.
+\toclessnparagraph{Why the wait needs the mutex}
+\texttt{wait} atomically unlocks the mutex and blocks; on wake it re-locks before 
+returning. That way the predicate is always checked while holding the mutex --- 
+no lost wakeups between ``see false'' and ``go to sleep.''
+
+\toclessnparagraph{Predicate loop and spurious wakeups}
+The OS / library may wake a waiter \highlight{without} a matching 
+\texttt{notify} (\highlight{spurious wakeup}). Also, another thread may change 
+the shared state again before you run. Therefore:
+\begin{itemize}
+    \item Always re-check the predicate after wake.
+    \item Prefer \texttt{cv.wait(lock, predicate)} (loops until the predicate is true) 
+          over bare \texttt{wait(lock)}.
+\end{itemize}
 
 \begin{lstlisting}[language=C++]
 std::mutex m;
@@ -495,18 +547,24 @@ bool ready = false;
 
 void consumer() {
     std::unique_lock<std::mutex> lock(m);
+    // Equivalent loop form:
+    //   while (!ready) cv.wait(lock);
     cv.wait(lock, []{ return ready; });  // wait until predicate is true
-    // ... use data ...
+    // ... use data while still holding lock if needed ...
 }
 
 void producer() {
     {
         std::lock_guard<std::mutex> lock(m);
-        ready = true;
-    }
+        ready = true;          // mutate under the mutex
+    }                          // unlock before notify is fine (and common)
     cv.notify_one();
 }
 \end{lstlisting}
+
+\par\noindent\textbf{Interview tip:} ``mutex + predicate + \texttt{wait} with predicate 
+(or \texttt{while}); notify after updating state.'' Spurious wakeups $\Rightarrow$ never 
+assume the condition is true just because you woke up.
 
 \newpage
 \subsection{Futures}
