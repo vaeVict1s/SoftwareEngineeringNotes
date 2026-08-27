@@ -143,6 +143,90 @@ std::unordered_map<std::string, int> hist;
 hist.reserve(1024);   // buckets; can avoid rehash during fill
 \end{lstlisting}
 
+\subsection{Ordered vs unordered associative}
+\label{subsec:ordered-vs-unordered}
+Same API family, different engines. Applies to both 
+\texttt{map}/\texttt{unordered\char`_map} and \texttt{set}/\texttt{unordered\char`_set} 
+(\texttt{multi*} analogues exist either way).
+
+\begin{center}
+\small
+\begin{tabular}{|l|p{5.2cm}|p{5.2cm}|}
+\hline
+ & \textbf{Ordered} (\texttt{map}/\texttt{set}) & \textbf{Unordered} (\texttt{unordered\char`_*}) \\
+\hline
+Typical structure & Balanced tree (red--black) & Hash table (buckets) \\
+\hline
+Lookup / insert / erase & $O(\log n)$ worst-case & Avg $O(1)$; worst $O(n)$ \\
+\hline
+Iteration order & Sorted by key & Arbitrary (bucket order) \\
+\hline
+Needs from the key & Strict weak ordering (\texttt{<} / comparator) & Hash + equality \\
+\hline
+Iterator stability & Only erased nodes invalidated & Rehash invalidates iterators \\
+\hline
+Prefer when & Need order, range queries, predictable latency & Need fast exact lookup, no order \\
+\hline
+\end{tabular}
+\end{center}
+
+\par\noindent\textbf{Interview tip:} ``I need sorted keys / lower\_bound $\rightarrow$ 
+\texttt{map}/\texttt{set}. I only need exact lookup by key $\rightarrow$ 
+\texttt{unordered\char`_map}/\texttt{unordered\char`_set}.'' Mention worst-case and 
+rehash cost for hash tables.
+
+\subsection{How a hash table works (sketch)}
+\label{subsec:hash-table-sketch}
+An \texttt{unordered\char`_map}/\texttt{unordered\char`_set} is a \highlight{hash table}:
+\begin{enumerate}
+    \item Compute \texttt{hash(key)} $\rightarrow$ integer.
+    \item Map that integer to a \highlight{bucket} index (\texttt{hash \% bucket\char`_count}).
+    \item Store the element in that bucket. If two keys land in the same bucket 
+          (\highlight{collision}), the implementation chains or otherwise searches 
+          within the bucket (still correct via \texttt{key\char`_eq}).
+    \item \highlight{Load factor} $\approx$ size / bucket\_count. When it grows too high, 
+          the table \highlight{rehashes}: more buckets, elements move --- 
+          \textbf{iterators invalidated}, one-time $O(n)$ cost.
+\end{enumerate}
+Good average $O(1)$ needs a decent hash and not-too-high load factor. 
+\texttt{reserve}/\texttt{rehash} up front when you know the size. Pathological hashes 
+(or adversarial keys) can degrade toward $O(n)$ --- that is why ordered trees stay 
+attractive for predictable latency.
+
+\subsection{Complexity cheat sheet}
+\label{subsec:container-complexity}
+Amortized / typical complexities interviewers expect (unique-key associative; 
+\texttt{multi*} similar). ``Random access'' means \texttt{operator[]}/iterator $+\,k$.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Container} & \textbf{Access} & \textbf{Insert} & \textbf{Erase} & \textbf{Find} \\
+\hline
+\texttt{vector} / \texttt{array} & $O(1)$ & end amort.\ $O(1)$; middle $O(n)$ &
+  end $O(1)$; middle $O(n)$ & $O(n)$ linear \\
+\hline
+\texttt{deque} & $O(1)$ & ends amort.\ $O(1)$; middle $O(n)$ &
+  ends $O(1)$; middle $O(n)$ & $O(n)$ \\
+\hline
+\texttt{list} / \texttt{forward\char`_list} & $O(n)$ & $O(1)$ at known pos &
+  $O(1)$ at known pos & $O(n)$ \\
+\hline
+\texttt{set} / \texttt{map} & --- & $O(\log n)$ & $O(\log n)$ & $O(\log n)$ \\
+\hline
+\texttt{unordered\char`_set}/\texttt{map} & --- & avg $O(1)$ & avg $O(1)$ & avg $O(1)$ \\
+\hline
+\texttt{stack}/\texttt{queue} (adaptors) & top/front $O(1)$ & $O(1)$ & $O(1)$ & --- \\
+\hline
+\texttt{priority\char`_queue} & top $O(1)$ & $O(\log n)$ & pop $O(\log n)$ & --- \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent Iterate whole container: $O(n)$ for all of the above. 
+\texttt{unordered\char`_*} find/insert/erase worst case $O(n)$ (see above).
+
 \newpage
 \subsection{Container Adaptors}
 \label{subsec:container-adaptors}
