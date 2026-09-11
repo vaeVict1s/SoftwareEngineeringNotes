@@ -14,35 +14,91 @@ that hurts bulk throughput.
 \section{CPU Isolation}
 \label{sec:cpu-isolation}
 Assumes per-thread pinning from Section~\ref{subsec:sched-setaffinity}. 
-This section covers kernel boot parameters that isolate cores from general scheduler noise.
+This section covers kernel boot parameters and IRQ routing that isolate cores 
+from general scheduler and interrupt noise.
 \newline
 Pinning alone is not enough if the kernel still steals your core for timers, RCU callbacks, 
-or unrelated threads. Isolation makes a core \highlight{mostly yours}.
+hard IRQs, or unrelated threads. Isolation makes a core \highlight{mostly yours}: 
+each knob below removes a different class of jitter. Use them as a \highlight{set}, 
+not as independent toggles.
 
-\subsection{\texttt{isolcpus}}
+\subsection{\texttt{isolcpus}: scheduling exclusion}
 \label{subsec:isolcpus}
-Boot parameter that removes listed CPUs from the general scheduler's regular balancing pool 
-(exact semantics depend on kernel version and flags)~\cite{kernel-isolcpus}. 
-You then \texttt{sched\char`_setaffinity} your hot threads onto those CPUs.
+By default the Linux scheduler treats every online CPU as a shared worker: 
+the CFS load balancer can migrate runnable threads onto any core that looks idle. 
+\texttt{isolcpus=}~\cite{kernel-isolcpus} removes listed CPUs from that regular 
+balancing pool (exact flags and semantics depend on kernel version). 
+Those cores no longer absorb random housekeeping or application threads unless 
+you explicitly place work there with \texttt{sched\char`_setaffinity}.
 \newline
-Typical pattern: housekeeping on CPUs 0--$N$, strategy/feed on isolated CPUs $N{+}1$ onward. 
-Without also pinning IRQs and other noise away, isolation is incomplete 
-(Chapter~\ref{chap:linuxprocesses}).
+\textbf{Noise removed:} the balancer treating your core as free capacity for 
+unrelated tasks.
+\newline
+Typical pattern: housekeeping (IRQs, OS daemons, logging) on CPUs 0--$N$; 
+strategy / market-data threads pinned onto isolated CPUs $N{+}1$ onward. 
+\texttt{isolcpus} alone is incomplete --- timer ticks, RCU callbacks, and hard 
+IRQs can still hit the core (sections below).
 
-\subsection{\texttt{nohz\_full}}
+\subsection{\texttt{nohz\_full}: adaptive-ticks / tickless}
 \label{subsec:nohz-full}
-\texttt{nohz\char`_full=}~\cite{kernel-nohz} reduces scheduler timer ticks on listed CPUs when 
-only one runnable task is present --- less periodic interruption on a quiet isolated core. 
-Needs a kernel built with full dynticks support; validate on your distro. 
-Pair with \texttt{isolcpus} and a single pinned busy-loop or poll thread per core.
+The kernel normally arms a \highlight{periodic timer interrupt} on each CPU 
+(the scheduling ``tick'', historically every few milliseconds) for accounting, 
+timers, and preemption decisions. Even a single pinned busy-loop thread gets 
+interrupted by that tick --- pure jitter on a latency path.
+\newline
+\texttt{nohz\char`_full=}~\cite{kernel-nohz} enables \highlight{adaptive-ticks} 
+(also called tickless / full dynticks) on the listed CPUs: when only one runnable 
+task is present, the kernel can stop the periodic tick and wake the CPU mainly 
+for real work. Needs a kernel built with full dynticks support; validate on your distro.
+\newline
+\textbf{Noise removed:} the periodic scheduling-clock interrupt that would otherwise 
+preempt your pinned thread even when nothing else is runnable.
+\newline
+Pair with \texttt{isolcpus} and \emph{one} pinned busy-loop or poll thread per core; 
+multiple runnable tasks on the same CPU defeat the point.
 
-\subsection{\texttt{rcu\_nocbs}}
+\subsection{\texttt{rcu\_nocbs}: RCU callback offload}
 \label{subsec:rcu-nocbs}
-\texttt{rcu\char`_nocbs=}~\cite{kernel-rcu} (and related \texttt{rcu\char`_nocb\char`_poll}) moves 
-RCU callback processing off the listed CPUs onto housekeeping cores. 
-Otherwise RCU softirqs can inject jitter on your ``isolated'' CPU. 
-Treat isolation as a \highlight{set}: \texttt{isolcpus} + \texttt{nohz\char`_full} + 
+\textbf{RCU} (Read-Copy-Update) is a Linux synchronization style for read-heavy 
+shared data: readers proceed almost without locking; writers publish a new version 
+and \emph{defer} freeing the old one until every concurrent reader is done. 
+That deferred cleanup runs as \highlight{RCU callbacks} (often via softirq / 
+dedicated kthreads).
+\newline
+By default, callback work can run on the same CPUs that queued it --- including 
+an ``isolated'' core --- and inject softirq latency into your hot path. 
+\texttt{rcu\char`_nocbs=}~\cite{kernel-rcu} (and related 
+\texttt{rcu\char`_nocb\char`_poll}) marks listed CPUs as \emph{no-callback} CPUs 
+and moves that processing onto housekeeping cores.
+\newline
+\textbf{Noise removed:} deferred RCU cleanup / softirq work on the cores you 
+wanted quiet.
+\newline
+Together with the other knobs: \texttt{isolcpus} + \texttt{nohz\char`_full} + 
 \texttt{rcu\char`_nocbs} + IRQ affinity + pinned threads.
+
+\subsection{\texttt{irqaffinity} / \texttt{smp\_affinity}: hard-IRQ routing}
+\label{subsec:irq-affinity}
+A \highlight{hard IRQ} is a device interrupt (NIC queue, timer, disk controller, \ldots) 
+delivered by hardware to some CPU. Unlike a voluntary context switch, it 
+\emph{forces} that CPU into kernel interrupt context --- disastrous for 
+tick-to-trade tails if the NIC's IRQs land on your strategy core.
+\newline
+\texttt{isolcpus} does not automatically move IRQs. You must steer them onto 
+housekeeping CPUs~\cite{kernel-irq-affinity}:
+\begin{itemize}
+    \item \texttt{irqaffinity=} (boot): default CPU mask for IRQs that do not set 
+          their own affinity --- keep that default on housekeeping cores.
+    \item \texttt{/proc/irq/<n>/smp\char`_affinity} (or 
+          \texttt{smp\char`_affinity\char`_list}): per-IRQ mask; pin each NIC 
+          queue IRQ explicitly away from isolated strategy cores.
+    \item \texttt{irqbalance}: userspace daemon that reshuffles IRQ affinity at 
+          runtime for throughput fairness. On latency boxes, disable it or 
+          constrain it --- otherwise it undoes your masks.
+\end{itemize}
+\par\noindent\textbf{Interview tip:} say the full set --- scheduler exclusion, 
+tickless, RCU offload, hard-IRQ routing, then pinned threads --- not just 
+``we set \texttt{isolcpus}''.
 
 \section{Busy Polling}
 \label{sec:busy-polling}

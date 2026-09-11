@@ -142,9 +142,17 @@
     projects often expressing a special feature in one or more 
     programming languages or libraries.}
 
+    \dictentry{irqaffinity}{kernel boot parameter setting the default CPU mask 
+    for IRQs; keep defaults on housekeeping cores so isolated CPUs stay quiet 
+    (Section~\ref{subsec:irq-affinity}).}
+
+    \dictentry{irqbalance}{userspace daemon that reshuffles IRQ-to-CPU affinity 
+    at runtime; disable or constrain on latency boxes or it undoes manual 
+    \texttt{smp\char`_affinity} (Section~\ref{subsec:irq-affinity}).}
+
     \dictentry{isolcpus}{kernel boot parameter that removes CPUs from the general 
-    scheduler balance set; used with pinning for dedicated HFT cores 
-    (Chapter~\ref{chap:lowlatency}).}
+    scheduler balance set (scheduling exclusion); used with pinning for dedicated 
+    HFT cores (Section~\ref{subsec:isolcpus}).}
 
 \end{multicols*}
 
@@ -195,9 +203,10 @@
 \subsection{N}
 \begin{multicols*}{2}
 
-    \dictentry{nohz\_full}{kernel boot option reducing timer ticks on isolated CPUs; 
-    often paired with \texttt{isolcpus} / \texttt{rcu\char`_nocbs} 
-    (Chapter~\ref{chap:lowlatency}).}
+    \dictentry{nohz\_full}{kernel boot option enabling adaptive-ticks / tickless 
+    behaviour on listed CPUs (fewer scheduler timer interrupts when a single 
+    task runs); often paired with \texttt{isolcpus} / \texttt{rcu\char`_nocbs} 
+    (Section~\ref{subsec:nohz-full}).}
 
     \dictentry{NUMA}{Non-Uniform Memory Access: multi-socket systems where local 
     DRAM is faster than remote; place threads, memory, and NICs carefully 
@@ -262,6 +271,14 @@
     
     \dictentry{RBV optimization}{see~\cite{isocpp-rbv-optimization}.}
 
+    \dictentry{RCU}{Read-Copy-Update: Linux synchronization for read-heavy shared 
+    data; writers defer freeing old versions via callbacks. Those callbacks can 
+    jitter isolated CPUs unless offloaded with \texttt{rcu\char`_nocbs} 
+    (Section~\ref{subsec:rcu-nocbs}).}
+
+    \dictentry{rcu\_nocbs}{kernel boot option that offloads RCU callback processing 
+    from listed CPUs onto housekeeping cores (Section~\ref{subsec:rcu-nocbs}).}
+
     \dictentry{RTTI}{acronym for Run-Time Type Information: language mechanism 
     that exposes dynamic type of polymorphic objects (e.g.\ \texttt{typeid}, 
     \texttt{dynamic\char`_cast}). Requires a polymorphic type (usually a virtual 
@@ -278,6 +295,11 @@
     \dictentry{select}{classic POSIX I/O multiplexer with an FD-count limit and 
     $O(n)$ scans; prefer \texttt{poll}/\texttt{epoll} for scale 
     (Chapter~\ref{chap:eventdrivenio}).}
+
+    \dictentry{smp\_affinity}{per-IRQ CPU mask under 
+    \texttt{/proc/irq/<n>/smp\char`_affinity} (or 
+    \texttt{smp\char`_affinity\char`_list}); steer hard IRQs (e.g.\ NIC queues) 
+    onto housekeeping cores (Section~\ref{subsec:irq-affinity}).}
     
     \dictentry{static typing}{types are checked at compile time; variables and 
     expressions have types known to the compiler (as in C++), opposed to 
