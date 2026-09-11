@@ -9,6 +9,10 @@
 
 \begin{multicols*}{2}
 
+    \dictentry{ABA}{CAS failure mode where a location returns to an old value 
+    after intervening updates, so compare-and-swap succeeds incorrectly; 
+    mitigated with tags or safe reclamation (Chapter~\ref{chap:memorymodel}).}
+
     \dictentry{ADL}{Argument Dependent Lookup}
         
     \dictentry{ADT}{Abstract Data Type}
@@ -17,12 +21,23 @@
     packet I/O with zero-copy options; a kernel-bypass-adjacent path 
     (Chapter~\ref{chap:kernelbypass}).}
 
+    \dictentry{Affinity}{binding a thread (or IRQ) to a CPU set so it does not 
+    migrate; pairs with \texttt{isolcpus} and NUMA placement 
+    (Chapter~\ref{chap:linuxprocesses}).}
+
     \dictentry{Allocate}{to assign, allot, distribute, or set apart for 
     a particular purpose}
 
     \dictentry{Allocator (C++)}{type that satisfies the Allocator requirements and 
     supplies \texttt{allocate}/\texttt{deallocate} for containers; PMR variants use 
     a runtime \texttt{memory\char`_resource} (Section~\ref{subsec:custom-allocators}).}
+
+    \dictentry{Amortized}{cost of an operation averaged over a long sequence 
+    (e.g.\ \texttt{vector::push\char`_back}); one step may be expensive, the 
+    sequence is cheap (Section~\ref{subsec:amortized-vs-average}).}
+
+    \dictentry{Arena}{preallocated memory region from which many objects are 
+    carved; avoids hot-path \texttt{malloc} (Chapter~\ref{chap:memmag}).}
 
     \dictentry{Atomic}{Objects of atomic types are the only C++ objects 
     that are free from data races; that is, if one thread writes to an 
@@ -35,6 +50,15 @@
 
 \subsection{B}
 \begin{multicols*}{2}
+
+    \dictentry{BBO}{Best Bid and Offer: top-of-book prices (and often sizes); 
+    the first level of the order book (Chapter~\ref{chap:algorithms}).}
+
+    \dictentry{Big O}{asymptotic upper-bound notation for growth of time or 
+    space with input size (Chapter~\ref{chap:algorithms}).}
+
+    \dictentry{Black--Scholes}{classic continuous-time option pricing model; 
+    basis for implied volatility (Chapter~\ref{chap:quantbasics}).}
 
     \dictentry{branch}{a mean for teams to develop features giving them 
     a separate workspace for their code. The branch to create are part 
@@ -50,14 +74,32 @@
 \subsection{C}
 \begin{multicols*}{2}
 
+    \dictentry{Cache coherence}{protocol that keeps multiple CPU caches 
+    consistent for shared lines (e.g.\ MESI); basis of false sharing 
+    (Chapter~\ref{chap:cacheperformance}).}
+
+    \dictentry{Cache line}{granularity of cache transfers and coherence 
+    (often 64\,B); pad hot fields to avoid false sharing 
+    (Chapter~\ref{chap:cacheperformance}).}
+
     \dictentry{CAS}{Compare-And-Swap: atomic read-modify-write that updates a 
     location only if it still holds an expected value 
     (\texttt{compare\char`_exchange\char`_*} in C++); basis of many lock-free 
     structures (Chapter~\ref{chap:memorymodel}).}
 
+    \dictentry{CFS}{Completely Fair Scheduler: default Linux policy 
+    (\texttt{SCHED\char`_OTHER}); migrates work across CPUs unless isolated 
+    (Chapter~\ref{chap:linuxprocesses}).}
+
+    \dictentry{Context switch}{saving/restoring thread or process CPU state 
+    when the scheduler runs another task; costs $\mu$s and adds jitter 
+    (Chapter~\ref{chap:linuxprocesses}).}
+
     \dictentry{constexpr}{a C++ specifier which declares that it is 
     possible to evaluate the value of the function or variable 
     at compile time.}
+
+    \dictentry{CPU affinity}{see Affinity.}
 
 \end{multicols*}
 
@@ -82,6 +124,9 @@
     with poll-mode drivers; a common kernel-bypass stack 
     (Chapter~\ref{chap:kernelbypass}).}
 
+    \dictentry{DSU}{Disjoint Set Union (Union--Find): nearly $O(1)$ amortized 
+    connectivity queries (Section~\ref{subsec:pat-uf}).}
+
     \dictentry{duck typing}{a concept related to \textit{dynamic typing}, 
     where the type or the class of an object is less important than the 
     methods it defines}
@@ -101,6 +146,13 @@
 
     \dictentry{encapsulation}{preventing unauthorized access to some piece of information or functionality}
 
+    \dictentry{Epoch reclaim}{safe memory reclamation for lock-free structures 
+    by retiring nodes only after all threads leave a shared epoch 
+    (Chapter~\ref{chap:memorymodel}).}
+
+    \dictentry{EPOLLET}{edge-triggered \texttt{epoll}: notify on state change; 
+    must drain until \texttt{EAGAIN} (Chapter~\ref{chap:eventdrivenio}).}
+
     \dictentry{epoll}{Linux scalable I/O event notification 
     (\texttt{epoll\char`_create}/\texttt{ctl}/\texttt{wait}); preferred over 
     \texttt{select}/\texttt{poll} for many file descriptors 
@@ -115,21 +167,47 @@
     variables on the same cache line, causing coherence ping-pong 
     (Chapter~\ref{chap:cacheperformance}).}
 
+    \dictentry{First-touch}{NUMA page placement: a page is usually bound to the 
+    node of the CPU that first writes it; pin threads before warm-up 
+    (Chapter~\ref{chap:numa}).}
+
     \dictentry{FIX}{Financial Information eXchange: tag-value messaging standard 
     for many order/broker links; not usually the colocated matching-engine hot path 
     (Section~\ref{sec:market-wire-protocols}).}
 
+    \dictentry{FOK}{Fill-or-Kill: execute the full quantity immediately or cancel 
+    (Chapter~\ref{chap:quantbasics}).}
+
 \end{multicols*}
 
-%~ \subsection{G}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{G}
+\begin{multicols*}{2}
+
+    \dictentry{Greeks}{option risk sensitivities (e.g.\ delta, gamma, theta, vega) 
+    (Chapter~\ref{chap:quantbasics}).}
+
+    \dictentry{GTC}{Good-Till-Cancel: order remains until filled or cancelled 
+    (Chapter~\ref{chap:quantbasics}).}
+
+\end{multicols*}
 
 \subsection{H}
 
 \begin{multicols*}{2}
 
+    \dictentry{Happens-before}{memory-model relation that defines when one 
+    operation's side effects are visible to another; established by 
+    mutexes, atomics, etc.\ (Chapter~\ref{chap:memorymodel}).}
+
+    \dictentry{Hazard pointers}{safe reclamation scheme: readers publish 
+    pointers they may dereference; reclaimers skip those nodes 
+    (Chapter~\ref{chap:memorymodel}).}
+
     \dictentry{Heap}{a large pool of memory used to satisfy memory 
     request by allocating part.}
+
+    \dictentry{Huge pages}{large page sizes (e.g.\ 2\,MiB) that reduce TLB 
+    pressure for big working sets (Chapter~\ref{chap:cacheperformance}).}
 
 \end{multicols*}
 
@@ -141,6 +219,19 @@
     semantic role (meaning), which recurs frequently across software 
     projects often expressing a special feature in one or more 
     programming languages or libraries.}
+
+    \dictentry{Implied vol}{market price of an option expressed as the 
+    Black--Scholes volatility that matches it (Chapter~\ref{chap:quantbasics}).}
+
+    \dictentry{Interrupt coal.}{NIC/OS batching of interrupts for throughput; 
+    often hurts tick-to-trade latency (Chapter~\ref{chap:lowlatency}).}
+
+    \dictentry{IOC}{Immediate-or-Cancel: take what is available now, cancel 
+    the rest (Chapter~\ref{chap:quantbasics}).}
+
+    \dictentry{I/O mux}{waiting on many file descriptors for readiness 
+    (\texttt{select}/\texttt{poll}/\texttt{epoll}) 
+    (Chapter~\ref{chap:eventdrivenio}).}
 
     \dictentry{irqaffinity}{kernel boot parameter setting the default CPU mask 
     for IRQs; keep defaults on housekeeping cores so isolated CPUs stay quiet 
@@ -154,10 +245,22 @@
     scheduler balance set (scheduling exclusion); used with pinning for dedicated 
     HFT cores (Section~\ref{subsec:isolcpus}).}
 
+    \dictentry{ITCH}{family of binary multicast market-data protocols 
+    (order-book incremental updates) (Section~\ref{sec:market-wire-protocols}).}
+
+    \dictentry{Iter. invalid.}{when a container operation makes iterators or 
+    references unusable (e.g.\ \texttt{vector} reallocation) 
+    (Section~\ref{sec:iterator-invalidation}).}
+
 \end{multicols*}
 
-%~ \subsection{J}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{J}
+\begin{multicols*}{2}
+
+    \dictentry{Jitter}{variability of latency (not just the mean); isolation 
+    and allocation-free paths target lower jitter (Chapter~\ref{chap:lowlatency}).}
+
+\end{multicols*}
 
 \subsection{K}
 \begin{multicols*}{2}
@@ -171,14 +274,38 @@
 \subsection{L}
 \begin{multicols*}{2}
 
+    \dictentry{Locality}{spatial: nearby addresses used together; temporal: 
+    same addresses reused soon; drives cache-friendly layout 
+    (Chapter~\ref{chap:cacheperformance}).}
+
+    \dictentry{Lock convoy}{many threads queueing on one mutex so throughput 
+    collapses under contention (Chapter~\ref{chap:memorymodel}).}
+
     \dictentry{Lock-free}{algorithm that guarantees system-wide progress even if 
     some threads are delayed; typically built with atomics/CAS, not wait-free 
     for every thread (Chapter~\ref{chap:memorymodel}).}
+
+    \dictentry{L1 (MD)}{market-data top-of-book (BBO) feed depth 
+    (Chapter~\ref{chap:quantbasics}).}
+
+    \dictentry{L2 (MD)}{market-data aggregated depth by price level 
+    (Chapter~\ref{chap:quantbasics}).}
+
+    \dictentry{L3 (MD)}{market-data full order-by-order / order-id book 
+    (Chapter~\ref{chap:quantbasics}).}
 
 \end{multicols*}
 
 \subsection{M}
 \begin{multicols*}{2}
+
+    \dictentry{Matching engine}{venue component that matches orders and 
+    publishes trades / book updates (Chapter~\ref{chap:quantbasics}).}
+
+    \dictentry{Memory order}{C++ atomic ordering: \texttt{relaxed}, 
+    \texttt{acquire}, \texttt{release}, \texttt{acq\char`_rel}, 
+    \texttt{seq\char`_cst}; controls visibility and reordering 
+    (Chapter~\ref{chap:memorymodel}).}
 
     \dictentry{MESI}{Modified / Exclusive / Shared / Invalid cache-coherence 
     protocol states (Chapter~\ref{chap:cacheperformance}).}
@@ -198,10 +325,21 @@
     \dictentry{most vexing parsing}{C++ grammar ambiguity where a declaration 
     looks like an object definition but is parsed as a function declaration 
     (e.g.\ \texttt{TimeKeeper t(Timer());}); fix with extra parentheses or braces.}
+
+    \dictentry{MPMC}{Multi-Producer Multi-Consumer queue; heavier than SPSC 
+    (e.g.\ Michael--Scott) (Chapter~\ref{chap:memorymodel}).}
+
 \end{multicols*}
 
 \subsection{N}
 \begin{multicols*}{2}
+
+    \dictentry{Nagle}{TCP algorithm that coalesces small sends; disable with 
+    \texttt{TCP\char`_NODELAY} for latency paths (Chapter~\ref{chap:linuxnetworking}).}
+
+    \dictentry{NAPI}{Linux networking softirq path that polls the NIC after 
+    an interrupt; can still preempt user threads 
+    (Chapter~\ref{chap:kernelbypass}).}
 
     \dictentry{nohz\_full}{kernel boot option enabling adaptive-ticks / tickless 
     behaviour on listed CPUs (fewer scheduler timer interrupts when a single 
@@ -218,10 +356,16 @@
 
 \begin{multicols*}{2}
 
+    \dictentry{Object pool}{reuse preconstructed objects instead of 
+    allocating on the hot path (Chapter~\ref{chap:memmag}).}
+
     \dictentry{OpenOnload}{Solarflare/Xilinx kernel-bypass stack that accelerates 
     sockets in user space (Chapter~\ref{chap:kernelbypass}).}
 
     \dictentry{object}{region of storage with associated semantics}
+
+    \dictentry{Order book}{local structure of resting bids and asks by price 
+    (and often order id); updated from market data (Chapter~\ref{chap:algorithms}).}
 
     \dictentry{Overloading}{a compile time polymorphism achieved 
     specifying more than one function with the same name but different 
@@ -237,8 +381,21 @@
 
 \begin{multicols*}{2}
 
+    \dictentry{Page fault}{CPU trap when a virtual page is not mapped or not 
+    present; major faults hit disk/IO and blow hot-path latency 
+    (Chapter~\ref{chap:linuxprocesses}).}
+
     \dictentry{Parameterized type}
               {another definition for \highlight{class templates}.}
+
+    \dictentry{perf}{Linux profiling tool (\texttt{perf record}/\texttt{stat}) 
+    for cycles, cache misses, false sharing hunts 
+    (Chapter~\ref{chap:cacheperformance}).}
+
+    \dictentry{Pinning}{see Affinity.}
+
+    \dictentry{PMD}{Poll-Mode Driver: NIC driver that busy-polls rings 
+    (DPDK-style) instead of interrupt-driven RX (Chapter~\ref{chap:kernelbypass}).}
 
     \dictentry{PMR}{Polymorphic Memory Resource (\texttt{std::pmr}): runtime-selected 
     \texttt{memory\char`_resource} behind containers 
@@ -279,6 +436,10 @@
     \dictentry{rcu\_nocbs}{kernel boot option that offloads RCU callback processing 
     from listed CPUs onto housekeeping cores (Section~\ref{subsec:rcu-nocbs}).}
 
+    \dictentry{Reactor}{event-loop style: demultiplex I/O readiness then 
+    dispatch handlers (typical \texttt{epoll} server) 
+    (Chapter~\ref{chap:eventdrivenio}).}
+
     \dictentry{RTTI}{acronym for Run-Time Type Information: language mechanism 
     that exposes dynamic type of polymorphic objects (e.g.\ \texttt{typeid}, 
     \texttt{dynamic\char`_cast}). Requires a polymorphic type (usually a virtual 
@@ -292,14 +453,36 @@
 \subsection{S}
 \begin{multicols*}{2}
 
+    \dictentry{SBE}{Simple Binary Encoding: compact, schema-driven binary 
+    messages for market data / OE (Section~\ref{sec:market-wire-protocols}).}
+
+    \dictentry{SCHED\_FIFO}{Linux real-time FIFO scheduling policy; use carefully 
+    on dedicated cores (Chapter~\ref{chap:linuxprocesses}).}
+
+    \dictentry{SCHED\_RR}{Linux real-time round-robin scheduling policy 
+    (Chapter~\ref{chap:linuxprocesses}).}
+
     \dictentry{select}{classic POSIX I/O multiplexer with an FD-count limit and 
     $O(n)$ scans; prefer \texttt{poll}/\texttt{epoll} for scale 
     (Chapter~\ref{chap:eventdrivenio}).}
+
+    \dictentry{Seq. consistency}{strongest C++ atomic default 
+    (\texttt{memory\char`_order\char`_seq\char`_cst}): a single total order of 
+    all seq\_cst ops (Chapter~\ref{chap:memorymodel}).}
 
     \dictentry{smp\_affinity}{per-IRQ CPU mask under 
     \texttt{/proc/irq/<n>/smp\char`_affinity} (or 
     \texttt{smp\char`_affinity\char`_list}); steer hard IRQs (e.g.\ NIC queues) 
     onto housekeeping cores (Section~\ref{subsec:irq-affinity}).}
+
+    \dictentry{softirq}{deferred kernel interrupt work (e.g.\ networking) that 
+    can run on a CPU and add jitter (Chapter~\ref{chap:kernelbypass}).}
+
+    \dictentry{Spinlock}{busy-wait lock for very short critical sections; 
+    burns CPU while waiting (Chapter~\ref{chap:memorymodel}).}
+
+    \dictentry{Spread}{difference between best ask and best bid 
+    (Chapter~\ref{chap:quantbasics}).}
     
     \dictentry{static typing}{types are checked at compile time; variables and 
     expressions have types known to the compiler (as in C++), opposed to 
@@ -326,6 +509,10 @@
     than a mock (which also verifies interaction). In broader software slang, 
     also an unfinished placeholder implementation.}
 
+    \dictentry{Syscall}{trap from user space into the kernel (e.g.\ 
+    \texttt{recv}, \texttt{epoll\char`_wait}); mode switch cost motivates 
+    bypass (Chapter~\ref{chap:kernelbypass}).}
+
 \end{multicols*}
 
 
@@ -333,11 +520,20 @@
 \subsection{T}
 \begin{multicols*}{2}
 
+    \dictentry{Tail latency}{high percentiles of latency (p99 / p999), not the 
+    mean; HFT cares about tails and jitter (Chapter~\ref{chap:lowlatency}).}
+
+    \dictentry{TCP\_NODELAY}{socket option that disables Nagle coalescing for 
+    lower send latency (Chapter~\ref{chap:linuxnetworking}).}
+
     \dictentry{template function}
               {instantiation of a function template}
 
     \dictentry{Test-driven Development}
               {\href{https://en.wikipedia.org/wiki/Test-driven_development}{wikipedia}}
+
+    \dictentry{tick-to-trade}{end-to-end latency from receiving a market event 
+    to sending an order (Chapter~\ref{chap:lowlatency}).}
 
     \dictentry{TLB}{Translation Lookaside Buffer: CPU cache of 
     virtual$\rightarrow$physical address translations 
@@ -350,8 +546,12 @@
 
 \end{multicols*}
 
-%~ \subsection{U}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{U}
+\begin{multicols*}{2}
+
+    \dictentry{Union--Find}{see DSU.}
+
+\end{multicols*}
 
 \subsection{V}
 \begin{multicols*}{2}
@@ -365,20 +565,35 @@
     
 \end{multicols*}
 
-%~ \subsection{W}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{W}
+\begin{multicols*}{2}
 
-%~ \subsection{X}
-%~ \begin{multicols*}{2}\end{multicols*}
+    \dictentry{Wait-free}{stronger than lock-free: every thread completes 
+    its operation in a bounded number of its own steps 
+    (Chapter~\ref{chap:memorymodel}).}
+
+\end{multicols*}
+
+\subsection{X}
+\begin{multicols*}{2}
+
+    \dictentry{XDP}{eXpress Data Path: early in-kernel packet hook; 
+    AF\_XDP exposes XDP rings to user space (Chapter~\ref{chap:kernelbypass}).}
+
+\end{multicols*}
 
 %~ \subsection{Y}
 %~ \begin{multicols*}{2}\end{multicols*}
 
-%~ \subsection{Z}
-%~ \begin{multicols*}{2}\end{multicols*}
+\subsection{Z}
+\begin{multicols*}{2}
+
+    \dictentry{Zero-copy}{I/O path that avoids copying packet/payload bytes 
+    between kernel and user buffers (Chapter~\ref{chap:kernelbypass}).}
+
+\end{multicols*}
 
 
 
 \setboolean{@twoside}{false} 
 \pagestyle{basicstyle}
-
