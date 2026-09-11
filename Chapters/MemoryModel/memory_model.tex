@@ -78,8 +78,17 @@ operations --- but often \highlight{stronger (and costlier)} than a producer/con
 
 \subsection{C++ Reference}
 \label{subsec:memory-order-reference}
-See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:memory-sync-ordering} for API listings and 
-Section~\ref{subsec:memory-order} for semantics.
+This subsection is a pointer, not a second API catalog. Chapter~\ref{chap:concurrency} 
+owns the \texttt{memory\char`_order} / fence \highlight{surface} 
+(Section~\ref{subsec:memory-sync-ordering}) and the when-to-pick bullets 
+(Section~\ref{subsec:memory-order}).
+\newline
+Here the goal is \highlight{theory}: happens-before, release--acquire pairing, and 
+why weakening is a trade between mental cost and hardware barriers. Read the 
+Concurrency tables for names; stay in this chapter for proof sketches and lock-free 
+structures.
+\par\noindent\textbf{Interview tip:} say ``API in Concurrency, happens-before here'' --- 
+do not recite every enumerator twice.
 
 \subsection{Release-Acquire Pairing}
 \label{subsec:release-acquire-pairing}
@@ -123,25 +132,41 @@ atomicity of that location --- \highlight{no} synchronisation with other memory.
 
 \subsection{When to Weaken Ordering}
 \label{subsec:when-to-weaken-ordering}
+Default atomics are often \texttt{seq\char`_cst}: one total order that is easy to reason about 
+and \highlight{expensive} on weakly ordered CPUs (extra fences / store-buffer drains). 
+Weakening is how you remove that barrier noise --- only after the publish/consume story is clear.
 \begin{itemize}
     \item \highlightbf{seq\_cst} --- default / when unsure; simplest reasoning; may cost more on weak HW.
     \item \highlightbf{release / acquire} --- message passing, SPSC indices, ``publish flag'' patterns.
+          \textbf{Noise removed:} full-system seq\_cst fences you did not need for a two-thread handoff.
     \item \highlightbf{relaxed} --- pure counters, statistics, when no other data depends on the atomic.
+          \textbf{Noise removed:} acquire/release barriers on increments that never publish a payload.
     \item Prefer \highlight{correct first}; measure before weakening further on x86 (often strong in practice, 
-          but portable code must still use the right orders).
+          but portable code must still use the right orders --- ARM will expose the bug).
 \end{itemize}
+\par\noindent\textbf{Interview tip:} weaken only with a named pattern (counter vs publish/consume); 
+never ``relaxed everywhere because x86.''
 
 \section{Lock-Free Ring Buffer (SPSC)}
 \label{sec:spsc-ring-buffer}
 A \highlight{single-producer single-consumer} ring buffer moves messages between two threads 
 without a mutex. It is a standard HFT building block (feed thread $\rightarrow$ strategy thread).
+\newline
+\textbf{Noise removed} versus a mutex queue: no kernel futex sleep/wake on the common path, 
+no lock-word ping-pong, and a fixed preallocated buffer (no \texttt{new} per message). 
+\textbf{Cost:} exactly one writer and one reader forever; overflow/empty must be handled 
+explicitly (drop, block on a colder path, or size for burst).
 
 \subsection{SPSC Model}
 \label{subsec:spsc-model}
 Exactly \highlight{one} thread pushes, exactly \highlight{one} thread pops. That restriction allows 
-a simple design with two indices and no CAS loops for the common path. Multi-producer or 
-multi-consumer queues need different algorithms (Sections~\ref{sec:treiber-stack}--\ref{sec:michael-scott-queue}) 
-and are harder to get right.
+a simple design with two indices and no CAS loops for the common path: each index has a 
+single writer, so updates need atomics for visibility, not contention resolution.
+\newline
+Multi-producer or multi-consumer queues need different algorithms 
+(Sections~\ref{sec:treiber-stack}--\ref{sec:michael-scott-queue}) and are harder to get right. 
+If your design needs MPMC on the hot path, revisit ownership first --- many HFT stacks 
+shard into several SPSC rings instead.
 
 \subsection{Head and Tail Indices}
 \label{subsec:spsc-head-tail}
@@ -149,16 +174,20 @@ Use a fixed-capacity array. The producer advances a \highlight{tail} (write posi
 advances a \highlight{head} (read position). Indices are \texttt{std::atomic} (or indexed modulo capacity).
 \newline
 Only the producer writes \texttt{tail}; only the consumer writes \texttt{head}. Each thread may 
-\highlight{read} the other's index.
+\highlight{read} the other's index to decide full/empty. That single-writer discipline is why 
+SPSC avoids CAS on the steady path.
 
 \subsection{Producer and Consumer Ordering}
 \label{subsec:spsc-producer-consumer-ordering}
+Ordering is the same publish/consume story as Section~\ref{subsec:release-acquire-pairing}:
 \begin{itemize}
     \item Producer: write slot, then \texttt{tail.store(..., release)}.
     \item Consumer: \texttt{head}-side acquire load of \texttt{tail} (or acquire load when observing 
           new data), then read slot.
 \end{itemize}
-Release-acquire on the indices publishes the slot contents to the consumer.
+Release-acquire on the indices publishes the slot contents to the consumer. 
+\textbf{Noise removed by getting this right:} seeing a new index while the payload store is 
+still invisible (or reading a slot after a relaxed bump that never synchronized).
 
 \subsection{Full and Empty Conditions}
 \label{subsec:spsc-full-empty}
@@ -168,7 +197,8 @@ With capacity $N$ (often power of two):
     \item \highlight{Full} when \texttt{tail - head == N} (no free slot) --- exact formula depends on 
           whether you leave one slot empty or use an explicit size counter.
 \end{itemize}
-Never let producer and consumer update the \highlight{same} index.
+Never let producer and consumer update the \highlight{same} index. Leaving one slot empty 
+is a common trick so full and empty are distinguishable without an extra atomic size.
 
 \subsection{Cache-Line Layout}
 \label{subsec:spsc-cache-line-layout}
@@ -238,6 +268,9 @@ slow thread can still starve if CAS keeps failing (lock-free $\neq$ wait-free).
 
 \subsection{Push and Pop}
 \label{subsec:treiber-push-pop}
+Both operations race on a single atomic \texttt{head}. Progress is lock-free because 
+some CAS eventually wins; an individual thread may still spin under contention 
+(lock-free $\neq$ wait-free, and $\neq$ ``fast under load'').
 \begin{itemize}
     \item \highlightbf{push:} allocate a node, set \texttt{node->next = head}, 
           \texttt{compare\char`_exchange} \texttt{head} from old head to \texttt{node}; 
@@ -248,6 +281,10 @@ slow thread can still starve if CAS keeps failing (lock-free $\neq$ wait-free).
 \end{itemize}
 Ordering sketch: \texttt{release} on successful push publish; \texttt{acquire} on 
 pop's load/CAS so the node fields are visible.
+\newline
+\textbf{Noise removed} versus a mutex stack: no futex; failed CAS retries in user space. 
+\textbf{Noise introduced:} allocator traffic per node, ABA, and reclamation --- why HFT 
+hot paths usually prefer preallocated rings over unbounded Treiber stacks.
 
 \subsection{Implementation Sketch}
 \label{subsec:treiber-implementation}
@@ -328,6 +365,9 @@ production.
 
 \subsection{Structure}
 \label{subsec:ms-structure}
+Treiber is a stack (LIFO) with one CAS site. Michael--Scott is a FIFO, so enqueue and 
+dequeue must touch \highlight{different} ends without locking --- that is why the 
+dummy node exists.
 \begin{itemize}
     \item Each node holds a value and an atomic \texttt{next} (initially null).
     \item The queue always contains at least a \highlight{dummy} node. 
@@ -338,9 +378,16 @@ production.
     \item \highlightbf{dequeue} advances \texttt{head} over the dummy to the first 
           real node, returns that value, and makes the old first node the new dummy.
 \end{itemize}
+\textbf{Noise removed by the dummy:} enqueue and dequeue rarely contend on the same 
+pointer in the empty/steady cases; without it, empty-queue races on a single 
+\texttt{head}/\texttt{tail} pair become much nastier.
 
 \subsection{Enqueue / Dequeue (logic)}
 \label{subsec:ms-enqueue-dequeue}
+Helping is the other core idea: if \texttt{tail} lags behind a linked \texttt{next}, 
+any thread may CAS \texttt{tail} forward. That keeps the algorithm lock-free when a 
+producer stalls mid-enqueue.
+\newline
 \textbf{Enqueue} of value $v$:
 \begin{enumerate}
     \item Allocate node $n$ with value $v$, \texttt{next = nullptr}.
@@ -481,8 +528,13 @@ public:
 
 \subsection{C++ Reference}
 \label{subsec:sync-reference}
-See Chapter~\ref{chap:concurrency}, Section~\ref{subsec:mutual-exclusion} for 
-\texttt{std::mutex}, \texttt{std::shared\char`_mutex}, and related types.
+Again a deliberate split: Chapter~\ref{chap:concurrency}, 
+Section~\ref{subsec:mutual-exclusion} lists \texttt{std::mutex}, 
+\texttt{std::shared\char`_mutex}, RAII wrappers, and condition variables. 
+This chapter asks \highlight{when} those primitives hurt --- contention, convoys, 
+and when a spinlock or SPSC handoff is the better latency story.
+\par\noindent\textbf{Interview tip:} name the Concurrency type, then say the performance 
+failure mode from the subsections below.
 
 \subsection{Spinlock}
 \label{subsec:spinlock}
@@ -519,18 +571,33 @@ struct Spinlock {
 \subsection{Lock Contention}
 \label{subsec:lock-contention}
 \highlight{Contention} means many threads fight for the same lock. Hold times grow, cores wait, 
-and caches bounce the lock word. Fixes: finer-grained locks, shard data, or remove sharing 
-(SPSC / thread-local).
+and caches bounce the lock word (coherence traffic --- Chapter~\ref{chap:cacheperformance}).
+\newline
+\textbf{Noise removed} by shrinking the critical section or removing the share: wait time, 
+futex wake storms, and lock-word ping-pong. Fixes: finer-grained locks, shard data, or 
+remove sharing (SPSC / thread-local). On a latency path, ``add another mutex'' is rarely 
+the first answer.
+\par\noindent\textbf{Interview tip:} contention is a \highlight{sharing} problem; name what 
+data is shared before naming lock types.
 
 \subsection{Lock Convoy}
 \label{subsec:lock-convoy}
 A \highlight{lock convoy} happens when threads repeatedly wake, find the lock taken, and sleep 
 again --- often with priority or scheduling effects that serialize progress. Symptom: high 
-context-switch rate around one mutex. Prefer shorter critical sections and less sharing.
+context-switch rate around one mutex without useful work between switches.
+\newline
+\textbf{Noise:} wake $\rightarrow$ try $\rightarrow$ sleep loops that burn scheduler time 
+while the critical section stays long. Prefer shorter critical sections, fewer waiters, 
+and less sharing --- not a higher priority on every waiter.
 
 \subsection{Synchronization Scalability}
 \label{subsec:scalability}
 Ask: does adding cores increase useful work, or only increase waiting on one lock? 
 Designs that scale typically \highlight{partition} work (per-core queues, sharding) instead of 
-one global mutex. HFT systems often accept \highlight{single-threaded} hot paths plus SPSC 
-handoffs rather than fine-grained locking everywhere.
+one global mutex.
+\newline
+\textbf{Noise removed by partitioning:} serialising the whole machine on one lock word. 
+HFT systems often accept \highlight{single-threaded} hot paths plus SPSC handoffs rather than 
+fine-grained locking everywhere --- scalability by \emph{not} sharing the hot data structure.
+\par\noindent\textbf{Interview tip:} ``more threads'' is not scalability if they all queue on 
+one mutex; say how work is partitioned.

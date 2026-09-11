@@ -19,12 +19,22 @@ carry remote traffic and add delay.
 \highlight{Local memory} is RAM attached to the same node as the core executing the load/store. 
 Prefer allocating hot structures (order books, ring buffers, decode scratch) on the node 
 where the owning thread runs.
+\newline
+\textbf{Noise removed:} the inter-socket interconnect round-trip on every hot load/store. 
+Local DRAM is still hundreds of cycles versus cache, but it is the best DRAM you can get 
+on that box --- and it keeps bandwidth on the local memory controllers.
 
 \subsection{Remote Memory}
 \label{subsec:numa-remote-memory}
 \highlight{Remote memory} is RAM on another node. Every remote access pays the interconnect 
 tax and can increase jitter. Cross-node false sharing / coherence traffic is especially costly 
 (Chapter~\ref{chap:cacheperformance}).
+\newline
+\textbf{Noise removed} by staying local: UPI/QPI (or equivalent) hops and remote memory-controller 
+contention that show up as fat tails even when median latency looks fine. Cost of fixing it: 
+explicit binding and allocation discipline --- the OS will not guess your topology for you.
+\par\noindent\textbf{Interview tip:} local = same node as the core; remote = another node's DRAM --- 
+name both latency and the coherence tax when lines bounce across sockets.
 
 \section{NUMA Performance}
 \label{sec:numa-performance}
@@ -37,6 +47,14 @@ Bandwidth can suffer too when many cores hammer the interconnect.
 \newline
 Classic failure mode: thread pinned on node 0, but \texttt{malloc}/\texttt{new} first-touched 
 pages on node 1 (or the OS placed them poorly) $\Rightarrow$ every hot access is remote.
+\newline
+That split is easy to miss in code review: affinity looks correct in \texttt{taskset}, yet 
+profiles show remote DRAM hits because allocation happened on a different node (or before 
+pinning). Another variant: NIC on node 0, strategy on node 1 --- packets cross the 
+interconnect twice (DMA placement + CPU access) unless buffers and threads share a node.
+\newline
+\textbf{Noise removed} by first-touch / \texttt{membind} after pinning on the NIC's node: 
+systematic remote DRAM on the hot path. See Section~\ref{subsec:numa-allocation-locality}.
 
 \section{NUMA-Aware Programming}
 \label{sec:numa-aware-programming}
@@ -92,6 +110,9 @@ see Section~\ref{subsec:cpu-affinity-thread-pinning}.
 This section covers placing threads on CPUs \highlight{within a NUMA node} so they stay next 
 to their data (and often next to the NIC).
 \newline
+Pinning a thread without placing its memory (and ideally its NIC) on the same node only 
+removes migration noise --- remote DRAM remains. The workflow below closes that gap.
+\newline
 Workflow:
 \begin{enumerate}
     \item Find the NIC's node: \texttt{/sys/bus/pci/devices/<addr>/numa\char`_node} 
@@ -100,6 +121,9 @@ Workflow:
     \item Pin trading threads to those CPUs (avoid core 0 when IRQs land there).
     \item Allocate hot memory on the same node (\texttt{membind} / first-touch / \texttt{numa\char`_alloc\char`_onnode}).
 \end{enumerate}
+\textbf{Noise removed:} remote memory accesses and cross-node packet paths that survive 
+``we pinned the thread'' alone. Cost: less OS freedom to balance load; you own placement.
+\newline
 \texttt{libnuma} helpers such as \texttt{numa\char`_run\char`_on\char`_node(node)} restrict the calling 
 thread to that node's CPUs; combine with explicit affinity when you need a \highlight{specific} core.
 \par\noindent\textbf{Interview tip:} \highlight{pin compute next to memory next to the NIC} --- same NUMA node --- 

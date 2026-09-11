@@ -63,6 +63,11 @@ The \highlight{Data Plane Development Kit}~\cite{dpdk-docs} is a widely cited op
 poll-mode drivers (PMDs), memory pools (mbufs), and run-to-completion loops on dedicated 
 cores. The application owns RX/TX rings; the kernel is largely out of the data path for 
 those NICs/ports.
+\newline
+\textbf{Noise removed:} kernel softirq/socket path, per-packet interrupts on the hot core, 
+and \texttt{recv} copies into user buffers. Ops cost: you own huge pages, NUMA pools, 
+core dedication, and often the interface itself (no casual \texttt{tcpdump} / iptables story 
+on a fully bound PMD port).
 \par\noindent\textbf{Interview tip:} poll mode (no interrupt per packet on the hot path), huge pages, NUMA-aware 
 pools (Chapter~\ref{chap:numa}), and the operational cost (you become the network stack for 
 that interface --- routing, filtering, and safety are your problem).
@@ -76,6 +81,10 @@ into user space when possible.
 \newline
 Appeal for trading firms: less rewrite than a full DPDK port; still hardware-specific and 
 ops-heavy. Exact product names evolve.
+\newline
+\textbf{Noise removed:} much of the kernel stack crossing while keeping the sockets API. 
+Ops cost: NIC/vendor lock-in, preload/environment discipline, and debugging a hybrid path 
+when some calls still fall through to the kernel.
 \par\noindent\textbf{Interview tip:} the idea is \highlight{sockets API + user-space acceleration}, 
 not memorizing version strings.
 
@@ -86,6 +95,10 @@ I/O into user-space \highlight{UMEM} rings, with optional zero-copy paths and XD
 the driver/NIC. It sits between ``full kernel stack'' and ``leave Linux entirely'': you still 
 integrate with the kernel's XDP/AF\char`_XDP machinery, but the hot path can avoid sk\_buff 
 copies and heavy protocol processing.
+\newline
+\textbf{Noise removed:} sk\_buff-heavy receive and extra copies on the packet path, without 
+abandoning Linux entirely. Ops cost: UMEM/ring setup, driver/XDP feature matrix, and still 
+writing a packet-oriented app (not a drop-in for arbitrary TCP sessions).
 \newline
 Useful vocabulary: XDP for early drop/redirect in-kernel; \texttt{AF\char`_XDP} when a 
 user process must consume raw/fast packet streams with lower overhead than classic sockets.
@@ -106,6 +119,16 @@ dedicated team. Use it when measurements say the kernel path dominates your late
     \item Prefer proving the bottleneck (Chapter~\ref{chap:cacheperformance} profiling mindset) 
           before rewriting the I/O layer.
 \end{itemize}
+Decision tree (short): if profiles show kernel networking / softirq / syscall dominate 
+\emph{and} the SLA is tick-to-trade, consider bypass on that NIC path. If the bottleneck is 
+book logic, allocation, locks, or NUMA, fix those first --- bypass will not help.
+\newline
+\textbf{When \emph{not} to bypass:} control-plane / admin sockets, low message rates, teams 
+without NIC/ops ownership, environments that need standard Linux tooling on the same port, 
+or when tuned kernel sockets already meet the budget. Bypass is a last-mile I/O move, not a 
+substitute for isolation, pinning, and allocation discipline (Chapter~\ref{chap:lowlatency}).
+\par\noindent\textbf{Interview tip:} say when you would stay on kernel sockets --- most paths --- 
+and when measured NIC-path latency forces DPDK / OpenOnload / \texttt{AF\char`_XDP}.
 
 \subsection{HPC}
 \label{subsec:kernel-bypass-hpc}

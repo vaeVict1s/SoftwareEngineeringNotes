@@ -82,8 +82,17 @@ Memory is managed in \highlight{pages} (commonly 4~KiB on x86-64).
 \highlight{All threads of a process share the same virtual mapping} for heap and globals; 
 each thread's stack grows in the same address space but on separate stacks.
 \newline
-For translation cost (TLB), see Section~\ref{sec:tlb}. 
-For demand paging and page faults, see Section~\ref{subsec:page-faults}.
+Shared VA is a double-edged sword. Threads can pass pointers and share a ring or book in place --- 
+cheap IPC compared to pipes or sockets --- but any unsynchronized write is a \highlight{data race}: 
+the hardware will not protect you (Chapter~\ref{chap:memorymodel}). Multiprocess designs avoid that 
+class of bug by construction and pay for IPC instead (shared memory maps --- Chapter~\ref{chap:memorymapping}).
+\newline
+\textbf{Noise removed} by careful layout: TLB walks and page-fault jitter from a sprawling working set. 
+Hot structures should be compact and page-stable on the critical path; sparse heaps and cold first-touch 
+inject µs-scale faults into what looks like ordinary loads. See Section~\ref{sec:tlb} for translation 
+cost; Section~\ref{subsec:page-faults} for demand paging.
+\par\noindent\textbf{Interview tip:} same address space $\Rightarrow$ shared heap/globals $\Rightarrow$ races unless 
+synchronized; separate processes need explicit IPC but isolate faults and memory.
 
 \section{User Mode vs Kernel Mode}
 \label{sec:user-kernel-mode}
@@ -117,9 +126,16 @@ A \highlight{context switch} occurs when the CPU stops running one thread and ru
     \item Restore another thread's saved state.
     \item Optionally migrate execution to a different core ( \highlight{cache cold start} --- Chapter~\ref{chap:cacheperformance}).
 \end{itemize}
-Context switches are \highlight{expensive} compared to a function call: microseconds, not nanoseconds, 
-and they add \highlight{jitter} --- a problem for HFT latency budgets. 
-Pinning threads (Section~\ref{sec:thread-affinity}) reduces \highlight{migration} between cores.
+The direct cost is already on the order of \highlight{microseconds}, not nanoseconds --- expensive 
+versus a function call. The secondary cost is often worse for latency budgets: after a switch 
+(especially a core hop), L1/L2 are cold and the TLB is colder, so the next few hundred 
+instructions pay DRAM/coherence traffic that the hot path did not budget for.
+\newline
+\textbf{Noise removed} by pinning and isolation: involuntary deschedule and migration so the 
+strategy thread keeps a warm private cache. See Section~\ref{sec:thread-affinity} and 
+Section~\ref{sec:cpu-isolation}.
+\par\noindent\textbf{Interview tip:} quote both halves --- ``µs of switch + cache/TLB cold start'' --- 
+not just ``context switches are slow.''
 
 \subsection{Scheduling Classes}
 \label{subsec:scheduling-classes}
@@ -132,6 +148,16 @@ Linux exposes several scheduling policies~\cite{man-sched}:
 \end{itemize}
 Most C++ threads run under CFS unless you explicitly request a real-time policy with 
 \texttt{sched\_setscheduler(2)}~\cite{man-sched-setscheduler}.
+\newline
+CFS optimizes for \highlight{fair sharing}: runnable tasks take turns so nobody monopolizes the 
+CPU. On a latency path that ``fairness'' is noise --- your pinned strategy thread can still be 
+preempted for an unrelated CFS task that looked entitled to a slice. Real-time classes invert 
+the priority story: they run ahead of CFS, which removes that jitter \emph{and} introduces 
+starvation risk if an RT thread never blocks (Section~\ref{subsec:realtime-scheduling}).
+\newline
+\textbf{Noise removed} by moving the hot thread off CFS onto RT on an isolated core: fair-share 
+preemption from housekeeping and background work. Cost: you must leave room for the OS 
+somewhere else --- typically housekeeping CPUs that stay on CFS.
 
 \subsection{Real-Time Scheduling}
 \label{subsec:realtime-scheduling}
@@ -156,6 +182,8 @@ void set_fifo_priority(std::thread& t, int priority)
     pthread_setschedparam(t.native_handle(), SCHED_FIFO, &param);
 }
 \end{lstlisting}
+\par\noindent\textbf{Interview tip:} CFS = fair sharing (throughput, jitter); RT = priority over CFS 
+(lower jitter, starvation risk) --- pair RT with isolated cores, not with ``make everything FIFO.''
 
 \section{Thread Affinity}
 \label{sec:thread-affinity}

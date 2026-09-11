@@ -23,13 +23,28 @@ block, how non-blocking I/O fails with \texttt{EAGAIN}, and latency knobs such a
           Common for \highlight{market data} (including multicast feeds): the app handles 
           gaps/seq numbers. Lower overhead; you own reliability.
 \end{itemize}
+The MD vs OE split is the interview framing. Market-data firehoses optimize for 
+\highlight{rate and latency}: a dropped datagram is a gap to detect/recover, not a reason to 
+stall the wire with retransmit storms. Order/execution sessions optimize for 
+\highlight{correctness of the session}: loss, reordering, or silent truncation is a trading 
+bug --- TCP's reliability machinery (and its jitter) is the usual trade.
+\newline
+\textbf{Noise removed} by UDP on MD: connection state, ordered-byte machinery, and 
+retransmit-driven latency spikes on the receive path. \textbf{Noise removed} by TCP on OE: 
+application-level reinventing of reliable delivery under loss. Cost either way: UDP pushes 
+gap handling into your code; TCP pushes variance into the kernel stack.
 \par\noindent\textbf{Interview tip:} pick TCP when you need a reliable session; UDP when you need 
-firehose throughput and can tolerate/detect loss yourself.
+firehose throughput and can tolerate/detect loss yourself --- say MD vs OE explicitly.
 
 \section{Which Calls Block?}
 \label{sec:socket-blocking-matrix}
 By default a new socket is \highlight{blocking}. \texttt{O\char`_NONBLOCK} (via \texttt{fcntl} or 
 \texttt{SOCK\char`_NONBLOCK} / \texttt{accept4}) changes that.
+\newline
+On a latency path, ``blocking'' is not just ``slower'': the thread \highlight{sleeps} in the 
+kernel until the condition clears, then wakes at an unpredictable time --- classic 
+wake-up jitter (Section~\ref{subsec:context-switch}, Chapter~\ref{chap:lowlatency}). 
+The table below marks which calls can introduce that sleep by default.
 \begin{center}
 \begin{tabular}{|l|l|p{7.5cm}|}
 \hline
@@ -56,6 +71,11 @@ By default a new socket is \highlight{blocking}. \texttt{O\char`_NONBLOCK} (via 
 \hline
 \end{tabular}
 \end{center}
+\textbf{Noise removed} by non-blocking + \texttt{epoll}/busy-poll: sleep/wake on the hot 
+\texttt{recv}/\texttt{send}/\texttt{accept} path. Cost: you must handle \texttt{EAGAIN} / 
+\texttt{EINPROGRESS} and drive readiness yourself (Section~\ref{sec:blocking-vs-nonblocking-io}).
+\par\noindent\textbf{Interview tip:} sleep = jitter; name the calls that sleep by default and what 
+non-blocking returns instead.
 
 \section{Socket Lifecycle}
 \label{sec:socket-lifecycle}
@@ -214,35 +234,70 @@ setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
 \subsection{\texttt{MSG\_NOSIGNAL}}
 \label{subsec:msg-nosignal}
 See \texttt{send} above: avoid \texttt{SIGPIPE} killing the process; prefer handling \texttt{EPIPE}.
+\newline
+Default UNIX behavior on a write to a closed peer is often \texttt{SIGPIPE}. An unhandled 
+signal \highlight{terminates the process} --- every session, every book, every in-flight 
+decision dies with it. That failure mode is worse than a single broken connection: 
+\texttt{EPIPE} is a recoverable errno you can log, close, and reconnect; process death is 
+an outage.
+\newline
+\textbf{Noise removed:} unexpected whole-process termination on a dropped peer. Cost: you 
+must check \texttt{send} return values and treat \texttt{EPIPE} as session teardown, not as 
+``ignore errors.'' \texttt{SO\char`_NOSIGPIPE} (where available) or a process-wide 
+\texttt{SIGPIPE} ignore are alternatives; \texttt{MSG\char`_NOSIGNAL} keeps the fix local to the call.
+\par\noindent\textbf{Interview tip:} process death $\gg$ \texttt{EPIPE} --- say why trading processes 
+pass \texttt{MSG\char`_NOSIGNAL} (or equivalent) on every hot write.
 
 \section{Common Errors}
 \label{sec:network-common-errors}
 Always check return values; use \texttt{perror} / \texttt{strerror(errno)} while debugging. 
-Know these by \highlight{name and meaning}, not numeric codes:
+Know these by \highlight{name and meaning}, not numeric codes. Each errno below usually 
+points at a \highlight{design choice} (blocking vs non-blocking, reuse flags, peer state), 
+not a random kernel quirk.
 
 \subsection{\texttt{EAGAIN} / \texttt{EWOULDBLOCK}}
 \label{subsec:eagain}
 \label{subsec:ewouldblock}
 ``Try again'' on a non-blocking socket (no data / no send buffer space). On Linux they are 
 the same value for sockets. Normal in event-driven loops --- not a fatal error.
+\newline
+Design link: you chose non-blocking I/O; readiness must come from \texttt{epoll}/poll/busy-poll 
+instead of sleeping inside \texttt{recv}/\texttt{send}.
 
 \subsection{\texttt{EINPROGRESS}}
 \label{subsec:einprogress}
 Non-blocking \texttt{connect} started; wait for completion via I/O multiplexing.
+\newline
+Design link: same non-blocking contract for connection setup --- poll for writability, then 
+\texttt{getsockopt(SO\char`_ERROR)}, rather than blocking the thread on the handshake.
 
 \subsection{\texttt{EADDRINUSE}}
 \label{subsec:eaddrinuse}
 Address/port still busy (often \texttt{TIME\char`_WAIT}). Use \texttt{SO\char`_REUSEADDR} before \texttt{bind}.
+\newline
+Design link: restart / bind policy --- without reuse, rapid process restarts collide with 
+TCP's delayed-segment protection.
 
 \subsection{\texttt{ECONNREFUSED}}
 \label{subsec:econnrefused}
 Peer actively refused (nothing listening, or listen backlog full).
+\newline
+Design link: peer not up, wrong endpoint, or your (or their) \texttt{listen} backlog / 
+\texttt{accept} rate cannot keep up --- capacity and deployment, not a transient ``try again.''
 
 \subsection{\texttt{ETIMEDOUT}}
 \label{subsec:etimedout}
 No timely response (path/firewall/server down) --- different from an active refuse.
+\newline
+Design link: path health and timeouts --- treat as reachability failure; do not conflate with 
+\texttt{ECONNREFUSED} when diagnosing exchange connectivity.
 
 \subsection{\texttt{EPIPE} / \texttt{ECONNRESET}}
 \label{subsec:epipe}
 Peer gone. With \texttt{MSG\char`_NOSIGNAL}, broken writes surface as \texttt{EPIPE} instead of 
 \texttt{SIGPIPE}. \texttt{ECONNRESET} often means an abrupt abort.
+\newline
+Design link: session teardown vs process lifetime --- handle the errno and close cleanly; 
+without \texttt{MSG\char`_NOSIGNAL}, the same event can kill the process (Section~\ref{subsec:msg-nosignal}).
+\par\noindent\textbf{Interview tip:} map errno $\rightarrow$ design choice (non-blocking, reuse, backlog, 
+peer death), not just a dictionary definition.

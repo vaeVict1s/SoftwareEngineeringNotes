@@ -157,7 +157,14 @@ portability niches.
 
 \section{Event Loop Architecture}
 \label{sec:event-loop-architecture}
-A typical \highlight{reactor} loop:
+Blocking I/O on many sockets either wastes threads (one per connection) or serializes 
+behind sleeps --- both inject wake-up jitter and poor scaling. A \highlight{reactor} 
+multiplexes readiness on one (or a few) threads: wait for events, then do non-blocking work.
+\newline
+\textbf{Noise removed:} per-connection blocking sleeps and thread storms. Cost: all 
+readiness handling shares the loop --- a slow callback stalls everyone on that thread.
+\newline
+A typical reactor loop:
 \begin{enumerate}
     \item Create \texttt{epfd}; register listening and connected sockets (non-blocking).
     \item \texttt{epoll\char`_wait} (timeout 0 for pure poll, small ms, or \texttt{-1} to sleep).
