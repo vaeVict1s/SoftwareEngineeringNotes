@@ -9,6 +9,10 @@ Chapter~\ref{chap:memorymodel}; this chapter is the library map plus usage notes
 %%% Paragraph
 \section{Threads}
 \label{sec:threads}
+A \texttt{std::thread} is the C++ handle for an OS thread of execution. Threads in the 
+same process \highlight{share the address space}: that is why they communicate cheaply 
+through memory, and why unsynchronized shared writes are data races 
+(Chapter~\ref{chap:memorymodel}).
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
@@ -27,10 +31,15 @@ Chapter~\ref{chap:memorymodel}; this chapter is the library map plus usage notes
     \item A \textbf{thread} is a unit of execution \emph{inside} a process; threads of the 
           same process share memory (hence data races if unsynchronized).
     \item \texttt{std::thread} must be \texttt{join()}ed or \texttt{detach()}ed before 
-          destruction, or \texttt{std::terminate} is called.
+          destruction, or \texttt{std::terminate} is called --- a common production footgun.
     \item Prefer \texttt{std::jthread} when you can: it joins on destruction and can 
           receive a stop token (C++20).
 \end{itemize}
+\textbf{Noise / failure modes:} leaking joinable threads at shutdown; oversubscribing 
+cores (context-switch jitter) when a thread pool would do; using threads when a 
+single-threaded reactor + queues is simpler for I/O.
+\par\noindent\textbf{Interview tip:} join-or-detach before destruction; prefer 
+\texttt{jthread} when you can explain the stop token.
 
 \begin{lstlisting}[language=C++]
 #include <iostream>
@@ -47,36 +56,50 @@ int main() {
     t1.join();                       // wait for completion
 }
 \end{lstlisting}
-%%% Paragraph
+
 \subsection{Functions managing the current thread}
 \vspace{-8truemm}
+These APIs act on the \emph{calling} thread. On a latency path, sleeping and yielding 
+are how you \highlight{donate the core} back to the scheduler --- useful for fairness, 
+harmful if you needed busy-poll determinism.
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/yield}{yield} 
-        & suggests that the implementation reschedule execution of threads \\
+        & hints the implementation to reschedule; may be a no-op; not a lock substitute \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/get_id}{get\char`_id} 
-        & returns the thread id of the current thread \\
+        & returns the id of the current thread \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/sleep_for}{sleep\char`_for} 
-        & stops the execution of the current thread for a specified time duration \\
+        & blocks the current thread for at least the given duration (wake-up jitter) \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/sleep_until}{sleep\char`_until} 
-        & stops the execution of the current thread until a specified time point \\
+        & blocks until a time point \\
         \cline{1-2}
     \end{tabularx}
 \end{table}
+\textbf{Noise removed by \emph{not} sleeping on the hot path:} wake-up delay and 
+unpredictable reschedule time. Prefer condition variables / queues when you must wait; 
+prefer busy poll only on isolated cores (Chapter~\ref{chap:lowlatency}).
+\par\noindent\textbf{Interview tip:} \texttt{yield} is a hint, not a lock; 
+\texttt{sleep\char`_for} is wake-up jitter you chose.
 %%% Subsection
 
 \section{Atomicity}
 \subsection{Atomic operations}
-These components are provided for fine-grained atomic operations 
-allowing for lockless concurrent programming. Each atomic operation is 
-indivisible with regards to any other atomic operation that involves 
-the same object. 
+Fine-grained concurrent updates without a mutex. Each atomic operation is 
+indivisible with respect to other atomic operations on the \emph{same} object. 
 Atomic objects are 
-\href{https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races}{free of data races}.
+\href{https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races}{free of data races}
+on that object --- that is the race/UB noise they remove compared to a plain 
+\texttt{int} shared by two threads.
+\newline
+Atomics do \emph{not} automatically make multi-word invariants safe; you still choose 
+a \texttt{memory\char`_order} (Section~\ref{subsec:memory-order}) so publishes become 
+visible in the order you intend.
+\par\noindent\textbf{Interview tip:} atomic on one word $\neq$ atomic on a struct of 
+several fields --- that still needs a mutex or a carefully designed protocol.
 
 \begin{lstlisting}[language=C++]
 std::atomic<int> counter{0};
@@ -87,6 +110,10 @@ counter.fetch_add(1, std::memory_order_relaxed);
 %%% Paragraph
 \subsection{Atomic types}
 \vspace{-8truemm}
+\texttt{std::atomic<T>} wraps a value so loads/stores/RMWs are atomic. Prefer it for 
+flags, counters, and single-word handoffs. \texttt{atomic\char`_ref} overlays atomic 
+ops on an existing non-atomic object (lifetime/alignment rules apply) --- useful when 
+you cannot change the storage type.
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
@@ -99,6 +126,10 @@ counter.fetch_add(1, std::memory_order_relaxed);
         \cline{1-2}
     \end{tabularx}
 \end{table}
+Check \texttt{is\char`_lock\char`_free} when you care: some wide types fall back to 
+internal locks, which reintroduces contention noise you thought you avoided.
+\par\noindent\textbf{Interview tip:} ask whether the atomic is lock-free on the target 
+ABI before claiming a lock-free design.
 %%% Paragraph
 
 \subsection{Operations on atomic types}
@@ -313,6 +344,11 @@ counter.fetch_add(1, std::memory_order_relaxed);
 \subsection{Memory synchronization ordering}
 \label{subsec:memory-sync-ordering}
 \vspace{-8truemm}
+Atomicity alone does not decide \emph{when} other threads see surrounding writes. 
+\texttt{memory\char`_order} and fences are how you publish a payload (release) and 
+consume it (acquire), or take the blunt \texttt{seq\char`_cst} hammer. Formal 
+happens-before material: Chapter~\ref{chap:memorymodel}; choice guide: 
+Section~\ref{subsec:memory-order}.
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
          \cline{1-2}
@@ -330,59 +366,72 @@ counter.fetch_add(1, std::memory_order_relaxed);
          \cline{1-2}
     \end{tabularx}
 \end{table}
+\textbf{Noise removed by correct ordering:} seeing a flag ``ready'' while the payload 
+stores are still invisible (or the opposite reordering bugs on weakly ordered CPUs).
+\par\noindent\textbf{Interview tip:} release publishes the payload; acquire consumes it --- 
+say that before naming fence APIs.
 
 \subsection{Mutual exclusion}
 \label{subsec:mutual-exclusion}
 See~\cite{cppreference-mutex}.
 \newline
-Mutual exclusion algorithms prevent multiple threads from simultaneously accessing shared resources. 
-This prevents data races and provides support for synchronization between threads. 
+A mutex serializes a critical section: only one owner at a time. That removes data 
+races on multi-word invariants atomics alone cannot express --- at the cost of 
+possible blocking, priority inversion, and cache-line ping-pong under contention.
 \newline
 \vspace{-8truemm}
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/mutex}{mutex} 
-        & provides basic mutual exclusion facility \\
+        & basic exclusive lock; default choice \\
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/timed_mutex}{timed\char`_mutex} }
-        & provides mutual exclusion facility which implement \\
-        & locking with a timeout \\ 
+        & exclusive lock with try-lock until a timeout \\
+        & (detect / bound wait; do not use as a design default) \\ 
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/recursive_mutex}{recursive\char`_mutex}} 
-        & provides mutual exclusion facility which can be locked recursively \\
-        & by the same thread \\
+        & same thread may lock repeatedly; usually a design smell \\
+        & (refactor call graphs instead when possible) \\
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/recursive_timed_mutex}{recursive\char`_timed\char`_mutex}} 
-        & provides mutual exclusion facility which can be locked recursively \\
-        & by the same thread and implements locking with a timeout\\
+        & recursive + timeout \\
+        & \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/shared_mutex}{shared\char`_mutex} 
-        & provides shared mutual exclusion facility \\
+        & many readers or one writer; see below \\
         \cline{1-2}
         \multirow{2}{*}{\href{https://en.cppreference.com/w/cpp/thread/shared_timed_mutex}{shared\char`_timed\char`_mutex}} 
-        & provides shared mutual exclusion facility and implements \\
-        & locking with a timeout \\
+        & shared mutex with timeouts \\
+        & \\
         \cline{1-2}
     \end{tabularx}
 \end{table}
+On a latency-critical core, prefer shrinking the critical section or using a lock-free 
+SPSC handoff over adding \texttt{recursive\char`_mutex} / heavy reader--writer machinery.
+\par\noindent\textbf{Interview tip:} default to \texttt{mutex}; justify 
+\texttt{recursive\char`_mutex} or \texttt{shared\char`_mutex} only with a concrete 
+contention story.
 
 \subsection{Generic mutex management}
 \vspace{-8truemm}
+Always lock with RAII. Raw \texttt{lock()}/\texttt{unlock()} pairs leak the lock on 
+exceptions and early returns --- that is the deadlock / stuck-mutex class these 
+wrappers remove.
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/lock_guard}{lock\char`_guard} 
-        & implements a strictly scope-based mutex ownership wrapper \\
+        & simplest scope-based exclusive ownership \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/scoped_lock}{scoped\char`_lock} 
-        & deadlock-avoiding RAII wrapper for multiple mutexes \\
+        & RAII for one or many mutexes; avoids lock-order deadlocks when locking several \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/unique_lock}{unique\char`_lock} 
-        & implements movable mutex ownership wrapper \\
+        & movable exclusive ownership; required by \texttt{condition\char`_variable::wait} \\
         \cline{1-2}
         \href{https://en.cppreference.com/w/cpp/thread/shared_lock}{shared\char`_lock} 
-        & implements movable shared mutex ownership wrapper \\
+        & movable shared ownership for \texttt{shared\char`_mutex} \\
         \cline{1-2}
         \multirow{3}{*}{\parbox{4cm}{\href{https://en.cppreference.com/w/cpp/thread/lock_tag_t}{defer\char`_lock\char`_t} \\
                                      \href{https://en.cppreference.com/w/cpp/thread/lock_tag_t}{try\char`_to\char`_lock\char`_t} \\
@@ -400,6 +449,9 @@ This prevents data races and provides support for synchronization between thread
         \cline{1-2}
     \end{tabularx}
 \end{table}
+\par\noindent\textbf{Interview tip:} \texttt{lock\char`_guard} by default; 
+\texttt{unique\char`_lock} when you need \texttt{wait}; \texttt{scoped\char`_lock} 
+when locking more than one mutex.
 \newpage
 \subsection{Generic locking management}
 \vspace{-8truemm}
@@ -478,6 +530,11 @@ writers''; then name the trade-off (writer latency / contention vs parallel read
 
 \subsection{Call once}
 \vspace{-8truemm}
+Lazy one-time initialization across threads without hand-rolling a double-checked 
+lock. \texttt{call\char`_once} runs the callable at most once; concurrent callers 
+block until it finishes (or observe the completed init). Prefer this over 
+\texttt{static} locals when you need an explicit flag, or when initialization must 
+not run at dynamic init time.
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
@@ -498,6 +555,8 @@ void use() {
     std::call_once(flag, init);
 }
 \end{lstlisting}
+\par\noindent\textbf{Interview tip:} prefer \texttt{call\char`_once} / function-local 
+\texttt{static} over a hand-rolled double-checked lock.
 
 \subsection{Condition variables}
 \label{subsec:condition-variables}
@@ -605,6 +664,9 @@ int v = fut.get();   // waits if needed; retrieves the value (or rethrows)
 
 \subsection{Future errors}
 \vspace{-8truemm}
+Futures fail loudly when misused: get twice, abandon a shared state, break the 
+promise/future pairing. These types name that error category --- useful in logs, 
+not something to ``catch and ignore'' on a hot path.
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
         \cline{1-2}
@@ -627,14 +689,24 @@ See~\cite{cppreference-memory-order},~\cite{sof-memory-order},~\cite{gnugccwiki-
 \newline
 For \texttt{std::memory\char`_order} API listings, see Section~\ref{subsec:memory-sync-ordering} above.
 \newline
-The default is sequentially consistent ordering, which can reduce performance on hot paths. 
-Use the following guidance when choosing a weaker order:
+The default for many atomic ops is \texttt{seq\char`_cst}: safest, and often the 
+\highlight{expensive} choice on hot paths (extra fences / store buffers on some CPUs). 
+Weaker orders are correct only when you understand the publish/consume pattern; 
+x86's strong hardware model can hide bugs that appear on ARM.
+\newline
+Guidance:
 \begin{itemize}
     \item \textbf{\texttt{memory\char`_order\char`_relaxed}} --- counters and statistics; atomicity only, no ordering with other memory.
     \item \textbf{\texttt{memory\char`_order\char`_acquire}} --- consumer side of a handoff; no reads/writes may reorder before the load.
     \item \textbf{\texttt{memory\char`_order\char`_release}} --- producer side of a handoff; prior writes must be visible after the store.
-    \item \textbf{\texttt{memory\char`_order\char`_acq\char`_rel}} --- read-modify-write that both publishes and consumes (e.g.\ lock unlock paths).
-    \item \textbf{\texttt{memory\char`_order\char`_seq\char`_cst}} --- safest default when in doubt; single total order across all threads.
+    \item \textbf{\texttt{memory\char`_order\char`_acq\char`_rel}} --- RMW that both publishes and consumes (e.g.\ unlock / flag CAS).
+    \item \textbf{\texttt{memory\char`_order\char`_seq\char`_cst}} --- safest default when in doubt; single total order across all seq\_cst ops.
 \end{itemize}
-For formal definitions of happens-before and sequential consistency, see Section~\ref{subsec:sequential-consistency} in Chapter~\ref{chap:memorymodel}.
+\textbf{Noise removed by weakening carefully:} unnecessary barriers on every increment. 
+\textbf{Noise introduced by weakening wrongly:} readers seeing torn or stale payloads.
+\par\noindent\textbf{Interview tip:} name the pair --- \texttt{release} publish, 
+\texttt{acquire} consume; use \texttt{acq\char`_rel} on RMWs that do both; default 
+\texttt{seq\char`_cst} only when you cannot justify weaker.
+\newline
+For formal happens-before and sequential consistency, see Section~\ref{subsec:sequential-consistency} in Chapter~\ref{chap:memorymodel}.
 Also~\cite{data-dependency-ordering},~\cite{youtube-memory-order-1},~\cite{youtube-memory-order-2}.

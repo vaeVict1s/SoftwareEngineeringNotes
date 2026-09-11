@@ -103,56 +103,81 @@ tickless, RCU offload, hard-IRQ routing, then pinned threads --- not just
 \section{Busy Polling}
 \label{sec:busy-polling}
 Builds on non-blocking sockets (Section~\ref{sec:blocking-vs-nonblocking-io}) and \texttt{epoll} 
-(Chapter~\ref{chap:eventdrivenio}). Trades CPU usage for lower wake-up latency.
+(Chapter~\ref{chap:eventdrivenio}).
 \newline
-Blocking \texttt{epoll\char`_wait} / \texttt{recv} sleeps the thread; wake-up adds 
-unpredictable delay. Alternatives on the critical path:
+On a blocking path, \texttt{epoll\char`_wait} / \texttt{recv} puts the thread to sleep 
+until the kernel wakes it. That wake-up crosses a syscall boundary, may involve a 
+context switch, and lands at an unpredictable time relative to the packet --- 
+classic \highlight{wake-up jitter} on a latency path.
+\newline
+\textbf{Busy polling} trades a dedicated core for lower wake-up delay: the thread 
+stays runnable and keeps asking ``is data ready?'' instead of sleeping.
 \begin{itemize}
-    \item \texttt{epoll\char`_wait} with timeout \texttt{0} in a tight loop (spin until ready).
+    \item \texttt{epoll\char`_wait} with timeout \texttt{0} in a tight loop (user-space spin 
+          until ready).
     \item Socket \highlight{busy poll} options (\texttt{SO\char`_BUSY\char`_POLL} and related 
-          sysctls) so \texttt{recv}/\texttt{poll} spin briefly in the kernel networking stack 
-          before sleeping~\cite{man-busy-poll}.
-    \item User-space poll loops on bypass rings (Chapter~\ref{chap:kernelbypass}).
+          sysctls) so \texttt{recv}/\texttt{poll} spin briefly \emph{inside} the kernel 
+          networking stack before sleeping~\cite{man-busy-poll}.
+    \item User-space poll loops on bypass rings (Chapter~\ref{chap:kernelbypass}) --- 
+          the same idea with the kernel path removed.
 \end{itemize}
-Cost: a core at $\sim$100\% for as long as you spin. Only do this on isolated CPUs dedicated 
-to that job.
-\par\noindent\textbf{Interview tip:} sleep = jitter; busy poll = latency for watts and opportunity cost.
+\textbf{Noise removed:} scheduler sleep/wake latency on the critical receive path.
+\newline
+\textbf{Cost:} the core sits near 100\% for as long as you spin, and you burn power / 
+capacity you could give to other work. Only do this on \emph{isolated} CPUs dedicated 
+to that job (Section~\ref{sec:cpu-isolation}); spinning on a shared core just fights 
+the balancer.
+\par\noindent\textbf{Interview tip:} sleep = jitter; busy poll = latency bought with watts 
+and a dedicated core.
 
 \section{Cache Optimization}
 \label{sec:lowlatency-cache-optimization}
-See Chapter~\ref{chap:cacheperformance} for cache hierarchy, false sharing, and 
-\texttt{perf}-based profiling. This section covers operational cache tuning only.
+See Chapter~\ref{chap:cacheperformance} for hierarchy, MESI, false sharing, and 
+\texttt{perf}. Here the focus is the \highlight{ops checklist} on a tick-to-trade path: 
+every unnecessary miss or line bounce is jitter you own.
+\newline
+\textbf{Noise removed} by the practices below: remote cache-line traffic, cold I-cache/D-cache 
+on the first messages of the day, and NUMA remote DRAM on the hot thread.
 \begin{itemize}
-    \item Keep hot structures within few cache lines; align and pad to avoid false sharing.
-    \item Prefer sequential access and preallocated contiguous buffers (rings, arenas).
-    \item Pin thread and memory on the same NUMA node as the NIC (Chapter~\ref{chap:numa}).
-    \item Warm critical code and data at startup (touch pages, run a dry path) to avoid 
-          cold-cache and major-fault surprises (Chapter~\ref{chap:memorymapping}).
-    \item Measure with \texttt{perf} --- do not guess which miss hurts the tick-to-trade path.
+    \item Keep hot structures within few cache lines; align and pad writers that share a 
+          struct so they do not false-share.
+    \item Prefer sequential access and preallocated contiguous buffers (rings, arenas) --- 
+          hardware prefetch and TLB like dense layouts.
+    \item Pin the thread \emph{and} allocate its memory on the same NUMA node as the NIC 
+          (Chapter~\ref{chap:numa}); first-touch after pinning, not before.
+    \item Warm critical code and data at startup (touch pages, run a dry path) so the first 
+          live tick is not a major-fault / cold-cache surprise 
+          (Chapter~\ref{chap:memorymapping}).
+    \item Measure with \texttt{perf} --- do not guess which miss dominates the path.
 \end{itemize}
+\par\noindent\textbf{Interview tip:} layout and placement beat micro-optimizing a cold path 
+you have not profiled.
 
 \section{Avoiding Allocations}
 \label{sec:avoiding-allocations}
-See Section~\ref{sec:spsc-ring-buffer} for pre-allocated SPSC ring buffers. 
-This section covers general allocation avoidance on hot paths.
+See Section~\ref{sec:spsc-ring-buffer} for pre-allocated SPSC rings; 
+Section~\ref{subsec:memory-pools} for pools.
 \newline
-\texttt{new}/\texttt{malloc}, \texttt{std::string} growth, and hidden temporaries cause:
+\texttt{new}/\texttt{malloc}, growing \texttt{std::string}/\texttt{vector}, and hidden 
+temporaries are not ``just slower'': they inject \highlight{unbounded} latency 
+(allocator locks, syscalls, page faults), scramble caches/TLBs, and create load-dependent 
+jitter that quiet unit tests never show.
+\newline
+\textbf{Noise removed} when the hot thread stops allocating: allocator contention, 
+unexpected page faults, and allocator-induced cache pollution.
 \begin{itemize}
-    \item Unbounded latency (allocator locks, syscalls, page faults),
-    \item Cache/TLB disruption,
-    \item Jitter under load that never shows in a quiet unit test.
-\end{itemize}
-Practices:
-\begin{itemize}
-    \item Preallocate pools and rings at startup; recycle objects 
-          (Section~\ref{subsec:memory-pools}).
-    \item Fixed-size messages; no unbounded buffering on the hot thread.
+    \item Preallocate pools and rings at startup; recycle objects on the critical path.
+    \item Fixed-size messages; no unbounded buffering on the hot thread (spill to a colder 
+          queue if you must).
     \item Defer logging, formatting, and allocations to a colder thread via a lock-free queue.
     \item Prefer stack/static storage or arenas with LIFO free for short-lived data.
 \end{itemize}
+\par\noindent\textbf{Interview tip:} ``no alloc on the hot path'' is a latency invariant, 
+not a style preference.
 
 \section{Latency vs Throughput}
 \label{sec:latency-vs-throughput}
+These goals pull knobs in opposite directions. Name which axis you are on before tuning.
 \begin{center}
 \begin{tabular}{|l|p{5.8cm}|p{5.8cm}|}
 \hline
@@ -167,10 +192,15 @@ Throughput & Messages/sec or bandwidth;
 \hline
 \end{tabular}
 \end{center}
-HFT market-data and order paths are usually \highlight{latency-first}: busy poll, 
-\texttt{TCP\char`_NODELAY}, shallow queues, one connection per hot thread, isolation. 
-A bulk file transfer or analytics job is throughput-first: large buffers, interrupts 
-coalesced, sleep when idle.
-\par\noindent\textbf{Interview tip:} know which axis you are on. Techniques that maximize packets/sec 
-(Nagle, interrupt coalescing, shared noisy cores) often \highlight{hurt} tick-to-trade 
-latency --- and the reverse wastes capacity if you only care about bulk bandwidth.
+\textbf{Latency-first knobs} (typical HFT market-data / order path): busy poll, 
+\texttt{TCP\char`_NODELAY}, shallow queues, one connection per hot thread, CPU isolation, 
+IRQ steering off the strategy core, no interrupt coalescing on that NIC queue.
+\newline
+\textbf{Throughput-first knobs} (bulk transfer, analytics ingest): large buffers, 
+interrupt coalescing, Nagle left on, sleep when idle, shared noisy cores are acceptable.
+\newline
+Mixing the two without noticing is a common interview failure: techniques that maximize 
+packets/sec often \highlight{hurt} tick-to-trade, and latency tricks waste capacity when 
+you only care about bulk bandwidth.
+\par\noindent\textbf{Interview tip:} state the axis, then name two knobs that move it and 
+one that would move the \emph{other} axis the wrong way.

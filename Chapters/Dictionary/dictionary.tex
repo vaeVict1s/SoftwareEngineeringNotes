@@ -223,8 +223,10 @@
     \dictentry{Implied vol}{market price of an option expressed as the 
     Black--Scholes volatility that matches it (Chapter~\ref{chap:quantbasics}).}
 
-    \dictentry{Interrupt coal.}{NIC/OS batching of interrupts for throughput; 
-    often hurts tick-to-trade latency (Chapter~\ref{chap:lowlatency}).}
+    \dictentry{Interrupt coalescing}{NIC/driver (or OS) batches several packet 
+    arrivals into fewer hard IRQs to raise throughput and cut interrupt rate. 
+    That saves CPU but adds latency and jitter --- usually the wrong trade for 
+    tick-to-trade paths (Chapter~\ref{chap:lowlatency}).}
 
     \dictentry{IOC}{Immediate-or-Cancel: take what is available now, cancel 
     the rest (Chapter~\ref{chap:quantbasics}).}
