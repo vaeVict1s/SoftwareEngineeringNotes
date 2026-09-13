@@ -17,6 +17,9 @@
     the class diagram can be \highlightit{translated into programming code}.
     %%% Visibility
     \subsubsection{Visibility}
+    Visibility in a class diagram maps to language \highlightit{access control}:
+    who may read or call a member from outside the class (and package/module rules where they exist).
+    Model it when you need a shared picture of encapsulation --- design reviews, onboarding, or interview whiteboard sketches of an API surface.
     \vspace{-0.5cm}
     \begin{table}[ht]
         \begin{tabular}{l l}
@@ -33,7 +36,9 @@
     \subsubsection{Scope}
     UML defines \highlightit{instance and class scopes for members}.
     \newline
+    Scope maps to \highlightit{instance vs static}: per-object state and behaviour versus members shared by the type.
     The latter is represented by \underline{underlined names}.
+    Sketching scope on a diagram helps interviews and reviews catch ``who owns this data'' mistakes before code.
     \begin{itemize}
         \item \highlightbf{instance members} are scoped to a specific instance
         \item \highlightbf{class members} are the one commonly recognized as 

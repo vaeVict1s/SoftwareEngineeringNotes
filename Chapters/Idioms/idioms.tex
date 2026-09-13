@@ -306,9 +306,25 @@ static IostreamInit iostream_init;  // in each TU that includes the header
 \label{subsec:named-parameter-idiom}
 See~\cite{isocpp-named-parameter-idiom}.
 \newline
-Emulate named/defaulted arguments by returning \texttt{*this} from chainable 
-setters (a lightweight builder). Call sites read as a sequence of named 
-options instead of a long positional argument list.
+Long positional constructors hide which argument is which 
+(\texttt{Game(1920, 1080, true, "Demo")} --- which is width?). 
+The named-parameter idiom emulates named/defaulted arguments by returning 
+\texttt{*this} from chainable setters (a lightweight builder). Call sites 
+read as a sequence of named options instead of a long positional list.
+\newline
+\textbf{When:} configuration objects, optional knobs, APIs where defaults cover 
+most callers and a few fields need overriding. 
+\textbf{Not when:} every call site sets every field anyway --- then a plain 
+constructor (or aggregate init) is clearer and cheaper to write.
+\newline
+\textbf{Noise removed:} positional argument mix-ups and ``what does the third 
+\texttt{bool} mean?'' comments. 
+\textbf{Cost:} more surface area (one setter per option), fluent chaining that can 
+feel like builder boilerplate, and no compile-time check that a required option 
+was set unless you add a final \texttt{build()}/validation step.
+\par\noindent\textbf{Interview tip:} say \emph{readability for optional config}, 
+not ``builders are always better'' --- contrast with a positional ctor when the 
+arity is small and fixed.
 
 \begin{lstlisting}[language=C++]
 class Game {
@@ -360,11 +376,25 @@ void f(const Shape& s) { std::cout << s << '\n'; }
 \label{subsec:crtp}
 See~\cite{wiki-crtp},~\cite{cppreference-crtp}.
 \newline
-A class \texttt{Derived} inherits from \texttt{Base<Derived>}. The base 
-can \texttt{static\char`_cast} to \texttt{Derived} and call derived members 
-\textbf{without virtual functions} (static polymorphism). Common uses: 
-mixins, compile-time interfaces, \texttt{enable\char`_shared\char`_from\char`_this}-style 
-helpers.
+Virtual dispatch solves ``call the right override through a base pointer,'' 
+but pays for an indirect call and often blocks inlining on the hot path. 
+CRTP is the static alternative: a class \texttt{Derived} inherits from 
+\texttt{Base<Derived>}. The base can \texttt{static\char`_cast} to \texttt{Derived} 
+and call derived members \textbf{without virtual functions} (static polymorphism). 
+Common uses: mixins, compile-time interfaces, 
+\texttt{enable\char`_shared\char`_from\char`_this}-style helpers.
+\newline
+\textbf{Noise removed:} vtable indirection and the ``cannot inline through 
+\texttt{virtual}'' wall when the concrete type is known at compile time. 
+\textbf{Cost:} each \texttt{Base<D>} is a distinct type --- no heterogeneous 
+\texttt{vector<Base*>} of mixed deriveds; template instantiation can grow 
+binary size; you cannot swap implementations at runtime without another mechanism.
+\newline
+\textbf{When virtuals win:} truly open hierarchies, plugins loaded later, or 
+containers of mixed types behind one interface (then prefer virtuals or type 
+erasure, Section~\ref{subsec:type-erasure}).
+\par\noindent\textbf{Interview tip:} ``CRTP $=$ static polymorphism, no vtable; 
+virtuals when you need runtime heterogeneity.''
 
 \begin{lstlisting}[language=C++]
 template <typename D>
@@ -389,11 +419,25 @@ bool same = (a == b);   // resolved at compile time
 \label{subsec:type-erasure}
 See~\cite{wikibook-type-erasure}.
 \newline
-Hide a concrete type behind a uniform interface while retaining behaviour 
-(virtuals, function pointers, or a small-buffer-optimized wrapper). Clients 
-depend on the erased handle; the real type is known only at the construction 
-site. \texttt{std::function}, \texttt{std::any}, and polymorphic allocators 
-are standard examples.
+Templates keep the concrete type everywhere (fast, monomorphic). CRTP 
+(Section~\ref{subsec:crtp}) avoids vtables but still cannot put unrelated 
+deriveds in one container. Type erasure hides a concrete type behind a 
+uniform handle while retaining behaviour (virtuals, function pointers, or a 
+small-buffer-optimized wrapper). Clients depend on the erased handle; the 
+real type is known only at the construction site. \texttt{std::function}, 
+\texttt{std::any}, and polymorphic allocators are standard examples.
+\newline
+\textbf{Noise removed:} forcing a shared inheritance hierarchy just to stuff 
+heterogeneous objects into one \texttt{vector}, or exploding APIs into 
+templates at every call site. 
+\textbf{Cost:} typically a heap (or SBO) control block, an indirect call, and 
+possible allocation on construction/copy --- real money on a hot path 
+(Section~\ref{sec:avoiding-allocations}). Prefer open templates or CRTP when 
+the set of types is closed and known at compile time.
+\par\noindent\textbf{Interview tip:} pick the axis --- \emph{heterogeneous container} 
+$\rightarrow$ erasure or virtuals; \emph{max speed, known types} $\rightarrow$ 
+templates/CRTP; name the control-block/alloc cost of \texttt{std::function}-style 
+erasure.
 
 \begin{lstlisting}[language=C++]
 class Drawable {                 // type-erased handle

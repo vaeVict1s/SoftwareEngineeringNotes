@@ -15,16 +15,57 @@ agile development or adaptive software development.
 
 \newpage
 \section{Single-Responsibility}
+\label{sec:srp}
     "There should never be more than one reason for a class to change."~\cite{martin-srp}
     \newline
     In other words, every class should have only one responsibility.~\cite{martin-agileSoftDev}
+    \newline
+    \textbf{Smell:} a ``God'' or kitchen-sink type that mixes persistence, formatting, and notification --- any product change lands in the same file.
+    \newline
+    \textbf{Fix:} split along axes of change; keep orchestration thin and push each concern into its own type.
+    \par\noindent\textbf{Interview tip:} say \emph{reason to change} (actor/concern), not ``small class'' --- SRP is cohesion of change, not line count.
+
 \section{Open-Close}
+\label{sec:ocp}
     "Software entities \ldots  should be open for extension, but closed for modification."~\cite{ocp}
+    \newline
+    New behaviour should plug in without editing stable, already-working code.
+    \newline
+    \textbf{Smell:} a growing \texttt{switch}/\texttt{if-else} on type tags, or scattered edits to a ``core'' module every time a variant appears.
+    \newline
+    \textbf{Fix:} extend via polymorphism, strategies, or plugins; seal the stable path and add new implementations beside it.
+    \par\noindent\textbf{Interview tip:} name what stays closed (the hot path / published API) and what opens (a new subtype or strategy) --- OCP is not ``never touch a file again''.
+
 \section{Liskov Substitution}
+\label{sec:lsp}
     "Functions that use pointers or references to base classes must be able to use objects of derived classes without knowing it."~\cite{lsp} \\
     See also: \href{https://en.wikipedia.org/wiki/Design_by_contract}{Design by contract}. 
-\section{Interface Segregation}
-    "Clients should not be forced to depend upon interfaces that they do not use."~\cite{isp}~\cite{martin-pap}
-\section{Dependency Inversion}
-    "Depend upon abstractions, [not] concretions."~\cite{dip}~\cite{martin-pap}
+    \newline
+    Subtypes must honour the base contract so callers can swap implementations safely.
+    \newline
+    \textbf{Smell:} a derived type that weakens preconditions, strengthens postconditions the wrong way, throws unexpected exceptions, or no-ops a base method (classic square/rectangle and ``not supported'' overrides).
+    \newline
+    \textbf{Fix:} redesign the hierarchy or split interfaces so every subtype truly is-a usable substitute; prefer composition when inheritance breaks the contract.
+    \par\noindent\textbf{Interview tip:} walk one failing substitution (caller assumes base behaviour, derived surprises it) --- LSP is behavioural substitutability, not just shared method names.
 
+\section{Interface Segregation}
+\label{sec:isp}
+    "Clients should not be forced to depend upon interfaces that they do not use."~\cite{isp}~\cite{martin-pap}
+    \newline
+    Prefer small, role-focused interfaces over fat ones that dump unused methods on every client.
+    \newline
+    \textbf{Smell:} a fat interface where many implementers leave methods empty, throw, or ignore half the API.
+    \newline
+    \textbf{Fix:} carve role interfaces (read vs write, poll vs push) so each client depends only on what it calls.
+    \par\noindent\textbf{Interview tip:} point at unused methods on an implementer --- that unused surface is the ISP smell, not ``too many files''.
+
+\section{Dependency Inversion}
+\label{sec:dip}
+    "Depend upon abstractions, [not] concretions."~\cite{dip}~\cite{martin-pap}
+    \newline
+    High-level policy should not hard-wire low-level details; both should depend on shared abstractions.
+    \newline
+    \textbf{Smell:} domain logic that constructs concrete I/O, DB, or vendor SDKs directly --- swapping a dependency means editing the core.
+    \newline
+    \textbf{Fix:} introduce an interface (or port) owned by the high level; inject the concrete adapter at the boundary.
+    \par\noindent\textbf{Interview tip:} draw who owns the abstraction --- DIP inverts the usual ``UI depends on DB'' arrow so details plug into policy, not the reverse.

@@ -250,6 +250,10 @@ Section~\ref{subsec:amortized-vs-average}.
 \newpage
 \subsection{Container Adaptors}
 \label{subsec:container-adaptors}
+Adaptors do not invent storage; they wrap an underlying container and expose a 
+narrow policy (LIFO, FIFO, heap-ordered). The performance story is mostly the 
+underlying container's --- choose \texttt{deque} vs \texttt{vector} for the 
+adaptor's access pattern, not the adaptor name alone.
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
     \hline
@@ -265,6 +269,13 @@ Section~\ref{subsec:amortized-vs-average}.
 Default underlying containers: \texttt{deque} for \texttt{stack}/\texttt{queue}, 
 \texttt{vector} for \texttt{priority\char`_queue}. They expose a narrow interface 
 (\texttt{push}/\texttt{pop}/\texttt{top} or \texttt{front}), not full random access.
+\newline
+\textbf{Noise removed:} accidental misuse of a full container API when you only 
+needed stack/queue semantics. 
+\textbf{Cost:} no magic --- a \texttt{priority\char`_queue} is still $O(\log n)$ 
+per push/pop on its underlying random-access container.
+\par\noindent\textbf{Interview tip:} name the policy (LIFO/FIFO/heap) and the 
+default underlying type in one breath.
 
 \begin{lstlisting}[language=C++]
 std::priority_queue<int> pq;
@@ -277,8 +288,21 @@ pq.pop();
 \label{subsubsec:flat-adaptors}
 See~\cite{cppreference-containerflat_map},~\cite{cppreference-containerflat_set}.
 \newline
-With C++23, flat adaptors store keys (and values) in contiguous sorted containers 
---- excellent locality; inserts in the middle are $O(n)$.
+Node-based \texttt{map}/\texttt{set} chase pointers (poor locality, allocator 
+traffic per node). Flat adaptors store keys (and values) in contiguous sorted 
+containers --- excellent locality and cheap iteration; inserts/erases in the 
+middle shift elements and are $O(n)$.
+\newline
+\textbf{When \texttt{flat\char`_map} beats \texttt{map}:} small-to-medium 
+\textit{n}, lookup-heavy / iterate-heavy workloads, or when you build once 
+(sorted bulk load) and query often. 
+\textbf{When \texttt{map} wins:} large \textit{n} with frequent mid-container 
+insert/erase, or when pointer/reference stability to elements matters.
+\newline
+\textbf{Noise removed:} pointer-chasing misses and per-node allocations on 
+read-mostly tables. 
+\textbf{Cost:} $O(n)$ insert/erase shift; invalidation rules closer to 
+\texttt{vector} than to node-based maps (see Section~\ref{sec:iterator-invalidation}).
 
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
@@ -304,6 +328,19 @@ See~\cite{cppreference-span},~\cite{cppreference-string-view}.
 Views are \textbf{non-owning}: they refer to existing contiguous data (or a string) 
 without allocating. Prefer them for function parameters that should not force a copy.
 (Also covered in Contemporary C++: \texttt{std::string\char`_view}, \texttt{std::span}.)
+\newline
+\textbf{Why non-owning:} the caller (or a ring buffer / file mapping) keeps the 
+bytes; the callee only needs a window. That is the same ownership discipline as 
+zero-copy market-data parsing (Section~\ref{sec:zero-copy-md-parsing}): view the 
+buffer, decode, do not extend the view past reclaim.
+\newline
+\textbf{Noise removed:} mandatory \texttt{std::string}/\texttt{vector} copies at 
+API boundaries. 
+\textbf{Cost / bug class:} dangling --- a \texttt{span}/\texttt{string\char`_view} 
+must not outlive the storage it points at (temporaries, locals, reallocated 
+\texttt{vector} buffers).
+\par\noindent\textbf{Interview tip:} ``non-owning window + lifetime bound to the 
+owner'' --- same story as ring-buffer zero-copy.
 
 \begin{table}[H]
     \begin{tabularx}{\textwidth}{|l|X|}
@@ -333,6 +370,20 @@ temporary or locals that are about to die.
 \newpage
 \section{Invalidation of Iterators and References}
 \label{sec:iterator-invalidation}
+Iterator invalidation is a use-after-free cousin: the iterator still 
+\emph{looks} like a pointer into the container, but the container moved, 
+rehashed, or erased the element underneath. Classic bugs: keep an iterator 
+across a \texttt{vector} reallocation; insert into an \texttt{unordered\char`_map} 
+while iterating and trigger a rehash; erase and then dereference the old 
+iterator.
+\newline
+\textbf{Noise removed} by respecting the rules below: Heisenbugs that only show 
+under growth or load-factor edges. 
+\textbf{Cost of ignoring them:} UB --- not a clean exception.
+\par\noindent\textbf{Interview tip:} pick one container and narrate 
+\emph{when} iterators die (e.g.\ ``\texttt{vector} reallocation invalidates 
+everything; \texttt{unordered\char`_*} rehash invalidates iterators'').
+\newline
 Rules of thumb:
 \begin{itemize}
     \item \texttt{vector}: reallocation invalidates \textbf{everything}; without reallocation, 

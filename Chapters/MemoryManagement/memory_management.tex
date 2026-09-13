@@ -53,6 +53,21 @@ operations on the stack.
 
 \newpage
 \subsection{Memory Allocation and Deallocation in C}
+Manual heap ownership is a pairing problem: every successful allocation must 
+eventually meet exactly one matching free, on a pointer that still refers to 
+that block. Miss the pair and you leak; free twice, free a non-heap pointer, 
+or touch after free and you have undefined behaviour --- often silent until 
+production.
+\newline
+\textbf{Noise removed} by a correct \texttt{malloc}/\texttt{free} discipline: 
+unbounded growth from leaks and the ``mystery crash after free'' class of bugs. 
+\textbf{Cost / latency:} the C allocator is a shared, lock-aware heap --- 
+contention, coalescing, and page faults inject jitter (see the heap discussion 
+above and Section~\ref{sec:avoiding-allocations}). Prefer pools/arenas on hot 
+paths; keep C allocators for cold setup or C-interop boundaries.
+\par\noindent\textbf{Interview tip:} name the pairing invariant first 
+(alloc $\leftrightarrow$ free), then the UB cases (double-free, use-after-free, 
+wrong pointer), then why HFT code avoids the global heap on the tick path.
     \begin{table}[h!t]
         \begin{center}
             \begin{tabularx}{\textwidth}{|l|X|}
@@ -89,6 +104,22 @@ Deallocation is meant to be done by one of the following:
 \texttt{\href{https://en.cppreference.com/w/cpp/memory/c/free}{std::free()}} or \texttt{\href{https://en.cppreference.com/w/cpp/memory/c/realloc}{std::realloc()}}
 
 \subsection{Memory Allocation and Deallocation in C++}
+A \texttt{new}-expression does two jobs: obtain storage, then construct an 
+object in it. \texttt{operator new} is only the allocation half (raw bytes); 
+\texttt{delete} destroys then deallocates. Mixing levels --- 
+\texttt{free} on a \texttt{new} pointer, \texttt{delete} on \texttt{malloc}, 
+or skipping the destructor after placement construction --- is UB.
+\newline
+\textbf{Noise removed} by keeping expression-level and operator-level APIs 
+straight: accidental double-destroy / wrong deallocator bugs. 
+\textbf{Latency link:} every allocating \texttt{new} is a trip into the global 
+heap unless you replace \texttt{operator new} or feed placement \texttt{new} 
+from a pool (Sections~\ref{subsec:placement-new},~\ref{subsec:memory-pools}, 
+and~\ref{sec:avoiding-allocations}). On a hot path, prefer preallocated storage 
+over ``just \texttt{new} another object.''
+\par\noindent\textbf{Interview tip:} ``\texttt{new}-expression $=$ 
+\texttt{operator new} + constructor; placement \texttt{new} $=$ constructor 
+only'' --- then point at pools when they ask how to cut alloc jitter.
     \begin{table}[h!t]
         \begin{center}
             \begin{tabularx}{\textwidth}{|l|X|}
@@ -97,9 +128,9 @@ Deallocation is meant to be done by one of the following:
                 \hline
                 \href{https://en.cppreference.com/w/cpp/language/delete}{\texttt{delete} expression} & Destroys object(s) previously allocated by the new-expression and releases obtained memory area. \\
                 \hline
-                \href{https://en.cppreference.com/w/cpp/memory/new/operator_new}{\texttt{operator new}} & \\
+                \href{https://en.cppreference.com/w/cpp/memory/new/operator_new}{\texttt{operator new}} & Allocates raw storage only (no constructor). Used by the allocating \texttt{new}-expression; overridable for custom heaps/pools. \\
                 \hline
-                \href{https://en.cppreference.com/w/cpp/memory/new/operator_delete}{\texttt{operator delete}} & \\
+                \href{https://en.cppreference.com/w/cpp/memory/new/operator_delete}{\texttt{operator delete}} & Releases storage previously obtained from \texttt{operator new} (no destructor). Paired with the \texttt{delete}-expression after destruction. \\
                 \hline
             \end{tabularx}
         \end{center}

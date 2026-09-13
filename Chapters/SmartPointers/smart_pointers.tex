@@ -15,13 +15,26 @@ A smart pointer should therefore be used any time
 the ownership of memory needs to be tracked.
 
 \toclessnparagraph{Which pointer?}
+Ownership is the question; the type records the answer.
 \begin{itemize}
     \item Prefer \texttt{std::unique\char`_ptr} --- exclusive ownership, zero overhead vs a raw pointer + delete.
+          Default choice whenever one owner is enough.
     \item Use \texttt{std::shared\char`_ptr} only when ownership is genuinely shared.
+          Cost: a separate control block plus atomic reference-count traffic on 
+          copy/destroy --- real noise under contention and on the hot path 
+          (Section~\ref{sec:avoiding-allocations}). Prefer 
+          \texttt{std::make\char`_shared} when you do need sharing (one allocation 
+          for object + control block).
     \item Use \texttt{std::weak\char`_ptr} to observe a \texttt{shared\char`_ptr}-managed object 
           without extending its lifetime (break cycles, caches).
-    \item Do not use \texttt{std::auto\char`_ptr} (removed from the language).
+    \item Do not use \texttt{std::auto\char`_ptr} (removed from the language): 
+          historical exclusive-ownership attempt that \emph{copied by moving} --- 
+          the source became null on copy, a silent footgun in containers and 
+          by-value APIs. Replaced by \texttt{unique\char`_ptr} + move semantics.
 \end{itemize}
+\par\noindent\textbf{Interview tip:} ``\texttt{unique} by default; \texttt{shared} 
+only with a reason; name the atomic control block; \texttt{weak} breaks cycles; 
+\texttt{auto\char`_ptr} is the move-on-copy trap.''
 
 \newpage
 %% Unique Pointer
