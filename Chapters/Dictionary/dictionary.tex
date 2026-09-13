@@ -591,7 +591,8 @@
 \begin{multicols*}{2}
 
     \dictentry{Zero-copy}{I/O path that avoids copying packet/payload bytes 
-    between kernel and user buffers (Chapter~\ref{chap:kernelbypass}).}
+    between kernel and user buffers; for MD, parse in place on the ring with a 
+    non-owning view (Section~\ref{sec:zero-copy-md-parsing}).}
 
 \end{multicols*}
 

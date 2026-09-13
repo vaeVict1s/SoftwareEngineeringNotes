@@ -372,6 +372,33 @@ walk levels in price order. Common choices:
           store quantity per price and skip per-order lists.
 \end{itemize}
 
+\toclessnparagraph{Pointer chasing vs flat layout}
+\label{par:order-book-flat-vs-pointer}
+Node-based structures (\texttt{std::map}, linked lists, pointer-heavy trees) store each 
+level or order in a separately allocated node. Walking the book then 
+\highlight{pointer-chases}: load a node, follow \texttt{left}/\texttt{next}, miss cache, 
+repeat. Under a burst of depth updates or a strategy that scans several levels, those 
+misses dominate --- not the $O(\log n)$ compare count on the whiteboard.
+\newline
+\textbf{Noise removed} by flat, preallocated contiguous storage: random node hops on the 
+hot path. A \highlight{tick-indexed ladder} (or dense \texttt{vector} of levels over a 
+bounded price window) keeps neighbouring prices in neighbouring cache lines so hardware 
+prefetch helps. Pair with pools for L3 order nodes if you still need per-id queues 
+(Section~\ref{sec:avoiding-allocations}; Chapter~\ref{chap:cacheperformance}).
+\newline
+\textbf{Cost / when a map is fine:} a sparse book over a huge price range wastes RAM on a 
+dense ladder; whiteboard sketches and moderate update rates often keep 
+\texttt{std::map}. Choose the layout for the instrument's tick grid and the strategy's 
+read pattern (BBO only vs deep walk), not as a universal rule.
+\begin{lstlisting}[language=C++]
+// Sketch: bids as qty[tick], tick = price / tick_size (bounded window).
+constexpr int kTicks = 4096;
+alignas(64) int64_t bid_qty[kTicks]{};  // preallocated; index = px_to_tick(px)
+// BBO: track best_tick explicitly on each update --- do not scan 4096 slots.
+\end{lstlisting}
+\par\noindent\textbf{Interview tip:} ``pointer chasing vs contiguous ladder'' --- name the miss, 
+then the bound on price range that makes the array legal.
+
 \toclessnparagraph{Aggregate book (L2-style storage)}
 Quantity (and optional order count) per price --- no per-order queues. Matches an L2 feed, 
 or an L3 feed that you collapse locally.
@@ -487,7 +514,8 @@ shared book state, and scheduler wake-ups from contended locks.
     \item \highlightbf{No allocations} on the update path --- pre-sized maps/pools, recycled 
           nodes (Section~\ref{sec:avoiding-allocations}).
     \item \highlightbf{Contiguous levels} and stable layout beat pointer-chasing lists when 
-          depth walks matter (Chapter~\ref{chap:cacheperformance}).
+          depth walks matter (see pointer chasing vs flat layout above; 
+          Chapter~\ref{chap:cacheperformance}).
     \item \highlightbf{Single writer} for a given instrument book when possible (SPSC into the 
           book thread --- Section~\ref{sec:spsc-ring-buffer}); avoid locking inside the decode 
           loop.

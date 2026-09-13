@@ -103,6 +103,63 @@ writing a packet-oriented app (not a drop-in for arbitrary TCP sessions).
 Useful vocabulary: XDP for early drop/redirect in-kernel; \texttt{AF\char`_XDP} when a 
 user process must consume raw/fast packet streams with lower overhead than classic sockets.
 
+\section{Zero-Copy Market-Data Parsing}
+\label{sec:zero-copy-md-parsing}
+Packets on a bypass path typically land in a \highlight{user-space ring} (DPDK mbuf, 
+Onload buffer, \texttt{AF\char`_XDP} UMEM slot). The descriptor owns that memory until you 
+release it back to the ring. \highlight{Zero-copy} parsing means decoding the wire 
+message \emph{in place} --- no \texttt{malloc}, no \texttt{memcpy} into an owned 
+\texttt{std::vector} on the hot path (Section~\ref{sec:avoiding-allocations}).
+\newline
+\texttt{std::span} is a non-owning contiguous view (pointer + length); API details live in 
+Section~\ref{subsec:container-views}. Here it is only the handle you pass into the parser 
+while the ring still owns the bytes.
+\newline
+\textbf{Noise removed:} an extra copy (and often an allocation) between NIC buffer and 
+typed fields --- plus the cache pollution of touching the payload twice. 
+\textbf{Hard part:} lifetime and reclaim --- a \texttt{span} must not outlive the 
+descriptor; decode, hand off what you need (or copy only the small fields you will keep), 
+then return the slot.
+\newline
+Safer loads of possibly unaligned / endian-swapped wire bytes use \texttt{memcpy} or 
+explicit byte loads into a host struct. \texttt{reinterpret\char`_cast} is shown below 
+because interviews ask for it; it is correct only when alignment and layout match the 
+wire, and the view's lifetime is still bound to the ring slot.
+\begin{lstlisting}[language=C++]
+#include <cstddef>
+#include <cstdint>
+#include <span>
+
+#pragma pack(push, 1)
+struct WireHeader {
+    std::uint8_t  msg_type;
+    std::uint16_t length;   // real feeds: convert from network endian
+};
+#pragma pack(pop)
+
+// pkt views bytes still owned by the RX ring / mbuf --- do not store this pointer.
+const WireHeader* header_view(std::span<const std::byte> pkt)
+{
+    if (pkt.size() < sizeof(WireHeader)) {
+        return nullptr;
+    }
+    return reinterpret_cast<const WireHeader*>(pkt.data());
+}
+
+void on_rx(std::span<const std::byte> pkt)
+{
+    const WireHeader* h = header_view(pkt);
+    if (!h) {
+        return;  // truncated --- drop / count
+    }
+    // use h->msg_type / payload subspan; then release the ring slot
+    auto body = pkt.subspan(sizeof(WireHeader));
+    (void)body;
+}
+\end{lstlisting}
+\par\noindent\textbf{Interview tip:} zero-copy is ownership discipline, not a magic type --- 
+\texttt{span} views the ring; reclaim is when the view dies.
+
 \section{When To Use Them}
 \label{sec:kernel-bypass-when-to-use}
 Bypass is not free: hardware lock-in, harder debugging, security/ops burden, and often a 
