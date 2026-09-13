@@ -422,6 +422,10 @@ tick-indexed arrays or pooled trees when the price range is bounded
 
 \subsection{Add, Update, and Remove}
 \label{subsec:order-book-operations}
+The feed does not hand you a finished book --- it streams \highlight{deltas}. Your hot path 
+is applying those deltas correctly and cheaply. Wrong apply logic is silent corruption 
+(ghost levels, wrong BBO); expensive apply logic is jitter under burst.
+\newline
 Feed handlers typically apply:
 \begin{itemize}
     \item \highlightbf{Add} --- new order at a price (create level or increase qty / enqueue order).
@@ -430,11 +434,19 @@ Feed handlers typically apply:
     \item \highlightbf{Trade} / execute --- reduce resting qty when a fill hits the book 
           (depending on whether the feed already netted that into cancel/modify).
 \end{itemize}
-Maintain invariants: no empty levels left in the maps; BBO caches invalidated or updated when 
-the top level changes; order-id index consistent if you track individual orders.
+\textbf{Invariants to keep every tick:} no empty levels left in the maps; BBO cache 
+invalidated or updated when the top level changes; order-id index consistent if you track 
+individual orders. A missed empty-level cleanup is a classic ``phantom liquidity'' bug.
 \newline
-Sequence numbers / gaps: market-data feeds are often UDP; detect gaps and rebuild from snapshot 
-(Chapter~\ref{chap:linuxnetworking}).
+\textbf{Noise removed} by treating modify as cancel+add when the venue semantics allow it: 
+one code path, fewer special cases. \textbf{Cost:} you must still match the venue's exact 
+rules (in-place qty change vs new priority).
+\newline
+Sequence numbers / gaps: market-data feeds are often UDP; detect gaps and rebuild from 
+snapshot (Chapter~\ref{chap:linuxnetworking}). Applying increments after a gap without a 
+resync is how books drift from the venue.
+\par\noindent\textbf{Interview tip:} walk one add that creates a new best bid, then a cancel 
+that restores the old BBO --- and say which caches you touch.
 
 \subsection{Best Bid and Offer}
 \label{subsec:order-book-bbo}
@@ -465,6 +477,12 @@ BBO top(const std::map<int64_t, Level, std::greater<int64_t>>& bids,
 
 \subsection{Hot-Path Design}
 \label{subsec:order-book-performance}
+The book update loop sits on the critical path between packet and decision. Asymptotic 
+``$\log n$ map'' talk is not enough if the real noise is allocator locks, false sharing, 
+or a mutex inside the decode loop.
+\newline
+\textbf{Noise removed} by the practices below: allocation jitter, cache-line ping-pong on 
+shared book state, and scheduler wake-ups from contended locks.
 \begin{itemize}
     \item \highlightbf{No allocations} on the update path --- pre-sized maps/pools, recycled 
           nodes (Section~\ref{sec:avoiding-allocations}).
@@ -478,3 +496,7 @@ BBO top(const std::map<int64_t, Level, std::greater<int64_t>>& bids,
     \item Measure update latency and cache misses under realistic burst rates; asymptotic 
           map cost is not enough if allocation jitter dominates.
 \end{itemize}
+\textbf{Cost:} more upfront sizing and ownership discipline; you give up casual 
+multi-threaded mutation of one book. That trade is usually correct for tick-to-trade.
+\par\noindent\textbf{Interview tip:} name the noise first (alloc, false share, lock), then the 
+knob --- not a laundry list of buzzwords.

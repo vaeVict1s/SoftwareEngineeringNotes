@@ -61,6 +61,16 @@ At systematic trading firms, a \highlight{Senior Quant Developer} typically:
     \item Connects \textbf{market data} (prices, rates, vol surfaces) to those libraries.
     \item Explains daily P\&L: ``how much was stock move vs vol move vs time decay?''
 \end{itemize}
+The job is less ``invent a new model'' and more \emph{keep the production path honest}.
+\newline
+\textbf{Noise removed} in live systems: stale market data (marks and hedges from yesterday's 
+book), wrong units (vol in percent vs decimal, rates vs day-count), and untested greeks 
+(analytic formulas that never met a bump check, so risk and P\&L explain silently lie).
+\newline
+A \textbf{pure quant researcher} owns the model story --- hypothesis, fit, paper P\&L. 
+A quant developer owns the path from that model into wires, books, risk, and regression 
+tests: same economics, but the failure modes are desync, units, and latency, not only 
+statistical edge.
 \par\noindent\textbf{Interview tip:} understand \emph{both} the model and \emph{where production breaks} 
 (wrong units, stale data, smile not flat, etc.).
 
@@ -343,16 +353,30 @@ Section~\ref{sec:spot-futures-infra}.
 \begin{itemize}
     \item \highlightbf{Stocks (equities)} --- ownership shares; cash market + listed 
           options/futures on single names or indices.
+          Systems: exchange sessions and auctions; listed L2/L3 MD; corporate-action 
+          calendars matter for marks.
     \item \highlightbf{Bonds} --- debt; price moves mainly with rates and credit; 
           huge OTC component.
+          Systems: dealer/RFQ more than a central book; reference data and curves 
+          dominate over nanosecond book updates.
     \item \highlightbf{ETFs} --- exchange-traded funds; trade like stocks, hold a 
           basket or strategy exposure.
+          Systems: equity-like sessions and feeds, plus NAV / creation--redemption 
+          clocks that research bars must not ignore.
     \item \highlightbf{Commodities} --- oil, metals, ags, \ldots; often futures-first.
+          Systems: futures sessions, rolls, and delivery months drive symbol maps 
+          and MD shape (Section~\ref{sec:spot-futures-infra}).
     \item \highlightbf{FX (foreign exchange)} --- currency pairs; enormous OTC spot 
           and forwards, plus exchange-traded FX futures.
+          Systems: long/24$\times$5 hours, ECN or dealer quotes rather than one CLOB; 
+          MD is quote/trade streams more than equity L3.
     \item \highlightbf{Crypto} --- digital assets; spot, futures, perpetuals, options; 
           24/7 venues (Section~\ref{sec:crypto-markets}).
+          Systems: no equity close; WebSocket/REST reconnect and funding schedules 
+          are first-class product logic.
 \end{itemize}
+\par\noindent\textbf{Interview tip:} name the asset class, then one ops fact 
+(session hours, OTC vs listed, or MD shape) --- that is what the stack actually binds to.
 
 \subsection{Spot}
 \label{subsec:spot}
@@ -607,12 +631,27 @@ are a feed, race, or auction-state smell (Chapter~\ref{chap:algorithms}).
     \item \highlightbf{L2} --- depth by price (aggregated size per level).
     \item \highlightbf{L3} --- each resting order id (full queue).
 \end{itemize}
+``L3 feed'' and ``L3 storage'' are not the same bill. The feed is bandwidth and decode 
+CPU on every add/cancel/execute; the in-memory book is pointers, queues, and 
+\texttt{by\char`_id} maps that grow with resting interest. L1 is a few fields per 
+instrument --- cheap to store and update. L3 pays more CPU per message and far more 
+memory/cache pressure to keep every order id and FIFO queue intact.
+\newline
 Matching on most equity/futures books is \highlight{price--time priority}: better 
 price first; at the same price, earlier resting orders first. Your L3 model must 
-preserve FIFO at a level if you care about queue position.
+preserve FIFO at a level if you care about queue position --- shuffle that order and 
+fill-probability math (and any queue-join strategy) is fiction.
+\par\noindent\textbf{Interview tip:} say what you store (BBO vs depth vs order ids), then 
+what it costs on the tick path vs what price--time forces you to preserve.
 
 \subsection{Order types and time-in-force}
 \label{subsec:order-types}
+Before the menu: \highlight{make} vs \highlight{take}. A resting limit that adds 
+liquidity is a make (you join the book); an order that crosses the spread and hits 
+someone else's resting interest is a take. Venues usually charge different 
+\highlight{fees} (or pay rebates) for each --- so the same economic trade can be 
+cheap or expensive depending on whether you rest or cross. Time-in-force decides 
+whether leftover size may rest (GTC) or must die immediately (IOC/FOK).
 \begin{center}
 \small
 \begin{tabularx}{\textwidth}{|l|X|}
@@ -633,16 +672,25 @@ preserve FIFO at a level if you care about queue position.
 \hline
 \end{tabularx}
 \end{center}
-HFT cares about \highlight{make vs take} (rest vs cross), fees, and whether the order 
-can rest. Venue names and exact stop semantics differ --- say what \emph{your} 
-gateway encoded.
+A marketable limit or market order is a take \emph{before} anything rests; a 
+non-marketable limit is a make \emph{after} it lands in the book. IOC/FOK never become 
+makers on the remainder. Venue names and exact stop semantics differ --- say what 
+\emph{your} gateway encoded.
+\par\noindent\textbf{Interview tip:} ``make = rest / rebate side; take = cross / fee side; 
+TIF decides whether leftovers can rest.''
 
 \subsection{Market-data shapes (recap)}
 \label{subsec:md-shapes-recap}
 \highlight{Trades} vs \highlight{quotes}; \highlight{snapshot} then 
 \highlight{incremental} updates; \highlight{sequence numbers} for gaps. Full Q\&A 
-in Section~\ref{sec:quant-interview-qa}. Core-engineer interviews often jump from 
-here straight into: ``show me your book update path'' and ``what do you do on a gap?''
+in Section~\ref{sec:quant-interview-qa}.
+\newline
+The failure modes are mechanical. Miss a snapshot and start mid-stream $\Rightarrow$ 
+ghost levels. Apply incrementals after a \highlight{sequence gap} without rebuild 
+$\Rightarrow$ a book that looks live but is wrong. Drop trades while keeping quotes 
+(or the reverse) $\Rightarrow$ marks and markouts diverge from the tape. Core-engineer 
+interviews often jump from here straight into: ``show me your book update path'' and 
+``what do you do on a gap?''
 
 \par\noindent\textbf{Interview tip:} define BBO/spread in one breath, then name the 
 order types you actually sent in production (e.g.\ limit + IOC), not the whole menu.
@@ -683,6 +731,11 @@ payoff is uncertain. Pricing = finding a fair $V$ given $S$, $K$, $T$, and model
 
 \section{Interest Rates, Dividends, and Forward Price}
 \label{sec:plain-rates-divs}
+Desks rarely trade ``spot plus a story about interest'': they quote a 
+\highlight{forward} --- the fair price to deliver the stock at $T$ agreed today. 
+The rate $r$ is the cost of financing cash; the yield $q$ is what you give up by 
+not holding the stock; together they pin that forward so cash-and-carry arguments 
+close. The symbols below are just that bookkeeping made precise.
 \begin{itemize}
     \item \highlight{$r$} --- \textbf{risk-free rate} (annualized). Money in the bank grows 
           as $e^{rt}$; discounting future cash by $e^{-r(T-t)}$ is the continuous analogue 
@@ -896,19 +949,28 @@ not one scalar $\sigma$.
 
 \section{Beyond Vanilla (Short Glossary)}
 \label{sec:beyond-vanilla-glossary}
-Read these once; depth can come later.
+Read these once; depth can come later. Interviewers use the names to probe whether 
+you know \emph{why} the vanilla BS story is incomplete.
 \begin{itemize}
     \item \textbf{Realized vol} --- measured from past returns; \textbf{implied vol} --- 
           inferred from option prices.
+          Shows up to test that you do not confuse a historical statistic with a 
+          market quote coordinate.
     \item \textbf{Exotic} --- non-vanilla payoff (barrier, Asian average, digital); 
           often priced by Monte Carlo or PDE on a grid.
+          Shows up when they ask how you price path dependence once closed forms die.
     \item \textbf{American} --- can exercise before $T$; worth at least European; 
           no vanilla BS closed form --- see Section~\ref{subsec:american-options}.
+          Classic trap: ``just use BS'' fails; early exercise needs a free boundary.
     \item \textbf{Vanna / volga} --- cross and second derivatives w.r.t.\ $S$ and $\sigma$; 
           matter on large joint moves.
+          Desk language for higher-order risk when spot and vol move together.
     \item \textbf{Bid--ask / order book} --- where theoretical price meets tradable price 
           (Part~II networking chapters).
+          Reminds you that a theo mid is not a fill; microstructure sits between.
 \end{itemize}
+\par\noindent\textbf{Interview tip:} one sentence per term is enough --- name the gap in 
+the vanilla story each term plugs.
 
 \section{Computing Greeks in Code}
 \label{sec:analytic-vs-bump}
@@ -953,12 +1015,26 @@ Use \texttt{std::erfc}~\cite{cppreference-erfc} for stable $N(x)$ in the tails.
 
 \section{Implementation Pitfalls}
 \label{sec:numerical-gotchas}
+These are not style nits --- they are how silent P\&L and CI failures are born.
 \begin{itemize}
-    \item \textbf{Near expiry ATM:} greeks blow up; use limits or switch to intrinsic value.
-    \item \textbf{Units:} vol decimal vs percent; rates; day-count conventions.
-    \item \textbf{Put--call parity:} automated test on every build.
-    \item \textbf{Determinism:} Monte Carlo greeks need fixed seeds for regression tests.
+    \item \textbf{Near expiry ATM:} greeks blow up ($\Gamma$, $\nu$ $\to$ large as 
+          $T\!\to\!0$ at the money). Failure story: risk shows enormous hedges overnight; 
+          traders over-hedge; morning P\&L explain is nonsense. Use limits, switch to 
+          intrinsic, or freeze greeks in a guarded near-expiry regime.
+    \item \textbf{Units:} vol decimal vs percent; rates; day-count conventions. 
+          Failure story: feed stores $20$ for ``20\%'', pricer expects $0.20$ --- 
+          prices look ``a bit off'' until the desk loses real money. Same class of bug 
+          for ACT/365 vs ACT/360 on short rates.
+    \item \textbf{Put--call parity:} automated test on every build. Failure story: a 
+          refactor breaks the put formula; calls still match BS tables; CI stays green 
+          if you only golden-test calls --- parity catches the silent half.
+    \item \textbf{Determinism:} Monte Carlo greeks need fixed seeds for regression tests. 
+          Failure story: unseeded MC makes bump greeks wander; CI flakes red/green; 
+          worse, a NaN from a bad path ($S\le 0$, $\log$ of junk) propagates into risk 
+          as quiet \texttt{NaN} marks until someone notices unexplained residual.
 \end{itemize}
+\par\noindent\textbf{Interview tip:} pick one pitfall and narrate the \emph{desk} symptom 
+(wrong hedge, red CI, NaN mark) --- not only the math edge case.
 
 \section{Monte Carlo and PDE (When BS Is Not Enough)}
 \label{sec:monte-carlo}
@@ -1041,17 +1117,49 @@ spot tick does not thrash 50k independent heap objects.''
 
 \section{Production Architecture (Lite)}
 \label{sec:pricer-risk-design}
-Typical pipeline: \textbf{market data snapshot} $\to$ \textbf{curves/surfaces} $\to$ 
-\textbf{pricer} $\to$ \textbf{risk aggregator}. Version snapshots so you can replay 
-``what did we think P\&L was at 10:00?'' For listed options at scale see 
-Section~\ref{subsec:options-universe-greeks}. See Chapter~\ref{chap:lowlatency} for 
-hot-path engineering and Chapter~\ref{chap:concurrency} for thread-safe shared state.
+A production stack is a staged pipeline, not a single ``pricer'' binary. Walk it left 
+to right and name what each stage removes --- and what it costs.
+\begin{itemize}
+    \item \highlightbf{Market data} --- normalize ticks, gaps, and reference data into 
+          a firm clock. \textbf{Noise removed:} raw venue quirks and stale symbols. 
+          \textbf{Cost:} decode CPU, sequence recovery, snapshot rebuilds.
+    \item \highlightbf{Book / marks} --- L1--L3 (or quote) state the strategy and risk 
+          actually read. \textbf{Noise removed:} wire-level event soup. 
+          \textbf{Cost:} memory and cache traffic; wrong book $\Rightarrow$ wrong signal.
+    \item \highlightbf{Curves / surfaces} --- rates, dividends, vol surface snapshots 
+          versioned with the MD clock. \textbf{Noise removed:} mixing today's spot with 
+          yesterday's smile. \textbf{Cost:} build/calibration latency; versioning storage 
+          so you can replay ``what did we think at 10:00?''
+    \item \highlightbf{Signal / pricer} --- theo, greeks, or alpha from book + surfaces. 
+          \textbf{Noise removed:} ad-hoc spreadsheet numerics on the hot path. 
+          \textbf{Cost:} CPU per tick; must stay deterministic and allocation-thin.
+    \item \highlightbf{Risk} --- aggregate exposure, limits, kill-switches before and 
+          after intent. \textbf{Noise removed:} unchecked size and forbidden instruments. 
+          \textbf{Cost:} must stay cheap enough not to dominate tick-to-trade.
+    \item \highlightbf{Order entry (OE)} --- encode and send; handle acks/rejects/fills. 
+          \textbf{Noise removed:} strategy talking protocol dialects directly. 
+          \textbf{Cost:} session state, retries, and partial-fill bookkeeping.
+\end{itemize}
+For listed options at scale see Section~\ref{subsec:options-universe-greeks}. See 
+Chapter~\ref{chap:lowlatency} for hot-path engineering and Chapter~\ref{chap:concurrency} 
+for thread-safe shared state.
+\par\noindent\textbf{Interview tip:} draw MD $\to$ book $\to$ signal $\to$ risk $\to$ OE, 
+then pick \emph{one} stage you owned and its failure mode (gap, stale surface, limit reject).
 
 \section{Testing and Python/C++ Split}
 \label{sec:testing-quant-code}
-Test: parity, analytic vs bump greeks, edge cases ($T \to 0$, deep OTM). 
-Research in Python; production pricers in C++ with a thin binding --- same numerics, 
-stricter latency and determinism requirements.
+\textbf{Python} wins research: notebooks, plotting, quick surface experiments, and 
+reference pricers you can change in minutes. \textbf{C++} wins the hot path: fixed 
+latency, no GIL, and deterministic regression under load. The split works only if both 
+sides share the \emph{same} numerics contract --- thin bindings, not two forever-divergent 
+implementations.
+\newline
+\textbf{Golden-test} what desks notice when wrong: put--call parity, analytic vs bump 
+greeks (within a tight tolerance), and edge cases ($T \to 0$, deep OTM/ITM, zero vol). 
+Freeze seeds for MC; freeze input snapshots for replay. A green research notebook is not 
+a substitute for a C++ regression that fails the build when parity breaks.
+\par\noindent\textbf{Interview tip:} ``Python to explore and golden; C++ to ship and 
+guard --- same formulas, stricter latency and determinism in prod.''
 
 \section{Interview Cheat Sheet (Read Last)}
 \label{sec:quant-interview-cheat-sheet}
