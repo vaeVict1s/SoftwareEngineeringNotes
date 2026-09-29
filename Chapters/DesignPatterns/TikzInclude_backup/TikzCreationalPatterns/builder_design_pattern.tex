@@ -2,14 +2,14 @@
     \tikzfig{builder_design_pattern}
 \begin{tikzpicture}%[show background grid]
             
-        \begin{interface}[text width=3cm]{ABCBuilder}{0,0}
+        \begin{interface}[text width=3cm]{Builder}{0,0}
             \operationtt{+ reset()}
             \operationtt{+ buildStepA()}
             %~ \operationtt{+ buildStepB()}
             \operationtt{+ buildStepZ()}
         \end{interface}
         \begin{class}[text width=4.5cm]{BuilderA}{-3,-4.5}
-            \implement{ABCBuilder}
+            \implement{Builder}
             \attributett{result: ProductA}
             \operationtt{+ reset()}
             \operationtt{+ buildStepA()}
@@ -18,7 +18,7 @@
             \operationtt{+ getResult(): ProductA}
         \end{class}
         \begin{class}[text width=4.5cm]{BuilderB}{3,-4.5}
-            \implement{ABCBuilder}
+            \implement{Builder}
             \attributett{result: ProductB}
             \operationtt{+ reset()}
             \operationtt{+ buildStepA()}
@@ -29,12 +29,12 @@
 
 
         \begin{class}[text width=4.5cm]{Director}{5,-0.5}
-            \attributett{- builder: ABCBuilder}
+            \attributett{- builder: Builder}
             \operationtt{+ Director(builder)}
             \operationtt{+ changeBuilder(builder)}
             \operationtt{+ make(type)}
         \end{class}
         
-        \draw[ ->] ( Director.west) ++ (0,0.25) -- ( ABCBuilder);
+        \draw[ ->] ( Director.west) ++ (0,0.25) -- ( Builder);
     \end{tikzpicture}
 \end{center}

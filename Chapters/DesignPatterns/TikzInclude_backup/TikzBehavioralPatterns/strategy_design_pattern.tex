@@ -1,0 +1,34 @@
+\begin{center}
+    
+    \tikzfig{strategy_design_pattern}
+\begin{tikzpicture}%[show background grid]
+        
+        \begin{class}[text width=4.5cm]{Context}{0,0}
+            \attributett{- strategy}
+            \operationtt{- setStrategy(strategy)}
+            \operationtt{- doSomething()}
+        \end{class}
+        
+        \begin{interface}[text width=3cm]{Strategy}{7,0}
+            \operationtt{+ execute(data)}
+        \end{interface}
+        \begin{class}[text width=3cm]{StrategyA}{5,-3}
+            \implement{Strategy}
+            \operationtt{+ execute(data)}
+        \end{class}
+        \begin{class}[text width=3cm]{StrategyB}{9,-3}
+            \implement{Strategy}
+            \operationtt{+ execute(data)}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{0,-3.2}
+        \end{class}
+
+        \draw [ - >] ( Client)  -- ( Context) ;                                   
+        \draw [ - >] ( Context)  -- ( Strategy) ;                                   
+
+
+    
+    \end{tikzpicture}
+    
+\end{center}

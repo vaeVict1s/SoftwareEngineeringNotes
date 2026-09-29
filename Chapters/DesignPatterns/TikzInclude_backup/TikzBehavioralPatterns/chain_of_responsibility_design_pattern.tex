@@ -2,26 +2,26 @@
 \tikzfig{chain_of_responsibility_design_pattern}
 \begin{tikzpicture}%[show background grid]
     \begin{abstractclass}[text width=4cm]{ABCHandler}{0,0}
-        \operationtt{+setNext(h: ABCHandler)}
+        \operationtt{+setNext(h: Handler)}
         \operationtt{+handle(request)}
         \end{abstractclass}
         
-        \begin{class}[text width=4cm]{ABCHandler}{0,-4}
+        \begin{class}[text width=4cm]{Handler}{0,-4}
              \implement{ABCHandler}
-             \attributett{- next: ABCHandler}      
-            \operationtt{+setNext(h: ABCHandler)}
+             \attributett{- next: Handler}      
+            \operationtt{+setNext(h: Handler)}
             \operationtt{+handle(request)}
         \end{class}
         \begin{class}[text width=4cm]{SubHandlerA}{-3,-7.5}
-             \inherit{ABCHandler}
-             \attributett{- next: ABCHandler}      
-            \operationtt{+setNext(h: ABCHandler)}
+             \inherit{Handler}
+             \attributett{- next: Handler}      
+            \operationtt{+setNext(h: Handler)}
             \operationtt{+handle(request)}
         \end{class}    
         \begin{class}[text width=4cm]{SubHandlerB}{3,-7.5}
-             \inherit{ABCHandler}
-             \attributett{- next: ABCHandler}      
-            \operationtt{+setNext(h: ABCHandler)}
+             \inherit{Handler}
+             \attributett{- next: Handler}      
+            \operationtt{+setNext(h: Handler)}
             \operationtt{+handle(request)}
         \end{class}
         

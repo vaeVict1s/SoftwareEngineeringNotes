@@ -1,0 +1,28 @@
+\begin{center}
+    \tikzfig{prototype_design_pattern}
+\begin{tikzpicture}%[show background grid]
+        
+        \begin{interface}[text width=4.5cm]{ABCPrototype}{0,0}
+            \operationtt{+ clone(): Prototype}
+        \end{interface}
+        \begin{class}[text width=5.5cm]{Prototype}{0,-3}
+            \implement{ABCPrototype}
+            \attributett{- field1}
+            \operationtt{+ ConcretePrototype(prototype)}
+            \operationtt{+ clone(): Prototype}
+
+        \end{class}
+        \begin{class}[text width=5cm]{SubPrototype}{0,-6}
+            \inherit{Prototype}
+            \attributett{- field2}
+            \operationtt{+ SubPrototype(prototype)}
+            \operationtt{+ clone(): Prototype}
+        \end{class}
+        
+        \begin{class}[text width=2cm]{Client}{-5,-0.3}
+        
+        \draw [ - >] ( Client) ++ (-4,-2.9) -- ( ABCPrototype) ;                  
+
+        \end{class}
+    \end{tikzpicture}
+\end{center}

@@ -9,9 +9,17 @@ objects that are easier to implement, change, test, and reuse.
 %%% CREATIONAL PATTERNS %%%
 %%%
 \section{Creational Patterns}
+\label{sec:creational}
+
+Creational patterns isolate \emph{how} objects come into existence from the code that uses them.
+They matter when constructors alone couple callers to concrete types, or when creation itself is a design concern (families, multi-step builds, clones, unique instances).
 
 %%% %%% FACTORY METHOD %%% %%% %%%
 \subsection{Factory Method}
+Factory Method lets a creator decide \emph{which} concrete product to build behind a shared product interface.
+Callers depend on that interface and on the creator's factory method, not on \texttt{new ConcreteType(...)}.
+Subclassing the creator (or overriding a default factory method) is how new product variants plug in.
+
 \begin{table}[h!t]
     \begin{center}
         \begin{tabularx}{\textwidth}{|l|X|}
@@ -38,14 +46,14 @@ objects that are easier to implement, change, test, and reuse.
                                    a library or framework need to be 
                                    extended\\
                                  & \quad by users\\ 
-                                 & $\bullet$ system resources need to 
-                                 be saved by reusing existing objects. \\
+                                 & $\bullet$ several creators share one workflow 
+                                   but differ only in which product they construct \\
             \hline
         \end{tabularx}
     \end{center}
 \end{table}
 
-\vspace{-1cm}
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -53,7 +61,6 @@ objects that are easier to implement, change, test, and reuse.
     \begingroup
     \begin{figure}[H]
         \begin{center}
-        %~ \include{./Chapters/DesignPatterns/TikzInclude/TikzCreationalPatterns/builder_design_pattern.tex}
             \include{./Chapters/DesignPatterns/TikzInclude/TikzCreationalPatterns/factory_method_design_pattern.tex}
         \end{center}
     \end{figure}
@@ -74,7 +81,7 @@ objects that are easier to implement, change, test, and reuse.
                                      & \small{\, $\bullet$ \highlightbf{returned type} 
                                        - must match the interface.} \\
                                      & It can have some \highlightit{core business logic} 
-                                       which can be splitted from the 
+                                       which can be split from the 
                                        product creation. \\
             \hline
             \highlightbf{CreatorA},  & concrete classes that \highlightit{override the base factory method} \\
@@ -86,7 +93,6 @@ objects that are easier to implement, change, test, and reuse.
     \end{center}
 \end{table}
 
-\newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
@@ -95,46 +101,26 @@ objects that are easier to implement, change, test, and reuse.
                         creation of concrete objects from the core 
                         business logic \\
                       & \quad of the Creator; \\
-                      & $\bullet$\, \highlightit{Single Respobsibility Principle}\\
-                      & $\bullet$\, \highlightit{Open/Close Principle} \\
+                      & $\bullet$\, \highlightit{Single Responsibility Principle}
+                        (creation isolated from use)\\
+                      & $\bullet$\, \highlightit{Open/Closed Principle}
+                        (new products via new creators)\\
         \hline
-        \textbf{Cons} & code gets more complex \\
+        \textbf{Cons} & more classes and indirection; overkill for one-off types \\
         \hline      
     \end{tabularx}
 \end{table}
-    
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Abstract Factory} & can be based on a set of 
-                                         %~ \highlightit{Factory Method}s\\
-        %~ \hline
-        %~ \highlightbf{Iterator} & can be used along with \highlightit{Factory Method} 
-                                 %~ to let collection subclasses have 
-                                 %~ their own compatible iterators\\
-        %~ \hline
-        %~ \highlightbf{Prototype} & isn't based on inheritance but 
-                                  %~ requires a complicated initialization 
-                                  %~ of the cloned object\\
-        %~ \hline
-        %~ \highlightbf{Template Method} & large model based on this 
-                                        %~ pattern can have 
-                                        %~ \highlightit{Factory Method}s 
-                                        %~ as single steps\\
-        %~ \hline
-    %~ \end{tabularx}
-%~ \end{table}
-    
+
+\par\noindent\textbf{Interview tip:}
+Contrast with Abstract Factory---Factory Method creates \emph{one} product hierarchy; Abstract Factory coordinates \emph{families} of related products.
+
 \newpage
 %%% %%% ABSTRACT FACTORY %%% %%% %%%
 \subsection{Abstract Factory}
-\vspace{-0.5cm}
-%%% rephrase better into following table
-%~ An Abstract Factory is finally declared with a \textbf{list of creation methods} 
-%~ for all the items that are part of the product family. For each variant of a product family, 
-%~ \textbf{a separate factory class} based on the AbstractFactory interface will be needed 
-%~ and \textbf{clients access with both factories and products via their abstract interfaces}.
+Abstract Factory groups creation methods for a whole product family behind one factory interface.
+Swap the concrete factory and the client receives a matching set of products that work together, still typed only by abstract product interfaces.
+Use it when ``theme'' or platform variants must stay consistent across several object kinds.
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -143,27 +129,28 @@ objects that are easier to implement, change, test, and reuse.
                                              without specifying their 
                                              concrete classes\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & declaring 
+        \multirow{1}{*}{\textbf{How to}} & declare 
                                            \highlightit{explicit interfaces} 
                                            for each distinct product 
                                            of the product family,
-                                           and making all variants of 
+                                           and make all variants of 
                                            products follow those 
-                                           interfaces\\
+                                           interfaces; provide a factory 
+                                           interface with one creation 
+                                           method per product kind\\
         \hline
         \textbf{When needed} & $\bullet$ client needs to work with 
                                various families of related objects, \\
                              & \quad without depending on the latter's 
                                concrete classes \\
-                             & $\bullet$ a set of \textit{factory methods} 
-                               blurring the main responsibility of 
-                               a class\\
-                             & \quad needs to be managed better \\
+                             & $\bullet$ a cluster of factory methods 
+                               is blurring a class's main responsibility \\
+                             & \quad and should be extracted\\
         \hline
         \end{tabularx}
 \end{table}
 
-\vspace{-0.5cm}
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -186,7 +173,7 @@ objects that are easier to implement, change, test, and reuse.
         \highlightbf{ABCFactory} & interface for the sets of methods needed to create each of 
                                    the abstract products\\
         \hline
-        \highlightbf{Factory1} & implement the creation methods of the abstract factory,
+        \highlightbf{Factory1} & implements the creation methods of the abstract factory,
                                                          each creating only the corresponding product variant\\
         \hline
         \highlightbf{Client} & can work with any concrete factory as long as it communicates
@@ -199,7 +186,6 @@ objects that are easier to implement, change, test, and reuse.
     \label{tab:abs-factory-class-diagram}
     \end{center}
 \end{table}
-
 \newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
@@ -212,44 +198,26 @@ objects that are easier to implement, change, test, and reuse.
                       & $\bullet$\, \highlightit{no tight coupling} 
                         between concrete products and client code\\
                       & $\bullet$\, \highlightit{Single Responsibility Principle} \\
-                      & $\bullet$\, \highlightit{Open/Close Principle} \\
+                      & $\bullet$\, \highlightit{Open/Closed Principle}
+                        (new families via new factories)\\
         \hline
-        \textbf{Cons} & $\bullet$\, unnecessary complexity and work 
-                                    in the initial writing \\
-                      & $\bullet$\, systems can get more difficult to 
-                                    debug and maintain due to higher \\
-                      & \quad separation and abstraction \\
+        \textbf{Cons} & $\bullet$\, more interfaces and classes up front \\
+                      & $\bullet$\, adding a new product kind touches every 
+                                    factory in the family \\
         \hline      
     \end{tabularx}
 \end{table}
-    
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Builder} & instead of returning the product 
-                                %~ immediately, \textit{Builder} lets 
-                                %~ run some additional construction steps 
-                                %~ before releasing its product\\
-        %~ \hline
-        %~ \highlightbf{Prototype} & can be an alternative option to 
-                                  %~ compose \highlightit{Abstract Factory} 
-                                  %~ methods and classes\\
-        %~ \hline
-        %~ \highlightbf{Bridge} & paired with \highlightit{Factory Method} 
-                               %~ can help manage scenarios in which 
-                               %~ abstraction defined by \highlightit{Bridge} 
-                               %~ can only work with specific implementations\\
-        %~ \hline
-        %~ \highlightbf{Singleton} & can be used to implement 
-                                  %~ \highlightit{Abstract Factory}\\
-        %~ \hline
-    %~ \end{tabularx}
-%~ \end{table} 
-       
+
+\par\noindent\textbf{Interview tip:}
+Say when you would pick Abstract Factory over Factory Method: multiple related types must vary together (UI kit, platform bindings), not a single replaceable product.
+
 \newpage
 %%% %%% BUILDER %%% %%% %%%
 \subsection{Builder}
+Builder moves multi-step construction out of the product (and out of telescoping constructors) into dedicated builder objects.
+Optional steps can be skipped; different builders can yield different representations from the same step sequence.
+A Director is optional: it encodes recipes (step order) while the client still chooses which builder to use.
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -260,33 +228,32 @@ objects that are easier to implement, change, test, and reuse.
                                              the same construction 
                                              steps\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & \highlightit{object's construction code 
+        \multirow{1}{*}{\textbf{How to}} & \highlightit{object construction code 
                                            is moved into a 
                                            Builder} class, 
                                            that builds the object through 
                                            steps that can be executed 
                                            in series and only if needed. 
                                            Several \texttt{Builder}s 
-                                           can be implemented in case 
+                                           can be implemented when 
                                            different ways of building 
                                            make sense. A \highlighttt{Director} 
-                                           class can be used to manage 
+                                           class can manage 
                                            the order of the building 
                                            steps. \\
         \hline
-        \textbf{When needed} & $\bullet$ ctors became telescopic because 
-                               of too many optional parameters\\
-                             & \quad and need to be removed\\
-                             & $\bullet$ code need to be able to create 
-                               different representations of some\\
-                             & \quad products \\
+        \textbf{When needed} & $\bullet$ constructors became telescopic because 
+                               of too many optional \\
+                             & \quad parameters and need to be cleaned up\\
+                             & $\bullet$ code needs to create 
+                               different representations of some products \\
                              & $\bullet$ a \textit{composite} 
                                object construction needs to be managed 
                                step-by-step\\
         \hline
     \end{tabularx}
 \end{table}
-\vspace{-0.3cm}
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -315,7 +282,7 @@ objects that are easier to implement, change, test, and reuse.
                                  to the steps needed\\
         \hline
         \highlightbf{Client} & can associate a builder with a director 
-                               in order to let latter be used for any  
+                               in order to let the latter be used for any  
                                further construction. An alternative 
                                way relies on passing the 
                                \highlighttt{Builder} object directly to 
@@ -326,16 +293,16 @@ objects that are easier to implement, change, test, and reuse.
     \label{tab:builder-class-diagram}
     \end{center}
 \end{table}
- 
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & $\bullet$ constrution goes step-by-step and 
+        \textbf{Pros} & $\bullet$ construction goes step-by-step and 
                                   can be deferred or run recursively\\
-                      & $\bullet$ construction steps can be shared 
-                                  in case \\
-                      & $\bullet$ \highlightbf{Single Responsibility Principle} \\
+                      & $\bullet$ construction steps can be reused 
+                                  across representations\\
+                      & $\bullet$ \highlightbf{Single Responsibility Principle}
+                        (build logic separated from product)\\
         \hline
         \textbf{Cons} & multiple classes required by this pattern 
                         can increase the code complexity \\
@@ -343,34 +310,16 @@ objects that are easier to implement, change, test, and reuse.
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Abstract Factory} & is similar to \highlightit{Builder} 
-                                         %~ but it specializes in 
-                                         %~ creating families of related 
-                                         %~ objects and return them immediately\\
-        %~ \hline
-        %~ \highlightbf{Composite} & can be used along with \highlightit{Builder} 
-                                  %~ to manage better the construction 
-                                  %~ steps\\
-        %~ \hline
-        %~ \highlightbf{Bridge} & used along with \highlightit{Builder} could 
-                               %~ help letting the director class play 
-                               %~ the role of the abstraction and different 
-                               %~ builders act as implementations\\
-        %~ \hline
-        %~ \highlightbf{Singleton} & can help implementing a class based on
-                                  %~ \highlightit{Builder} that need only an 
-                                  %~ instance of it to be created\\ 
-        %~ \hline
-    %~ \end{tabularx}
-%~ \end{table}
+\par\noindent\textbf{Interview tip:}
+Director is optional---mention fluent builders without a Director when the client owns the step order.
 
 \newpage
 %%% %%% PROTOTYPE %%% %%% %%%
 \subsection{Prototype}
+Prototype clones an existing instance instead of constructing from scratch through a type-specific API.
+The clone operation lives on the object (or a shared prototype interface), so private state stays accessible without leaking into client code.
+It shines when setup is expensive or when many variants differ only in initial configuration.
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -393,13 +342,12 @@ objects that are easier to implement, change, test, and reuse.
                                          being \\
                              & \quad copied\\
                              & $\bullet$ reducing the number of subclasses 
-                                         only differing in the way of \\
-                             & \quad initializing their respective objects.\\
+                                         that differ only in how they \\
+                             & \quad initialize their respective objects\\
         \hline
     \end{tabularx}
 \end{table}
 
-%~ \newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -430,7 +378,6 @@ objects that are easier to implement, change, test, and reuse.
     \label{tab:prototype-class-diagram}
     \end{center}
 \end{table}
-
 \newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
@@ -438,72 +385,40 @@ objects that are easier to implement, change, test, and reuse.
         \hline
         \textbf{Pros} & $\bullet$ cloning objects without coupling 
                                   to their concrete classes \\
-                      & $\bullet$ repeated initialization can get 
-                                  removed in favor of cloning pre-built\\
-                      & \quad prototypes \\
+                      & $\bullet$ repeated initialization can be 
+                                  replaced by cloning pre-built prototypes \\
                       & $\bullet$ easier production of complex objects\\
                       & $\bullet$ alternative to inheritance when 
                                   configuring complex objects\\
         \hline
-        \textbf{Cons} & cloning can get more difficult when circular 
-                        references are present \\
+        \textbf{Cons} & deep cloning gets harder with circular 
+                        references or external resource handles \\
         \hline      
     \end{tabularx}
 \end{table}
 
-
-
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Abstract Factory} & can also use \highlightit{Prototype} 
-                                         %~ in place of \highlightit{Factory Method} 
-                                         %~ to compose its methods\\
-        %~ \hline
-        %~ \highlightbf{Command} & can work along with \highlightit{Prototype} 
-                                %~ to save copies of commands in the history\\
-        %~ \hline
-        %~ \highlightbf{Composite}, 
-        %~ \highlightbf{Decorator} & used along with \highlightit{Prototype}, 
-                                  %~ let cloning complex structure instead 
-                                  %~ of rebuilding from scratch  \\
-        %~ \hline
-        %~ \highlightbf{Factory Method} & does not have inheritance 
-                                       %~ drawbacks, since it is not 
-                                       %~ based on that, but requires a 
-                                       %~ complicated initialization\\
-        %~ \hline
-        %~ \highlightbf{Memento} & can be replaced by \highlightit{Prototype} 
-                                %~ if the object's state to store does 
-                                %~ not have links to external resources
-                                %~ \\
-        %~ \hline
-        %~ \highlightbf{Singleton} & can help implement a prototype in 
-                                  %~ case at most a single instance can 
-                                  %~ be present at the same time \\
-        %~ \hline
-    %~ \end{tabularx}
-%~ \end{table} 
-    %~ \end{document}
+\par\noindent\textbf{Interview tip:}
+Ask about shallow vs deep copy, and whether the prototype registry is preferable to subclassing for configuration variants.
 
 \newpage
 %%% %%% SINGLETON %%% %%% %%%
 \subsection{Singleton}
+Singleton guarantees at most one instance of a class and exposes a single global access point to it.
+Hide the constructor and route creation through a static method that returns the cached instance on later calls.
+Prefer it sparingly: shared mutable global state is hard to test and easy to overuse.
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \multirow{1}{*}{\textbf{What for}} & \highlightit{ensuring that a class could have one instance only}, \\
-                                           & while providing a global access point to the instance \\
+        \multirow{1}{*}{\textbf{What for}} & \highlightit{ensuring that a class has one instance only}, \\
+                                           & while providing a global access point to that instance \\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & the \highlightit{ctor is made private} 
-                                           to prevent calls from outside the class \\
-                                         & and a \highlightit{static creation method} is used in its place in order to create \\
-                                         & the object and return it for successive calls.\\
+        \multirow{1}{*}{\textbf{How to}} & the \highlightit{constructor is made private} 
+                                           to prevent calls from outside the class and a \highlightit{static creation method} is used in its place to create \\
+                                         & the object and return it for successive calls\\
         \hline
-        \textbf{When needed} & $\bullet$ a class in a program should have just a single instance available, \\
-                             & \quad as it can be needed for database object shared by different parts of \\
-                             & \quad the code \\
+        \textbf{When needed} & $\bullet$ a class should have just a single instance available, \\
+                             & \quad e.g.\ a shared database connection or configuration object \\
                              & $\bullet$ a stricter control over global variables is needed \\
         \hline
     \end{tabularx}
@@ -520,63 +435,41 @@ objects that are easier to implement, change, test, and reuse.
     \vspace{-0.5cm}
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \highlightbf{Singleton} & class declaring a \texttt{static} method that return the same instance it creates the 
-        first time it's called; this class' ctor is made \texttt{private} to hide it from external calls.\\
+        \highlightbf{Singleton} & class declaring a \texttt{static} method that returns the same instance it creates the 
+        first time it's called; this class' constructor is made \texttt{private} to hide it from external calls.\\
         \hline
     \end{tabularx}
     \caption{Singleton Class Diagram.}
     \label{tab:singleton-class-diagram}
     \end{center}  
 \end{table}
-
+\newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \textbf{Pros} & $\bullet$ avoiding \highlightit{global namespace pollution} 
-                        introducing global variables \\
+                        from introducing raw global variables \\
                       & $\bullet$ \highlightit{initialization} takes place 
                         only the first time the object is requested\\
                       & $\bullet$ \highlightit{multiple but limited instances} 
-                        can be created, modifing only the static\\
+                        can be allowed by modifying only the static\\
                       & \quad method\\
         \hline
         \textbf{Cons} & $\bullet$ violation of \highlightit{Single Responsibility Principle} \\
                       & $\bullet$ can mask bad design decisions, like too much overlapping between\\
                       & \quad components \\
-                      & $\bullet$ multithreaded programs need special care to avoid multiple instances\\
+                      & $\bullet$ multithreaded programs need special care to avoid multiple instance\\
                       & \quad creation \\
-                      & $\bullet$ unit tests could be difficult due to the impossibility for mock objects to \\
-                      & \quad access the \texttt{Singleton}'s ctor. \\
+                      & $\bullet$ unit tests are harder because mocks cannot easily \\
+                      & \quad access the \texttt{Singleton}'s constructor \\
         \hline      
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Facade} & can be implemented as a \highlightit{Singleton} 
-                               %~ since a single facade object is 
-                               %~ usually enough\\
-        %~ \hline
-        %~ \highlightbf{Flyweight} & resembles \highlightit{Singleton} 
-                                  %~ if all the shared states of the objects 
-                                  %~ are reduced to one flyweight. 
-                                  %~ The \textbf{difference} is: there is 
-                                  %~ only one instance for singletons, 
-                                  %~ whereas there are almost always 
-                                  %~ several flyweights objects; singletons 
-                                  %~ are mutable, flyweights are not\\
-        %~ \hline
-        %~ \highlightbf{Abstract Factories} & can be implemented 
-                                           %~ as \highlightit{Singleton}\\
-        %~ \highlightbf{Builders}           & \\
-        %~ \highlightbf{Prototypes} & \\
-        %~ \hline
-    %~ \end{tabularx}
-%~ \end{table}
-%~ \end{document}
+\par\noindent\textbf{Interview tip:}
+Lead with thread-safety (e.g.\ Meyers singleton / double-checked locking pitfalls) and why DI often beats a classic Singleton in tests.
+
 \newpage
 %%%
 %%% BEHAVIORAL PATTERNS %%%
@@ -584,6 +477,7 @@ objects that are easier to implement, change, test, and reuse.
 \section{Behavioral Patterns}
 %%% %%% CHAIN OF RESPONSIBILITY %%% %%% %%%
 \subsection{Chain of Responsibility}
+Pass a request along a chain of handlers so each can handle it or forward it. The client need not know which handler will process the request, and the chain order can be fixed at build time or rebuilt at runtime.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -603,19 +497,15 @@ objects that are easier to implement, change, test, and reuse.
                                          & along with the data needed, 
                                            is passed along the chain\\
         \hline
-        \textbf{When needed} & $\bullet$ different kind of requests 
-                               are expected to be processed in 
-                               different \\
-                             & \quad ways and the type of the request 
-                               is not known beforehand \\
-                             & $\bullet$ the set or the order of the 
-                               handlers can change at run time\\
-                             %~ & $\bullet$ \\
-                             
+        \textbf{When needed} & $\bullet$ different kinds of requests 
+                               must be processed in different ways \\
+                             & \quad and the request type is not known beforehand \\
+                             & $\bullet$ the set or order of handlers 
+                               can change at runtime\\
         \hline
     \end{tabularx}
 \end{table}
-
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -642,9 +532,9 @@ objects that are easier to implement, change, test, and reuse.
         \highlightbf{SubHandlerB} & or pass the request along the 
                                     chain if not possible\\
         \hline
-        \highlightbf{Client} & responsible of creating chains, both 
-                               statically and dinamically, and\\
-                             & of sending the request to the first 
+        \highlightbf{Client} & responsible for creating chains, both 
+                               statically and dynamically, and\\
+                             & for sending the request to the first 
                                or any other handler in the chain\\
         \hline
     \end{tabularx}
@@ -663,48 +553,20 @@ objects that are easier to implement, change, test, and reuse.
                         handler should stop the request or pass it \\
                       & \quad along the chain \\
                       & $\bullet$ \highlightit{Single Responsibility Principle} \\
-                      & $\bullet$ \highlightit{Open/Close Principle}\\
+                      & $\bullet$ \highlightit{Open/Closed Principle}\\
         \hline
         \textbf{Cons} & some requests may end up unhandled \\
         \hline      
     \end{tabularx}
 \end{table}
-    
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Chain of Responsibility} & passes a request along a dynamic chain of potential\\
-                                              %~ & receiver;\\
-        %~ \highlightbf{Command}                 & makes unidirectional connections between senders and receivers;\\
-        %~ \highlightbf{Mediator}                & forces senders and receivers to communicate indirectly through a mediator;\\
-        %~ \highlightbf{Observer}                & lets receivers un/subscribe from a service. \\
-        %~ \hline
-        %~ \highlightbf{Composite} & when used along with 
-                                  %~ \highlightit{CoR} 
-                                  %~ can help building a tree of responsibilities\\
-        %~ \hline
-        %~ \highlightbf{Command} & can help implement the chain handler, 
-                                %~ letting the user executing the same 
-                                %~ operation in a series of different contextes\\
-        %~ \hline
-        %~ \highlightbf{Decorator} & has a similar class structure, relying 
-                                  %~ on recursive composition through a 
-                                  %~ series of objects; \highlightit{CoR} 
-                                  %~ lets execute operations independently 
-                                  %~ of each other, whereas 
-                                  %~ \highlightit{Decorator} extends an 
-                                  %~ object behavior keeping it consistent 
-                                  %~ with a base interface\\
-        %~ \hline
-    %~ \end{tabularx}
-    % \caption{Chain of Responsibility relation with other Patterns.}
-    %~ \hypertarget{tab:cor-relation-with-others}{}  
-%~ \end{table}
+
+\par\noindent\textbf{Interview tip:} say ``who decides next'' --- the current handler forwarding, not a central dispatcher.
+
     
 \newpage
 %%% %%% COMMAND %%% %%% %%%
 \subsection{Command}
+Turn a request into a stand-alone object that stores the receiver and parameters. An invoker triggers \texttt{execute()} without knowing how the work is done, so commands can be queued, logged, or undone.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -757,12 +619,12 @@ objects that are easier to implement, change, test, and reuse.
                                    execute the command\\
         \hline
         \highlightbf{CommandA}, & classes implementing the concrete 
-                                 requests, passin the call to one\\
-        \highlightbf{CommandB} & of the business logic objects\\
+                                 requests, passing the call to \\
+        \highlightbf{CommandB} & one of the business logic objects\\
         \hline
         \highlightbf{Receiver} & class that implements the business 
                                  logic and does the actual work 
-                                 most of the times\\
+                                 most of the time\\
         \hline
         \highlightbf{Client} & class responsible for creating and 
                                configuring commands, passing all the 
@@ -780,57 +642,23 @@ objects that are easier to implement, change, test, and reuse.
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \textbf{Pros} & $\bullet$ \highlightit{Single Responsibility Principle}\\
-                      & $\bullet$ \highlightit{Open/Close Principle}\\
+                      & $\bullet$ \highlightit{Open/Closed Principle}\\
                       & $\bullet$ implementing \textit{undo/redo} is easier\\
                       & $\bullet$ implementing deferred execution of operation is easier\\
-                      & $\bullet$ set of simple commands can be assebled in sets\\
+                      & $\bullet$ set of simple commands can be assembled into composites\\
         \hline
         \textbf{Cons} & programs end up having more layers \\
         \hline      
     \end{tabularx}
 \end{table}
-    
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Chain of Responsibility} & same considerations 
-                                                % in~\ref{tab:cor-relation-with-others} \\ 
-                                                %~ for~\hyperlink{tab:cor-relation-with-others}{CoR} \\ 
-        %~ \highlightbf{Command} & \\
-        %~ \highlightbf{Mediator} & \\
-        %~ \highlightbf{Observer} & \\
-        %~ \hline
-        %~ \highlightbf{Chain of Responsibility} & handlers can be 
-                                                %~ implemented in terms 
-                                                %~ of \highlightit{Command} \\
-        %~ \hline
-        %~ \highlightbf{Memento} & can be used along with \highlightit{Command} 
-                                %~ to implement an undo routines\\
-        %~ \hline
-        %~ \highlightbf{Strategy} & also can be used to parameterize an 
-                                 %~ object with some action. The \textbf{difference} 
-                                 %~ is that \highlightit{Command} convert 
-                                 %~ any operation into an object whereas 
-                                 %~ \highlightit{Strategy} is generally 
-                                 %~ used to achieve the same result with 
-                                 %~ different algorithms \\
-        %~ \hline
-        %~ \highlightbf{Prototype} & can help save copies of commands 
-                                  %~ into history\\
-        %~ \hline
-        %~ \highlightbf{Visitor} & can be seen as a powerful version of 
-                                %~ \highlightit{Command} because it can 
-                                %~ execute operations over various objects 
-                                %~ of different classes\\
-        %~ \hline
-    %~ \end{tabularx}
-    %~ \hypertarget{tab:command-relation-with-others}{}
-%~ \end{table} 
+
+\par\noindent\textbf{Interview tip:} contrast with Strategy: Command packages an action (often with undo/queue); Strategy swaps an algorithm behind one interface.
+
         
 \newpage
 %%% %%% ITERATOR %%% %%% %%%
 \subsection{Iterator}
+Traverse a collection without exposing its underlying representation. Traversal logic lives in a separate iterator object; the collection only creates iterators that clients use through a common interface.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -849,17 +677,17 @@ objects that are easier to implement, change, test, and reuse.
                                            elements without knowing the 
                                            underlying structure\\
         \hline
-        \textbf{When needed} & $\bullet$ collection with complex 
-                               data structure not to expose to users\\
-                             & $\bullet$ reducing code duplication 
-                               for traversals \\
-                             & $\bullet$ traversing data structures, 
-                               that can be unknown beforehand\\
+        \textbf{When needed} & $\bullet$ a collection has a complex 
+                               structure that must stay hidden\\
+                             & $\bullet$ reducing duplicated traversal 
+                               code \\
+                             & $\bullet$ traversing structures whose 
+                               layout is unknown beforehand\\
         \hline
     \end{tabularx}
 \end{table}
-\vspace{-0.5cm}
-%~ \newpage
+
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -879,9 +707,9 @@ objects that are easier to implement, change, test, and reuse.
                                     position and so on\\
         \hline
         \highlightbf{IteratorA} & implements specific algorithms, 
-                                  independent from each others in 
-                                  order to be used in any number on 
-                                  the same collection\\
+                                  independent of each other so several
+                                  iterators can run on the same
+                                  collection\\
         \hline
         \highlightbf{ABCCollection} & interface declaring one or multiple 
                                       methods for getting iterator 
@@ -900,7 +728,7 @@ objects that are easier to implement, change, test, and reuse.
     \caption{Iterator Class Diagram.}
     \label{tab:iterator-class-diagram}     
     \end{center}          
-\end{table}  
+\end{table}
 
 \newpage
 \toclessnparagraph{Pros and Cons}
@@ -908,7 +736,7 @@ objects that are easier to implement, change, test, and reuse.
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \textbf{Pros} & $\bullet$ \highlightit{Single Responsibility Principle} \\
-                      & $\bullet$ \highlightit{Open/Close Principle} \\
+                      & $\bullet$ \highlightit{Open/Closed Principle} \\
                       & $\bullet$ parallel iterations are possible\\
                       & $\bullet$ iteration can be delayed to when it is needed\\
         \hline
@@ -920,29 +748,13 @@ objects that are easier to implement, change, test, and reuse.
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Composite} & elements can be traversed with the 
-                                  %~ help of \highlightit{Iterator} \\
-        %~ \hline
-        %~ \highlightbf{Factory Method} & help collection subclasses return 
-                                       %~ different type of iterators\\
-        %~ \hline
-        %~ \highlightbf{Memento} & can help capture the state before an 
-                                %~ iteration step \\
-        %~ \hline
-        %~ \highlightbf{Visitor} & can help traverse complex data structure 
-                                %~ and perform some operation over the 
-                                %~ elements\\
-        %~ \hline
-    %~ \end{tabularx}
-%~ \end{table} 
+\par\noindent\textbf{Interview tip:} ``same collection, many cursors'' --- each iterator owns its own position.  
+
 
 \newpage
 %%% %%% MEDIATOR %%% %%% %%%
 \subsection{Mediator}
+Reduce chaotic dependencies by routing component communication through a mediator. Colleagues talk only to the mediator interface; the concrete mediator encodes interaction rules so adding a component does not grow a new mesh of links.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -964,33 +776,18 @@ objects that are easier to implement, change, test, and reuse.
                                            wire a new mesh of 
                                            dependencies\\
         \hline
-        \textbf{When needed} & $\bullet$ changing an already exhisting 
+        \textbf{When needed} & $\bullet$ changing an already existing 
                                class which is strongly coupled \\
                              & $\bullet$ reusing a strongly dependent 
                                component in a different program \\
-                             & $\bullet$ reusing basic behaviours 
+                             & $\bullet$ reusing basic behaviors 
                                in completely different contexts\\
         \hline
     \end{tabularx}
 \end{table}
 
-%~ \begin{itemize}
-    %~ \item \textbf{Components} are classes containing some business logic. 
-    %~ Each one has a reference to a mendiator, whose referenced type is 
-    %~ the Mediator interface's. Components are unaware of the actual Meditor class, 
-    %~ so that it could be reused in other contexts with different mediators.
-    %~ \item \textbf{Mediator} interface declares the communication structure 
-    %~ between components. Components may pass any context as argument of their methods, 
-    %~ although they must avoid coupling the receiving component with the sender.
-    %~ \item \textbf{Concrete Mediator} implement relation between various components. 
-    %~ It could be useful to keep references to all the components managed 
-    %~ and their lifecycle as well. 
-%~ \end{itemize}
-%~ Components are not aware of each other. In case some communication needs 
-%~ to go from a Component to a different one, it must pass through the Mediator. 
-%~ Likewise, the sender doesn't know who will handle the request as well as the 
-%~ receiver doesn't know who sent the request.
 
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -1004,29 +801,29 @@ objects that are easier to implement, change, test, and reuse.
         \hline
         \highlightbf{Component} & interface for communication with other Components through its Mediator \\
         \hline
-        \highlightbf{ComponentA}, \dots, & implements the Colleague interface and communicates \\
+        \highlightbf{ComponentA}, \dots, & implements the Component interface and communicates \\
         \highlightbf{ComponentC} & with other Components through its Mediator \\
         \hline
         \highlightbf{Mediator} & interface for communication between Component objects\\
         \hline
         \highlightbf{ConcMediator} & implements the mediator interface, coordinating communication between Component objects. \\
-                                   & It is aware of all of the Component and their purposes with regards to inter-communication\\
+                                   & It knows the Components and their roles in inter-communication\\
         \hline
     \end{tabularx}    
     \caption{Mediator Class Diagram.}
     \label{tab:mediator-class-diagram}     
     \end{center} 
-\end{table}    
+\end{table}
 
 \newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & \highlightit{Single Responsibility Principle} \\
-                      & \highlightit{Open/Close Principle} \\
-                      & reducing coupling between various components \\
-                      & reusing individual components is easier \\
+        \textbf{Pros} & $\bullet$ \highlightit{Single Responsibility Principle} \\
+                      & $\bullet$ \highlightit{Open/Closed Principle} \\
+                      & $\bullet$ reducing coupling between components \\
+                      & $\bullet$ reusing individual components is easier \\
         \hline
         \textbf{Cons} & mediator can evolve into a
                         \href{https://en.wikipedia.org/wiki/God_object}{God object} \\
@@ -1034,45 +831,13 @@ objects that are easier to implement, change, test, and reuse.
     \end{tabularx}
 \end{table}
 
-\newpage
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Chain of Responsibility} & same considerations 
-                                                %~ for~\hyperlink{tab:cor-relation-with-others}{CoR} \\ 
-        %~ \highlightbf{Command} & \\
-        %~ \highlightbf{Mediator} & \\
-        %~ \highlightbf{Observer} & \\
-        %~ \hline
-        %~ \highlightbf{Facade} & helps organizing collaboration between 
-                               %~ tightly coupled classes, achieving it 
-                               %~ without introducing any new functionality 
-                               %~ and letting objects in the subsystem 
-                               %~ communicate directly. \\ 
-                             %~ & \highlightit{Mediator} centralizes 
-                               %~ the communications, avoiding the objects 
-                               %~ communicate only directly\\
-        %~ \hline
-        %~ \highlightbf{Observer} & estabilishes dynamic one-way connections 
-                                 %~ between objects whereas \highlightbf{Mediator} 
-                                 %~ aliminates mutual dependencies among 
-                                 %~ a set of system components. \\
-                               %~ & One implementation of \highlightit{Mediator} 
-                                 %~ relies on \highlightit{Observer}: 
-                                 %~ the former is the publisher and 
-                                 %~ the components act as subscribers 
-                                 %~ to mediator's events.\\
-        %~ \hline
-    %~ \end{tabularx}
-    % \caption{Mediator relation with other Patterns.}
-    % \caption{Mediator relation with other Patterns.}
-    %~ \hypertarget{tab:mediator-relation-with-others}{}
-%~ \end{table} 
+\par\noindent\textbf{Interview tip:} vs Observer: Mediator centralizes many-to-many chatter; Observer is one-to-many publish/subscribe.    
+
 
 \newpage
 %%% %%% MEMENTO %%% %%% %%%
 \subsection{Memento}
+Save and restore an object's state without exposing its internals. The originator writes an opaque memento; a caretaker stores mementos and asks for restore without reading the saved fields.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -1093,19 +858,17 @@ objects that are easier to implement, change, test, and reuse.
         \hline
         \textbf{When needed} & $\bullet$ snapshots of an object's 
                                state are needed in order to restore 
-                               them later \\
+                               them \\
+                             & \quad later \\
                              & $\bullet$ when encapsulation would be 
-                               violated by directly accessing object's 
-                               fields\\
+                               violated by directly accessing \\
+                             & \quad object's fields\\
         \hline
     \end{tabularx}
 \end{table}
 
-%~ In the previous design, the Memento class is embedded in the Originator, 
-%~ in order to make it easier to the latter to access the former's methods and data members.
 
 \toclessnparagraph{Structure}
-%~ \vspace{-1.5cm}
 \begin{table}[h!t]
     \begin{center}
     \begingroup
@@ -1119,13 +882,13 @@ objects that are easier to implement, change, test, and reuse.
                                    snapshots of its own state, and 
                                    restore its state from one of them\\
         \hline
-        \highlightbf{Memento} & class that acts like a shapshot, and 
+        \highlightbf{Memento} & class that acts like a snapshot, and 
                                 could be made immutable\\
         \hline
         \highlightbf{Caretaker} & knows the \textit{why} and \textit{when} 
                                   to capture a snapshot or restore a 
                                   previous one. This class can manage 
-                                  an history of Originator's' states 
+                                  an history of Originator's states 
                                   in a stack data structure.\\
         \hline
     \end{tabularx}
@@ -1133,14 +896,18 @@ objects that are easier to implement, change, test, and reuse.
     \label{tab:memento-class-diagram}     
     \end{center}     
 \end{table}
- 
+
+Often the Memento type is nested inside the Originator so the originator can
+reach snapshot fields without exposing them to caretakers.
+
+\newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \textbf{Pros} & $\bullet$ producing snapshots of the object's state \\
         \hline
-        \textbf{Cons} & $\bullet$ memory compsuntion increases \\
+        \textbf{Cons} & $\bullet$ memory consumption increases \\
                       & $\bullet$ to destroy outdated mementos, the 
                         originator's lifecycle should be tracked\\
                       & $\bullet$ modern dynamic languages do not 
@@ -1150,25 +917,13 @@ objects that are easier to implement, change, test, and reuse.
     \end{tabularx}
 \end{table}
 
-%~ \newpage
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Command} & makes it easier to implement \textit{undo}\\
-        %~ \hline
-        %~ \highlightbf{Iterator} & can help capture the current iteration 
-                                 %~ state and roll it back if necessary\\
-        %~ \hline
-        %~ \highlightbf{Prototype} & can be a simple alternative if the 
-        %~ object state does not have links to external resources\\
-        %~ \hline
-    %~ \end{tabularx}    
-%~ \end{table} 
+\par\noindent\textbf{Interview tip:} caretaker stores history; only the originator opens the memento --- that is the encapsulation win.
+
 
 \newpage
 %%% %%% OBSERVER %%% %%% %%%
 \subsection{Observer}
+Implement a subscription mechanism so dependents update when a subject changes. A publisher keeps subscribers and notifies them; subscribers register at runtime through a shared update interface.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -1187,12 +942,12 @@ objects that are easier to implement, change, test, and reuse.
                                            never hard-codes their types\\
         \hline
         \textbf{When needed} & $\bullet$ changes to the state of one 
-                               object may require changing other objects 
-                               that are unknown beforehand or change 
-                               dynamically\\
-                             & $\bullet$ objects must observe each 
-                               others, for a limited time and in 
-                               specific circumstances\\
+                               object may require changing other \\
+                             & \quad objects that are unknown beforehand or change dynamically\\
+                             & $\bullet$ objects must observe each
+                               other, for a limited time and in 
+                               specific \\
+                             & \quad circumstances\\
         \hline
     \end{tabularx}
 \end{table}
@@ -1208,7 +963,7 @@ objects that are easier to implement, change, test, and reuse.
 \endgroup
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \highlightbf{Publisher} & class that issues events of interests 
+        \highlightbf{Publisher} & class that issues events of interest 
                                   to other objects. This class contains a subscription infrastructure that 
                                   lets subscribers both join and leave the subscriber list \\
         \hline
@@ -1218,8 +973,8 @@ objects that are easier to implement, change, test, and reuse.
         \highlightbf{SubscriberA}, \highlightbf{SubscriberB} & implement the different logics in response 
                                                                to notifications issued by the publisher.\\
         \hline
-        \highlightbf{Client} & creates both publisher and subscriber objects and 
-                               manage the registrations for updates\\
+        \highlightbf{Client} & creates both publisher and subscriber objects and
+                               manages the registrations for updates\\
         \hline
     \end{tabularx}
     \caption{Observer Class Diagram.}
@@ -1232,7 +987,7 @@ objects that are easier to implement, change, test, and reuse.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & $\bullet$ \highlightbf{Open/Close Principle} \\
+        \textbf{Pros} & $\bullet$ \highlightbf{Open/Closed Principle} \\
         & $\bullet$ relations between objects can be established at runtime \\
         \hline
         \textbf{Cons} & $\bullet$ subscribers can be notified in random order \\
@@ -1240,25 +995,13 @@ objects that are easier to implement, change, test, and reuse.
     \end{tabularx}
 \end{table}
 
-%~ \newpage
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Chain of Responsibility} & same considerations 
-                                                %~ for~\hyperlink{tab:cor-relation-with-others}{CoR} \\ 
-        %~ \highlightbf{Command} & \\
-        %~ \highlightbf{Mediator} & \\
-        %~ \highlightbf{Observer} & \\
-        %~ \hline
-        %~ \highlightbf{Mediator} & same considerations for~\hyperlink{tab:mediator-relation-with-others}{Mediator} \\
-        %~ \hline   
-    %~ \end{tabularx}
-%~ \end{table}
+\par\noindent\textbf{Interview tip:} name the push: who calls \texttt{update}, and whether payload is data or ``pull from publisher''.
+
 
 \newpage
 %%% %%% STATE %%% %%% %%%
 \subsection{State}
+Let an object change behavior when its internal state changes, as if its class changed. State-specific behavior lives in separate state classes; the context delegates to the current state and swaps the reference on transitions.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -1279,18 +1022,17 @@ objects that are easier to implement, change, test, and reuse.
         \hline
         \textbf{When needed} & $\bullet$ implementing an object that 
                                          behaves differently depending 
-                                         on its current state, 
-                                         the number of states is 
-                                         considerable, and the 
-                                         state-specific code changes 
-                                         frequently\\
+                                         on its \\
+                             & \quad current state, the number of states is 
+                                         considerable, and the \\
+                             & \quad state-specific code changes frequently\\
                              & $\bullet$ managing better a class that 
                                          changes its behavior depending 
-                                         on some interal field actual 
-                                         value\\
+                                         on \\
+                             & \quad some internal field's value\\
                              & $\bullet$ managing better duplicate code 
-                                         across similar states and 
-                                         transition od a condition-besed 
+                                         across similar states and \\ 
+                             & \quad transitions of a condition-based 
                                          state machine\\
         \hline
     \end{tabularx}
@@ -1319,10 +1061,10 @@ objects that are easier to implement, change, test, and reuse.
         \highlightbf{StateB} & classes to encapsulate some common behavior\\
         \hline
     \end{tabularx}
-    %~ \caption{Observer Class Diagram.}
-    \label{tab:observer-class-diagram}     
+    \caption{State Class Diagram.}
+    \label{tab:state-class-diagram}     
     \end{center}
-\end{table}    
+\end{table}
 
 \newpage
 \toclessnparagraph{Pros and Cons}
@@ -1330,46 +1072,29 @@ objects that are easier to implement, change, test, and reuse.
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \textbf{Pros} & $\bullet$ \highlightit{Single Responsibility Principle} \\
-                      & $\bullet$ \highlightit{Open/Close Principle} \\
-                      & $\bullet$ bulky state machine code is eliminated \\
+                      & $\bullet$ \highlightit{Open/Closed Principle} \\
+                      & $\bullet$ bulky state-machine code is eliminated \\
         \hline
-        \textbf{Cons} & can be an overkill in case the state machine 
-                        has a few states that change sporadically\\
+        \textbf{Cons} & can be overkill when few states change rarely\\
         \hline     
     \end{tabularx}
 \end{table}
-    
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Bridge} & have similar structures based on 
-                               %~ composition and delegation of the work 
-                               %~ \\ 
-        %~ \highlightbf{State} & to other objects. \\
-        %~ \highlightbf{Strategy} & They solve different 
-                                 %~ problems though.\\
-        %~ \hline
-        %~ \highlightbf{Strategy} & similarly to \highlightit{State} is 
-                                 %~ based on composition and changes the 
-                                 %~ behavior of the context by delegating 
-                                 %~ some work to helper objects. 
-                                 %~ The difference is \\
-        %~ \hline  
-    %~ \end{tabularx}    
-    %~ \hypertarget{tab:state-relation-with-others}{}
-%~ \end{table} 
+
+\par\noindent\textbf{Interview tip:} vs Strategy --- State often owns the next 
+transition; Strategy is usually chosen by the client.
+
 
 \newpage
 %%% %%% STRATEGY %%% %%% %%%
 \subsection{Strategy}
+Define a family of interchangeable algorithms, each in its own class. The context holds a strategy reference and delegates the varying step, so the algorithm can be swapped without changing the context.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \multirow{1}{*}{\textbf{What for}} & defining a \highlightit{family of 
                                              algorithms, each 
-                                             implemented in a seprate 
-                                             class}, in oder to use 
+                                             implemented in a separate
+                                             class}, in order to use 
                                              them interchangeably \\
         \hline
         \multirow{1}{*}{\textbf{How to}} & each algorithm variant becomes 
@@ -1383,32 +1108,24 @@ objects that are easier to implement, change, test, and reuse.
                                            without changing the context\\
         \hline
         \textbf{When needed} & $\bullet$ different variants of the same 
-                                         algorithm must be used by an 
-                                         external object that can be 
-                                         able to switch between then \\
-                             & $\bullet$ managing better lot of similar 
+                                         algorithm must be used by an \\
+                             & \quad external object that can be
+                                         able to switch between them \\
+                             & $\bullet$ managing many similar 
                                          classes only differing in 
-                                         the way they execute some 
-                                         behavior \\
+                                         the way they \\
+                             & \quad execute some behavior \\
                              & $\bullet$ isolating business logic 
                                          from the implementation 
                                          details \\
                              & $\bullet$ better management of massive 
-                                         conditional statements that 
-                                         switches between variants of 
+                                         conditional statements that \\
+                             & \quad switch between variants of 
                                          the same algorithm \\
         \hline
     \end{tabularx}
 \end{table}
     
-%~ \begin{itemize}
-    %~ \item \textbf{Context} has a reference to the Strategy Interface, 
-    %~ used to reference the Concrete Strategy in use, and methods to 
-    %~ replace the strategy at run-time.
-    %~ \item \textbf{Concrete Strategies} 
-    %~ \item \textbf{Client} manages the creation of the strategies and pass them 
-    %~ to the context.
-%~ \end{itemize}
 
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
@@ -1426,7 +1143,7 @@ objects that are easier to implement, change, test, and reuse.
                                 replace the strategy at run-time.\\
         
         \hline
-        \highlightbf{Strategy} & interface define the part which is common 
+        \highlightbf{Strategy} & interface defines the part which is common 
                                  to all concrete strategies and declares 
                                  a method used by the Context 
                                  to execute it.\\
@@ -1434,14 +1151,14 @@ objects that are easier to implement, change, test, and reuse.
         \highlightbf{StrategyA}, \highlightbf{StrategyB} & implement a variety of algorithms 
     needed by the context.\\
         \hline
-        \highlightbf{Client} & manages the creation of the strategies and pass them 
+        \highlightbf{Client} & manages the creation of the strategies and passes them
                                to the context.\\
         \hline
     \end{tabularx}    
     \caption{Strategy Class Diagram.}
     \label{tab:strategy-class-diagram}     
     \end{center}
-\end{table}  
+\end{table}
  
 \newpage 
 \toclessnparagraph{Pros and Cons}
@@ -1453,54 +1170,34 @@ objects that are easier to implement, change, test, and reuse.
                                   algorithm is separate from the client 
                                   using it\\
                       & $\bullet$ inheritance is replaced with composition\\
-                      & $\bullet$ \highlightbf{Open/Close Principle}\\
+                      & $\bullet$ \highlightbf{Open/Closed Principle}\\
         \hline
         \textbf{Cons} & $\bullet$ can be an overkill in case not many 
                                   algorithms will be used and they will 
-                                  not change much at runtime \\
+                                  not \\
+                      & \quad change much at runtime \\
                       & $\bullet$ clients must know the differences 
                                   between the algorithms to be able 
-                                  to choose \\
+                                  to \\
+                      & \quad choose \\
                       & $\bullet$ most of the modern programming 
                                   languages implement different 
-                                  versions of an algorithm inside 
-                                  a set of anonymous functions and 
-                                  let the client use them in a 
-                                  similar way\\
+                                  versions \\
+                      & \quad of an algorithm inside a set of anonymous functions and 
+                                  let the client \\ 
+                      & \quad use them in a similar way\\
+
         \hline      
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Bridge} & same consideration 
-                               %~ for~\hyperlink{tab:state-relation-with-others}{State} \\
-        %~ \highlightbf{State} &  \\
-        %~ \highlightbf{Strategy} &  \\
-        %~ \hline
-        %~ \highlightbf{Command} & same considerations 
-                                %~ for~\hyperlink{tab:command-relation-with-others}{Command} \\
-        %~ \hline      
-        %~ \highlightbf{Decorator} & changes the "skin" whereas \highlightit{Strategy} changes the "guts"\\
-        %~ \hline      
-        %~ \highlightbf{Template Method} & is based on inheritance and is
-                                        %~ useful to change parts of an 
-                                        %~ algorithm in subclasses, 
-                                        %~ whereas \highlightit{Strategy} 
-                                        %~ is based on composition and 
-                                        %~ alters the object's behavior 
-                                        %~ with different  \\
-        %~ \hline      
-        %~ \highlightbf{State} & is based on composition as well \\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
+\par\noindent\textbf{Interview tip:} ``vary the algorithm, keep the context'' --- composition over a switch on strategy type.  
+
 
 \newpage
 %%% %%% TEMPLATE METHOD %%% %%% %%%
 \subsection{Template Method}
+Define an algorithm skeleton in a base class and let subclasses override selected steps. The template method calls a fixed sequence; invariant steps stay in the base class, while primitive or hook steps are filled in via inheritance.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -1522,7 +1219,7 @@ objects that are easier to implement, change, test, and reuse.
         \hline
         \textbf{When needed} & $\bullet$ client needs to extend only 
                                          specific steps of an algorithm \\
-                             & $\bullet$ managing better serveral 
+                             & $\bullet$ managing several 
                                          classes containing almost 
                                          identical algorithms\\
         \hline
@@ -1537,20 +1234,13 @@ objects that are easier to implement, change, test, and reuse.
     \begin{figure}[H]
         \input{./Chapters/DesignPatterns/TikzInclude/TikzBehavioralPatterns/template_design_pattern.tex}        
     \end{figure}
-%~ \begin{itemize}
-    %~ \item \textbf{Abstract Class} declares the steps of an algorithm and 
-    %~ the \textbf{templateMethod}  used to call them in a specific order. The steps may both be 
-    %~ declared as absrtact or implement some actual routines.
-    %~ \item \textbf{Concrete Classes} override all of the steps, but not 
-    %~ the \textbf{templateMethod} itself.
-%~ \end{itemize}
     \endgroup
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \highlightbf{ABCClass} &  declares the steps of an algorithm and 
                                   the \highlighttt{templateMethod} used to call 
                                   them in a specific order. The steps 
-                                  may both be declared as absrtact or 
+                                  may both be declared as abstract or 
                                   implement some actual routines.\\
         \hline
         \highlightbf{ClassA}, \highlightbf{ClassB} & override all of the steps, 
@@ -1558,42 +1248,37 @@ objects that are easier to implement, change, test, and reuse.
                                                      \highlighttt{templateMethod} itself.\\
         \hline
     \end{tabularx}    
-    \caption{Strategy Class Diagram.}
-    \label{tab:strategy-class-diagram}     
+    \caption{Template Method Class Diagram.}
+    \label{tab:template-method-class-diagram}     
     \end{center}
-\end{table}  
+\end{table}
 
 \newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & $\bullet$ overriding part of algorithms without 
+        \textbf{Pros} & $\bullet$ overriding parts of an algorithm without 
                                   affecting the rest \\
                       & $\bullet$ less code duplication\\
         \hline
-        \textbf{Cons} & $\bullet$ limitations due to the skeleton 
+        \textbf{Cons} & $\bullet$ limited by the fixed skeleton 
                         of the algorithm\\
-                      & $\bullet$ \highlightit{Liskov Substitution Principle}\\
-                      & $\bullet$ maintainance can get harder as the steps increase\\
+                      & $\bullet$ risk of breaking the 
+                        \highlightit{Liskov Substitution Principle}\\
+                      & $\bullet$ maintenance gets harder as the number of steps grows\\
         \hline      
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Factory Method} & a specialization of \highlightit{Template Method} and may be a step in a large one of the latter\\
-        %~ \hline
-        %~ \highlightbf{Strategy} & differently from \highlightit{Template Method}, is based on \highlightit{composition} and works on object level, at run time \\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
+\par\noindent\textbf{Interview tip:} vs Strategy --- Template Method uses 
+inheritance for steps; Strategy uses composition for the whole algorithm.
+
 
 \newpage
 %%% %%% VISITOR %%% %%% %%%
 \subsection{Visitor}
+Separate algorithms from the object structure they operate on. Elements accept a visitor and call back \texttt{visit(this)}; new operations become new visitor classes while the element hierarchy stays closed to that change (double dispatch).
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
@@ -1612,7 +1297,8 @@ objects that are easier to implement, change, test, and reuse.
                                            (double dispatch)\\
         \hline
         \textbf{When needed} & $\bullet$ performing an operation on all elements 
-                               of a complex data structure\\
+                               of a complex \\ 
+                             & \quad data structure\\
                              & $\bullet$ cleaning up the business 
                                logic extracting other behaviors\\
                              & $\bullet$ separating behaviors that 
@@ -1621,6 +1307,7 @@ objects that are easier to implement, change, test, and reuse.
     \end{tabularx}
 \end{table}
 
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
@@ -1643,7 +1330,7 @@ objects that are easier to implement, change, test, and reuse.
                                 Visitor interface as argument. \\
         \hline
         \highlightbf{ElementA}, \highlightbf{ElementB} & implements the acceptance method, 
-    whose purpose is the redirection the call to the proper visitor's method 
+    whose purpose is to redirect the call to the proper visitor method 
     for the current element class. This method must be overridden in any 
     subclass even though it was already developed in the base one.\\
         \hline
@@ -1652,87 +1339,69 @@ objects that are easier to implement, change, test, and reuse.
     the abstract interface.\\
         \hline
     \end{tabularx}    
-    \caption{Strategy Class Diagram.}
-    \label{tab:strategy-class-diagram}     
+    \caption{Visitor Class Diagram.}
+    \label{tab:visitor-class-diagram}     
     \end{center}    
-\end{table} 
-   
+\end{table}
+
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & $\bullet$ \highlightit{Open/Close Principle}\\
+        \textbf{Pros} & $\bullet$ \highlightit{Open/Closed Principle}\\
                       & $\bullet$ \highlightit{Single Responsibility Principle}\\
                       & $\bullet$ can store information while working 
                                   with different objects\\
         \hline
         \textbf{Cons} & $\bullet$ adding/removing a class requires 
                         all visitors to get updated \\
-                      & $\bullet$ access grants to private data and 
-                                  methods of objects they are 
-                                  working on \\
+                      & $\bullet$ visitors may need access to private data/
+                                  methods of the elements they visit \\
         \hline      
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Command} & \highlight{Visitor} can be treated as a powerful version of \highlightit{Command}
-                                %~ letting the user execute operation over various objects of different classes\\
-        %~ \hline
-        %~ \highlightbf{Composite} & \highlight{Visitor} can execute an operation over an entire \highlight{Composite} tree \\
-        %~ \hline      
-        %~ \highlightbf{Iterator} &  along with \highlightit{Visitor} let users traverse a complex data structure and execute 
-                                  %~ some operation over its elements, even if belonging to different classes\\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
+\par\noindent\textbf{Interview tip:} open for new operations (new visitors), 
+closed for new element types --- adding a class forces every visitor to update.
+
 
 \newpage 
 %%% STRUCTURAL PATTERNS %%%
 \section{Structural Patterns}
 %%% %%% ADAPTER %%% %%% %%%
 \subsection{Adapter}
+An \highlightit{Adapter} sits between a client that expects one interface and a
+class that already works but speaks a different API.
+It implements the target protocol and translates each call into the adaptee's
+terms, so neither side needs to change.
+Use it when you must reuse a third-party or legacy type without rewriting callers.
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \multirow{1}{*}{\textbf{What for}} & allowing \highlightit{objects with 
+        \multirow{1}{*}{\textbf{What for}} & allowing \highlightit{objects with
         incompatible interfaces to collaborate}\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & an \highlightit{adapter} 
-                                           implements the interface 
-                                           clients expect and 
-                                           \highlightit{translates} 
+        \multirow{1}{*}{\textbf{How to}} & an \highlightit{adapter}
+                                           implements the interface
+                                           clients expect and
+                                           \highlightit{translates}
                                            calls to the adaptee's API; \\
-                                         & clients depend only on the 
-                                           target interface, so the 
-                                           foreign class can be reused 
+                                         & clients depend only on the
+                                           target interface, so the
+                                           foreign class can be reused
                                            without changing either side\\
         \hline
-        \textbf{When needed} & $\bullet$ a class' interface is 
-                               incompatible with the rest of the 
+        \textbf{When needed} & $\bullet$ a class's interface is
+                               incompatible with the rest of the
                                code\\
-                             & $\bullet$ reusing sublcasses that lack 
-                                         some common functionalities 
-                                         that can't be added in the 
-                                         superclass\\
+                             & $\bullet$ reusing subclasses that lack
+                                         some common functionality
+                                         that \\
+                             & \quad cannot be added in the superclass\\
         \hline
     \end{tabularx}
 \end{table}
-%~ \textbf{Adapter} allows the collaboration among objects with incompatible interfaces.
-%~ This is achieved through the implementation of an Adapter which make 
-%~ one interface understandable by an object of a different class.
-%~ The adatper gets an interface compatible with one existing object.
-%~ Through this interface, the objects can call the adapter's methods.
-%~ Upon receiving a call, the adapter passes the request to the second object,
-%~ in a format and order it could understand.
-%~ An Adapter could work in both directions.
-
-%~ Since the Client interacts with the adapter through the client interface, 
-%~ it doesn't get coupled. Therefore, different adapters can be added to the program 
-%~ without breaking any existing code.
 
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
@@ -1740,131 +1409,90 @@ objects that are easier to implement, change, test, and reuse.
     \begin{center}
     \begingroup
     \begin{figure}[H]
-    \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/adapter_design_pattern.tex}      
+    \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/adapter_design_pattern.tex}
     \end{figure}
     \endgroup
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \highlightbf{Client} & the business logic of the program\\
         \hline
-        \highlightbf{ClientInterface} & the protocol for a class to 
-    be able to collaborate with it.\\
+        \highlightbf{ClientInterface} & the protocol a class must follow
+    to collaborate with the client\\
         \hline
-        \highlightbf{Service} & usually a 3rd party or legacy software 
-    with an interface incopatible with the Client.\\
+        \highlightbf{Service} & usually a third-party or legacy class
+    with an interface incompatible with the Client\\
         \hline
-        \highlightbf{Adapter} & a class able to work with both the client and 
-    the service. It receives calls from the client and translates 
-    into calls to a wrapped service object.\\
+        \highlightbf{Adapter} & a class that works with both the client and
+    the service; it receives calls from the client and translates them
+    into calls on a wrapped service object\\
         \hline
-    \end{tabularx}    
-    \caption{Strategy Class Diagram.}
-    \label{tab:strategy-class-diagram}     
-    \end{center}      
+    \end{tabularx}
+    \caption{Adapter Class Diagram.}
+    \label{tab:adapter-class-diagram}
+    \end{center}
 \end{table}
 
+\newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
         \textbf{Pros} & $\bullet$ \highlightit{Single Responsibility Principle}\\
-                      & $\bullet$ \highlightit{Open/Close Principle}\\
+                      & $\bullet$ \highlightit{Open/Closed Principle}\\
         \hline
-        \textbf{Cons} & $\bullet$ sometimes it's simpler to change 
-                                  the service class in order to match 
-                                  than adding a new set of interfaces\\
-        \hline      
+        \textbf{Cons} & $\bullet$ sometimes it is simpler to change
+                                  the service class to match than to
+                                  add a \\
+                      & \quad new set of interfaces\\
+        \hline
     \end{tabularx}
 \end{table}
 
-%~ \newpage
-%~ \toclessnparagraph{Relation with other Design Patterns}    
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Bridge} & usually designed in advance to develop 
-                               %~ independent parts of an application, 
-                               %~ whereas \highlightit{Adapter} makes
-                               %~ incompatible classes work together \\
-        %~ \hline
-        %~ \highlightbf{Decorator} & supports \highlightit{recursive} 
-                                  %~ composition and can let the interface 
-                                  %~ stay the same or be extended \\
-        %~ \hline      
-        %~ \highlightbf{Proxy} & differently from \highlightit{Adapter} 
-                              %~ makes users access another object using 
-                              %~ the same interface\\
-        %~ \hline      
-        %~ \highlightbf{Facade} & defines a new interface for an already 
-                               %~ existing object and can work with an 
-                               %~ entire subsystem of objects\\
-        %~ \hline      
-        %~ \highlightbf{Bridge} & have similar structures, 
-                               %~ based on \highlightit{composition}, 
-                               %~ delegating work to  \\
-        %~ \highlightbf{State} &  other objects.  \\
-        %~ \highlightbf{Strategy} & They solve different problems though. \\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
+\par\noindent\textbf{Interview tip:} Adapter changes the interface;
+Proxy keeps the same interface and controls access; Decorator keeps the
+same interface and adds behavior.
 
 \newpage
 %%% %%% BRIDGE %%% %%% %%%
 \subsection{Bridge}
+\highlightit{Bridge} splits a fat hierarchy into two: an abstraction that
+clients talk to, and an implementation hierarchy that does the low-level work.
+Composition replaces a combinatorial inheritance tree, so each side can grow
+on its own.
+Swap the implementation at runtime when the platform or backend must change
+without rewriting the abstraction.
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \multirow{1}{*}{\textbf{What for}} & \highlightit{splitting a large class 
-                                             or a set of related classes 
-                                             into two hierarchies}, an 
-                                             abstracion and an implementation, 
+        \multirow{1}{*}{\textbf{What for}} & \highlightit{splitting a large class
+                                             or a set of related classes
+                                             into two hierarchies}, an
+                                             abstraction and an implementation,
                                              developed independently from each other\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & the \highlightit{abstraction} 
-                                           hierarchy holds a reference 
-                                           to an 
-                                           \highlightit{implementation} 
-                                           interface and delegates 
+        \multirow{1}{*}{\textbf{How to}} & the \highlightit{abstraction}
+                                           hierarchy holds a reference
+                                           to an
+                                           \highlightit{implementation}
+                                           interface and delegates
                                            low-level work to it; \\
-                                         & both hierarchies can evolve 
-                                           independently, and the 
-                                           implementation can be swapped 
+                                         & both hierarchies can evolve
+                                           independently, and the
+                                           implementation can be swapped
                                            at runtime\\
         \hline
-        \textbf{When needed} & $\bullet$ dividing and organizing a 
-                                         monolithic class that has 
-                                         several variants of some 
-                                         functionality \\
-                             & $\bullet$ extending a class in several 
+        \textbf{When needed} & $\bullet$ dividing and organizing a
+                                         monolithic class that has
+                                         several variants \\
+                             & \quad of some functionality \\
+                             & $\bullet$ extending a class in several
                                          independent dimensions\\
-                             & $\bullet$ switching implementation at 
+                             & $\bullet$ switching implementation at
                                          runtime is a requirement\\
         \hline
     \end{tabularx}
 \end{table}
-%~ \textbf{Bridge} splits a large class or a set of closely related classes 
-%~ into two separate hierarchies which can be developed independently of each other.
-%~ This is achieved by switching from inheritance to object composition.
-%~ One of the dimensions is extracted into a separate class hierarchy, 
-%~ therefore the original classes will reference an object of the new hierarchy
-%~ instead of having all its states and behaviors coded within the class.
-%~ The original class implement a reference field for each "extracted-dimension" classes 
-%~ This extraction makes a class able to delegate any 'dimension-related' work
-%~ to the linked 'dimension-related' object.
-
-%~ \begin{itemize}
-    %~ \item \textbf{Abstraction} provides high-level interface, and relies 
-    %~ on the Implementation objects to perform the actual work.
-    %~ \item \textbf{Implementation} is the interface shared by all the 
-    %~ concrete implementations. Usually the abstraction declares some 
-    %~ complex behavior that relies on primitive operations declared 
-    %~ by the implementation.
-    %~ \item \textbf{Concrete Implementations1} implement specific code.
-    %~ \item \textbf{Refined Abstraction} are optional and might help 
-    %~ providing variants of control logic.
-    %~ \item \textbf{Client} interacts with the abstraction, after linking 
-    %~ it with one of the implementation objects.
-%~ \end{itemize}
 
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
@@ -1877,27 +1505,25 @@ objects that are easier to implement, change, test, and reuse.
     \endgroup
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \highlightbf{Abstraction} & high-level interface, and relies 
-    on the Implementation objects to perform the actual work.\\
+        \highlightbf{Abstraction} & high-level interface; relies
+    on Implementation objects for the actual work\\
         \hline
-        \highlightbf{RefinedAbstraction} & optional and might help 
-    providing variants of control logic.\\
+        \highlightbf{RefinedAbstraction} & optional variants of control logic\\
         \hline
-        \highlightbf{Implementation} & interface shared by all the 
-    concrete implementations. Usually the abstraction declares some 
-    complex behavior that relies on primitive operations declared 
-    by the implementation.\\
+        \highlightbf{Implementation} & interface shared by all concrete
+    implementations; the abstraction builds complex behavior on these
+    primitives\\
         \hline
-        \highlightbf{ImplementationA}, &  implement specific code\\
+        \highlightbf{ImplementationA}, & implement specific code\\
         \highlightbf{ImplementationB} & \\
         \hline
-        \highlightbf{Client} & interacts with the abstraction, after linking 
-    it with one of the implementation objects.\\
+        \highlightbf{Client} & interacts with the abstraction after linking
+    it with one of the implementation objects\\
         \hline
-    \end{tabularx}    
+    \end{tabularx}
     \caption{Bridge Class Diagram.}
-    \label{tab:bridge-class-diagram}     
-    \end{center}     
+    \label{tab:bridge-class-diagram}
+    \end{center}
 \end{table}
 
 \newpage
@@ -1905,626 +1531,534 @@ objects that are easier to implement, change, test, and reuse.
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & $\bullet$ platform-independent classes are easier to 
+        \textbf{Pros} & $\bullet$ platform-independent classes are easier to
                          create\\
-                      & $\bullet$ client isn't exposed to platform details 
-                         and work with high-level abstractions\\
-                      & $\bullet$ \highlightbf{Open/Close Principle} \\
+                      & $\bullet$ clients are not exposed to platform details
+                         and work with high-level \\
+                      & \quad abstractions\\
+                      & $\bullet$ \highlightbf{Open/Closed Principle} \\
                       & $\bullet$ \highlightbf{Single Responsibility Principle} \\
         \hline
-        \textbf{Cons} & an highly cohesive class might require code 
-                        getting more complicated   \\
-        \hline      
+        \textbf{Cons} & applying Bridge to a highly cohesive class can make
+                        the code more complicated\\
+        \hline
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}    
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Adapter} & is usually implemented for and 
-                                %~ already existing app, in order to 
-                                %~ make incompatible classes work together \\
-        %~ \hline
-        %~ \highlightbf{Bridge} & have similar structures, 
-                               %~ based on \highlightit{composition}, 
-                               %~ delegating work \\
-        %~ \highlightbf{State} &  to other objects.  \\
-        %~ \highlightbf{Strategy} & They solve different problems though. \\            \hline
-        %~ \highlightbf{Abstract Factory} & can be used along with 
-                                         %~ \highlightit{Bridge}, 
-                                         %~ encapsulating the abstraction
-                                         %~ the latter may be bounded 
-                                         %~ to work with.  \\
-        %~ \hline
-        %~ \highlightbf{Builder} & can be combined with \highlightit{Builder}, 
-                                %~ with the \highlightit{director} class 
-                                %~ playing the role of the abstraction 
-                                %~ and different builder acting as 
-                                %~ implementations \\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
-    
+\par\noindent\textbf{Interview tip:} Bridge is planned up front to separate
+orthogonal axes; Adapter is usually bolted on later to make existing types
+cooperate.
+
 \newpage
 %%% %%% COMPOSITE %%% %%% %%%
 \subsection{Composite}
+\highlightit{Composite} builds tree structures where leaves and containers
+share one component interface.
+Clients call the same operations on a single node or on a whole subtree;
+composites forward work to children.
+Reach for it when the domain is naturally hierarchical (UI widgets, file
+systems, expression trees).
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \multirow{1}{*}{\textbf{What for}} & \highlightit{composing objects 
-                                             into tree structures} in order 
-                                             to work with these structures 
-                                             as if they were individual 
+        \multirow{1}{*}{\textbf{What for}} & \highlightit{composing objects
+                                             into tree structures} in order
+                                             to work with these structures
+                                             as if they were individual
                                              objects\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & both leaf and composite 
-                                           objects implement the same 
-                                           component interface, the 
-                                           former working as a single 
-                                           entity and the latter 
-                                           possibly containing 
-                                           sub-elements, routines to 
-                                           add and remove them, and 
-                                           a routine to delegate work
-                                           to them \\
+        \multirow{1}{*}{\textbf{How to}} & both leaf and composite
+                                           objects implement the same
+                                           component interface; leaves
+                                           act as single entities while
+                                           composites hold children,
+                                           add/remove them, and delegate
+                                           work downward\\
         \hline
-        \textbf{When needed} & $\bullet$ implementing a tree-like 
-                                         data structures \\
-                             & $\bullet$ clients need to interact 
-                                         uniformly with simple and 
+        \textbf{When needed} & $\bullet$ implementing a tree-like
+                                         data structure \\
+                             & $\bullet$ clients need to interact
+                                         uniformly with simple and
                                          complex objects \\
         \hline
     \end{tabularx}
 \end{table}
-%~ \textbf{Composite} after enabling composition of objects into tree structures, 
-%~ this pattern let clients work with these structures as they were individual objects.
-%~ This is achieved extending the class
 
-
-
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
     \begin{center}
     \begingroup
     \begin{figure}[H]
-        \include{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/composite_design_pattern.tex}       
+        \include{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/composite_design_pattern.tex}
     \end{figure}
     \endgroup
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \highlightbf{Component} & interface contains the common operations 
-    for both simple and complex elements of the tree.\\
+        \highlightbf{Component} & interface with the common operations
+    for both simple and complex elements of the tree\\
         \hline
-        \highlightbf{Leaf} & a basic element of a tree and doesn't contain 
-    any other sub-element. Usually is the part of the system which ends up 
-    doing the work.\\
+        \highlightbf{Leaf} & a basic element of a tree that contains no
+    children; usually the part that ends up doing the real work\\
         \hline
-        \highlightbf{Composite} & an element that has sub-elements, 
-    which means leafs and containers as well. It interacts with sub-elements 
-    through their interfaces.\\
+        \highlightbf{Composite} & an element that has children (leaves or
+    other composites) and talks to them through the component interface\\
         \hline
-        \highlightbf{Client} & can work with both simple and complex elements 
-    through the component interface.\\
-        \hline    
+        \highlightbf{Client} & works with both simple and complex elements
+    through the component interface\\
+        \hline
     \end{tabularx}
     \caption{Composite Class Diagram.}
-    \label{tab:composite-class-diagram} 
-    \end{center}     
-\end{table}
-
-\newpage
-\toclessnparagraph{Pros and Cons}
-\begin{table}[h!t]
-    \begin{tabularx}{\textwidth}{|l|X|}
-        \hline
-        \textbf{Pros} & $\bullet$ polymorphism and recursion help 
-                        work easier with complex structures \\
-                      & $\bullet$ \highlightbf{Open/Close Principle} \\
-        \hline
-        \textbf{Cons} & a common interface can be difficult when 
-                        functionalities of single elements differe 
-                        too much from the ones of composite ones \\
-        \hline      
-    \end{tabularx}
-\end{table}
-%~ \newpage
-%~ \toclessnparagraph{Relation with other Design Patterns}    
-%~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Builder} & can be used to construct a complex composite 
-                           %~ object step to step \\
-        %~ \hline
-        %~ \highlightbf{Chain of Responsibility} & can be used along with 
-        %~ composite leaf nodes to build a tree of responsibilities \\
-        %~ \hline      
-        %~ \highlightbf{Iterator}s & can be used to traverse composite trees \\
-        %~ \hline      
-        %~ \highlightbf{Visitor} & can be used to execute an operation over an 
-                           %~ entire composite tree \\
-        %~ \hline      
-        %~ \highlightbf{Flyweight}s & can be used to implement shared leaf nodes \\
-        %~ \hline      
-        %~ \highlightbf{Decorator} & is similar to \textit{Composite} with 
-                             %~ only one child component, but it adds 
-                             %~ functionalities to the wrapped object\\
-        %~ \hline      
-        %~ \highlightbf{Prototype} & can help designs with heavy use of 
-                             %~ \textit{Composite} and \textit{Decorator}, 
-                             %~ making possible to clone complex structures 
-                             %~ instead of rebuilding from scratch  \\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
-
-    
-\newpage
-%%% %%% DECORATOR %%% %%% %%%
-\subsection{Decorator}
-\begin{table}[h!t]
-    \begin{tabularx}{\textwidth}{|l|X|}
-        \hline
-        \multirow{1}{*}{\textbf{What for}} & \highlightit{attach new behaviors to 
-                                             objects}, placing them in special 
-                                             wrappers\\
-        \hline
-        \multirow{1}{*}{\textbf{How to}} & objects are placed inside 
-                                           special wrapper objects 
-                                           that contain the behaviors\\
-        \hline
-        \textbf{When needed} & $\bullet$ extra behavior needs to be assigned to 
-                               objects at runtime\\
-                             & $\bullet$ extending object's behavior when 
-                               inheritance can not be used \\
-                             & \quad (for example when a class is 
-                               declared as \texttt{final}\\
-        \hline
-    \end{tabularx}
-\end{table}
-%~ \textbf{Decorator} attaches new behaviors to objects by placing these objects inside
-%~ special wrapper objects containing the desired behavior.
-
-%~ Multiple layers of decorations are possible as long as the Client 
-%~ interacts with the object through the component.
-    
-\toclessnparagraph{Structure}
-\vspace{-1.5cm}
-\begin{table}[h!t]
-    \begin{center}
-    \begingroup
-    \begin{figure}[H]
-        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/decorator_design_pattern.tex}      
-    \end{figure}
-    \endgroup
-    \begin{tabularx}{\textwidth}{|l|X|}
-        \hline
-        \highlightbf{Component} & interface common for both wrapper and 
-    wrapped objects.\\
-        \hline
-        \highlightbf{ComponentA} &  class being wrapped and whose 
-    basic behavior can be altered by decorators.\\
-        \hline
-        \highlightbf{Decorator} & has a reference of the wrapped object, 
-    whose referenced type matches the Component interface. The Base Decorator 
-    delegates all operations to the wrapped object.\\
-        \hline
-        \highlightbf{DecoratorA}, & define behaviors which can be added 
-    to Components dynamically. \\
-        \highlightbf{DecoratorB} & The concrete decorator overrides the 
-                                   base behavior and execute the variant either before of after calling the 
-                                   parent method.\\
-        \hline
-    \end{tabularx}    
-    \caption{Decorator Class Diagram.}
-    \label{tab:decorator-class-diagram} 
+    \label{tab:composite-class-diagram}
     \end{center}
 \end{table}
 
-\newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & no other classes are needed to extend an 
-                        object's behavior\\
-                      & adding and removing responsibilities can be 
-                        achieved at runtime\\
-                      & ?? \\
+        \textbf{Pros} & $\bullet$ polymorphism and recursion make
+                        complex tree structures easier to use \\
+                      & $\bullet$ \highlightbf{Open/Closed Principle} \\
         \hline
-        \textbf{Cons} & $\bullet$ removing wrappers from the stack 
-                        can be difficult\\
-                      & $\bullet$ implementing a decorator in a way 
-                        its behavior does not depend on the order 
-                        in the stack can be hard\\
-                      & $\bullet$ code can get ugly when the layers 
-                        increase in number\\
-        \hline      
+        \textbf{Cons} & a common interface is hard when leaf and composite
+                        behaviors differ too much \\
+        \hline
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}    
- %~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Adapter} &  \\
-        %~ \hline
-        %~ \highlightbf{Chain of Responsibility} & has a similar class 
-                                                %~ structure that relies 
-                                                %~ on recursive composition, 
-                                                %~ but its handlers can 
-                                                %~ operate independently and 
-                                                %~ stop passing the request 
-                                                %~ at any point, whereas 
-                                                %~ \highlightit{Decorator} 
-                                                %~ is not allowed to break 
-                                                %~ the flow 
-                                                 %~ \\
-        %~ \hline
-        %~ \highlightbf{Composite} & relies on recursive composition \\
-        %~ \hline
-        %~ \highlightbf{Prototype} &  \\
-        %~ \hline
-        %~ \highlightbf{Startegy} & change the internal behaviour whereas 
-                                 %~ \highlightit{Decorator} changes the exterior \\
-        %~ \hline
-        %~ \highlightbf{Proxy} & similar structure based on composition, 
-                              %~ but different intent: \highlightit{Proxy} 
-                              %~ usually manages the life cycle of its 
-                              %~ service object, whereas the client 
-                              %~ controls the composition of 
-                              %~ \highlightit{Decorator} \\
-        %~ \hline
-    %~ \end{tabularx}
-%~ \end{table}
-       
+\par\noindent\textbf{Interview tip:} clients should not need
+\texttt{instanceof} checks --- if they do, the shared component interface
+is probably incomplete or over-stretched.
+
 \newpage
-%%% %%% FACADE %%% %%% %%%
-\subsection{Facade}
+%%% %%% DECORATOR %%% %%% %%%
+\subsection{Decorator}
+\highlightit{Decorator} wraps an object in another object of the same
+interface to add behavior without subclassing the core type.
+Wrappers nest: each layer delegates to the inner component and can run
+extra work before or after.
+Prefer it when inheritance is blocked (\texttt{final}) or when combinations
+of extras would explode a class hierarchy.
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \multirow{1}{*}{\textbf{What for}} & providing users with a 
-                                             \highlightit{simplified 
-                                             interface to any complex set of} \highlightit{classes}\\
+        \multirow{1}{*}{\textbf{What for}} & \highlightit{attach new behaviors to
+                                             objects} by placing them inside
+                                             special wrappers\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & a facade class provides a 
-                                           simple interface to a 
+        \multirow{1}{*}{\textbf{How to}} & objects are placed inside
+                                           special wrapper objects
+                                           that contain the new behaviors\\
+        \hline
+        \textbf{When needed} & $\bullet$ extra behavior needs to be assigned to
+                               objects at runtime\\
+                             & $\bullet$ extending an object's behavior when
+                               inheritance cannot be used \\
+                             & \quad (for example when a class is
+                               declared as \texttt{final})\\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\newpage
+\toclessnparagraph{Structure}
+\vspace{-1.5cm}
+\begin{table}[h!t]
+    \begin{center}
+    \begingroup
+    \begin{figure}[H]
+        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/decorator_design_pattern.tex}
+    \end{figure}
+    \endgroup
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \highlightbf{Component} & interface common to both wrapper and
+    wrapped objects\\
+        \hline
+        \highlightbf{ComponentA} & class being wrapped; its basic behavior
+    can be altered by decorators\\
+        \hline
+        \highlightbf{Decorator} & holds a reference to the wrapped object
+    typed as Component; the base decorator delegates all operations to it\\
+        \hline
+        \highlightbf{DecoratorA}, & define behaviors that can be added
+    to Components dynamically; \\
+        \highlightbf{DecoratorB} & each concrete decorator overrides the
+                                   base behavior and runs the variant
+                                   before or after calling the parent method\\
+        \hline
+    \end{tabularx}
+    \caption{Decorator Class Diagram.}
+    \label{tab:decorator-class-diagram}
+    \end{center}
+\end{table}
+
+\toclessnparagraph{Pros and Cons}
+\begin{table}[h!t]
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \textbf{Pros} & $\bullet$ no new subclasses of the core type are
+                        needed to extend behavior\\
+                      & $\bullet$ responsibilities can be added and removed
+                        at runtime\\
+                      & $\bullet$ \highlightit{Open/Closed Principle}\\
+        \hline
+        \textbf{Cons} & $\bullet$ removing a wrapper from the middle of
+                        the stack can be difficult\\
+                      & $\bullet$ making decorator behavior independent of
+                        stack order can be hard\\
+                      & $\bullet$ code gets messy as layers multiply\\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\par\noindent\textbf{Interview tip:} Decorator adds responsibilities;
+Proxy controls access or lifecycle --- both wrap, but the intent differs.
+
+\newpage
+%%% %%% FACADE %%% %%% %%%
+\subsection{Facade}
+A \highlightit{Facade} hides a busy subsystem behind one simple entry point.
+Clients call a few high-level methods; the facade knows which subsystem
+objects to orchestrate.
+Use it to layer a codebase or to stop every caller from wiring the same
+complex dance.
+
+\begin{table}[h!t]
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \multirow{1}{*}{\textbf{What for}} & providing users with a
+                                             \highlightit{simplified
+                                             interface to a complex set of
+                                             classes}\\
+        \hline
+        \multirow{1}{*}{\textbf{How to}} & a facade class provides a
+                                           simple interface to a
                                            complex subsystem\\
         \hline
-        \textbf{When needed} & $\bullet$ limited but straightforward 
-                               interface to a complex subsystem is \\ 
-                             & \quad needed\\
-                             & $\bullet$ subsystem needs to be 
+        \textbf{When needed} & $\bullet$ a limited but straightforward
+                               interface to a complex subsystem \\
+                             & \quad is needed\\
+                             & $\bullet$ a subsystem needs to be
                                structured into layers\\
         \hline
     \end{tabularx}
 \end{table}
-%~ \textbf{Facade} consists of a simplified interface to a complex subsystem 
-%~ which contains lots of moving parts. Functionalities provided by the Facade 
-%~ could be reduced to the subset the client is interested in.
-%~ \begin{itemize}
-    %~ \item \textbf{Facade} implements a convenient access to a particular 
-    %~ part of the subsystem's functionality and knows where to direct 
-    %~ the client's request and how to operate all the system's parts.
-    %~ \item \textbf{Additional Facade} might help reducing the tasks 
-    %~ managed by a single Facade. It can be used by the Client and 
-    %~ by the other facades as well.
-    %~ \item \textbf{Complex Subsystem} Subsytem class are various object 
-    %~ which need to be studied deeply in order to manage them properly. 
-    %~ These classes work together and are unaware of the Facade's existence.
-    %~ \item \textbf{Client} calls the subsystem classes through the Facade only. 
-%~ \end{itemize}
-    
+
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
     \begin{center}
     \begingroup
     \begin{figure}[H]
-        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/facade_design_pattern.tex}       
+        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/facade_design_pattern.tex}
     \end{figure}
     \endgroup
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \highlightbf{Facade} & implements a convenient access to a particular 
-    part of the subsystem's functionality and knows where to direct 
-    the client's request and how to operate all the system's parts.\\
+        \highlightbf{Facade} & convenient access to part of the subsystem;
+    knows where to direct client requests and how to drive the parts\\
         \hline
-        \highlightbf{AdditionalFacade} & might help reducing the tasks 
-    managed by a single Facade. It can be used by the Client and 
-    by the other facades as well.\\
+        \highlightbf{AdditionalFacade} & optional helper that shrinks what
+    one facade must manage; usable by clients and by other facades\\
         \hline
-        \highlightbf{SubSystemA}, \dots, & Subsytem class are various object 
-    which need to be studied \\
-        \highlightbf{SubSystemC} & deeply in order to manage them properly. 
-    These classes work together and are unaware of the Facade's existence.\\
+        \highlightbf{SubSystemA}, \dots, & subsystem classes that collaborate
+    and must be understood in \\ 
+        \highlightbf{SubSystemC} & depth; they are unaware of the facade's existence\\
         \hline
-        \highlightbf{Client} & calls the subsystem classes through the Facade only\\
+        \highlightbf{Client} & calls subsystem classes through the facade only\\
         \hline
-    \end{tabularx}    
+    \end{tabularx}
     \caption{Facade Class Diagram.}
-    \label{tab:facade-class-diagram} 
+    \label{tab:facade-class-diagram}
     \end{center}
 \end{table}
 
+\newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & client code is isolated from the complexity of a subsystem\\
+        \textbf{Pros} & client code is isolated from subsystem complexity\\
         \hline
-        \textbf{Cons} & desire to couple a class to a facade can 
-                        overwhelm the code base \\
-        \hline      
+        \textbf{Cons} & a facade can itself become a god object if too much
+                        of the system is funnelled through it\\
+        \hline
     \end{tabularx}
 \end{table}
 
-%~ \newpage
-%~ \toclessnparagraph{Relation with other Design Patterns}    
- %~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Adapter} & instead of defining a new interface as 
-                           %~ \textit{Facade} for several subsystems, 
-                           %~ it tries to adapt to an existing one \\
-        %~ \hline      
-        %~ \highlightbf{Abstract Factory} & alternative in case it is only 
-                                    %~ needed to hide the objects 
-                                    %~ creation details from the client 
-                                    %~ code \\
-        %~ \hline      
-        %~ \highlightbf{Flyweight} & instead of representing an entire 
-                             %~ subsystem, it makes it easier to make 
-                             %~ lots of little objects \\
-        %~ \hline      
-        %~ \highlightbf{Mediator} & it also tries to organize collaboration 
-                            %~ between lots of tightly coupled class \\
-        %~ \hline      
-        %~ \highlightbf{Singleton} & they are equivalent in case a single facade 
-                             %~ object is needed \\
-        %~ \hline      
-        %~ \highlightbf{Proxy} & it also buffers a complex entity and 
-                         %~ initializes it, but the interface is not the 
-                         %~ same as its service object\\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
-        
+\par\noindent\textbf{Interview tip:} Facade defines a \emph{new}, simpler
+API over many classes; Adapter reshapes one existing interface to another.
+
 \newpage
 %%% %%% FLYWEIGHT %%% %%% %%%
 \subsection{Flyweight}
+\highlightit{Flyweight} cuts memory by sharing the immutable, context-free
+part of many similar objects (intrinsic state) and keeping the rest
+(extrinsic) outside or passed in.
+A factory hands out cached flyweights so identical intrinsic data is not
+duplicated per instance.
+Worth it when you create huge numbers of near-identical objects (glyphs,
+particles, tiles).
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \multirow{1}{*}{\textbf{What for}} & reducing RAM consumption 
-                                             by \highlightit{sharing common parts 
-                                             of state} \highlightit{between multiple 
-                                             objects}, instead of creating 
-                                             copies of same data in 
+        \multirow{1}{*}{\textbf{What for}} & reducing RAM consumption
+                                             by \highlightit{sharing common parts
+                                             of state} \highlightit{between multiple
+                                             objects}, instead of keeping
+                                             copies of the same data in
                                              each object\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & after extracting the 
-                                           \highlightit{intrinsic state} 
-                                           (invariant, context-independent 
-                                           and shareable) an interface 
-                                           to the 
-                                           \highlightit{extrinsic state} 
-                                           (varinat, \\
-                                           & context-dependent and 
-                                           unshareable) is implemented\\
+        \multirow{1}{*}{\textbf{How to}} & extract the
+                                           \highlightit{intrinsic state}
+                                           (invariant, context-independent,
+                                           shareable) and pass the
+                                           \highlightit{extrinsic state}
+                                           (variant, context-dependent,
+                                           unshareable) into operations\\
         \hline
-        \textbf{When needed} & $\bullet$ dealing with large numbers 
-                               of objects with simple repeated \\ 
-                             & \quad elements that would use a large 
-                               amount of memory if \\
-                             & \quad individually stored\\
-                             %~ & $\bullet$  \\
+        \textbf{When needed} & $\bullet$ dealing with large numbers
+                               of objects with repeated elements that \\
+                             & \quad would use a large amount of memory if
+                               stored individually\\
         \hline
     \end{tabularx}
 \end{table}
 
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
     \begin{center}
     \begingroup
     \begin{figure}[H]
-        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/flyweight_design_pattern.tex}      
+        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/flyweight_design_pattern.tex}
     \end{figure}
     \endgroup
-%~ \begin{itemize}
-    %~ \item \textbf{Flyweight} contains the portion of the original object's state 
-    %~ that can be shared between multiple objects. The state stored 
-    %~ inside a flyweight is called \textbf{\textit{intrinsic}}; the state 
-    %~ passed to the flyweight's methods is called \textbf{\textit{extrinsic}}. 
-    %~ The same flyweight object can be used in many contexts.
-    %~ \item \textbf{Context} contains the extrinsic state, unique across all original 
-    %~ objects. It represents the full state when paired with one of the 
-    %~ flyweight objects.
-    %~ \item \textbf{Flyweight Factory} manages a pool of existing flyweights 
-    %~ freeing the Client from the task of creating. The Flyweight Factory 
-    %~ receives a call to retrieve a specific flyweight, looks over previously 
-    %~ created flyweight and either returns one of these or creates 
-    %~ a ne wone in case nothing matches the search criteria.
-    %~ \item \textbf{Client} sees the flyweight as a template object 
-    %~ which can be configured at runtime by passing some contextual 
-    %~ data into parameters of its methods.
-%~ \end{itemize}
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \highlightbf{ABCFlyweight} & \\
+        \highlightbf{ABCFlyweight} & interface for shareable flyweight
+                                         objects (intrinsic state + ops
+                                         that take extrinsic state)\\
         \hline
-        \highlightbf{SharedFlyweight} & \\
+        \highlightbf{SharedFlyweight} & concrete flyweight holding shared
+                                         intrinsic state\\
         \hline
-        \highlightbf{UnsharedFlyweight} & \\
+        \highlightbf{UnsharedFlyweight} & flyweight-shaped object that is
+                                         not shared (keeps unique state)\\
         \hline
-        \highlightbf{FlyweightFactory} & a class to generate and share 
-                                         a pool of flyweight objects \\
+        \highlightbf{FlyweightFactory} & creates and shares a pool of
+                                         flyweight objects\\
         \hline
-        \highlightbf{Client} & \\
+        \highlightbf{Client} & configures flyweights at use sites by
+                               passing extrinsic context into their methods\\
         \hline
-    \end{tabularx}    
+    \end{tabularx}
     \caption{Flyweight Class Diagram.}
-    \label{tab:flyweight-class-diagram} 
+    \label{tab:flyweight-class-diagram}
     \end{center}
 \end{table}
-\newpage
+
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & saving RAM while managing several similar 
-                        objects \\
+        \textbf{Pros} & saves RAM when managing many similar objects \\
         \hline
-        \textbf{Cons} & $\bullet$ CPU cycles might increase while 
-                        RAM consumption decreases \\
-                      & $\bullet$ code complexity and more overhead 
-                        to understand the separation of states \\
-        \hline      
+        \textbf{Cons} & $\bullet$ CPU cost can rise as RAM falls (lookup /
+                        extrinsic plumbing) \\
+                      & $\bullet$ code complexity rises around the
+                        intrinsic/extrinsic split \\
+        \hline
     \end{tabularx}
 \end{table}
 
-%~ \toclessnparagraph{Relation with other Design Patterns}
- %~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Composite} & shared leaf nodes of a \textit{Composite} 
-                             %~ tree can be implemented as \textit{Flyweight}s \\
-        %~ \hline
-        %~ \highlightbf{Facade} & make a single object that represent an 
-                          %~ entire subsystem  \\
-        %~ \hline      
-        %~ \highlightbf{Singleton} & it is resembled by a \textit{Flyweight} 
-                             %~ in case the reduction goes so well that 
-                             %~ the shared states of the objects can be 
-                             %~ wrapped in a single flyweight. \\
-                           %~ & The difference is that there should be 
-                             %~ one Singleton instance, whereas there 
-                             %~ can be multiple instances of flyweights; 
-                             %~ moreover the Singleton can mutate, 
-                             %~ flyweights can not.\\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}
-    
+\par\noindent\textbf{Interview tip:} say ``intrinsic vs extrinsic state''
+and that flyweights should be immutable so sharing is safe across contexts.
+
 \newpage
 %%% %%% PROXY %%% %%% %%%
 \subsection{Proxy}
+A \highlightit{Proxy} stands in for a real service object under the same
+interface, so clients need not know they are talking to a stand-in.
+It can delay creation, check access, cache results, or log calls before
+forwarding.
+Choose the proxy flavour that matches the need (virtual, protection,
+remote, smart reference).
+
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \multirow{1}{*}{\textbf{What for}} & \highlightit{substitute 
-                                             or placeholder for another 
-                                             object}, \highlightit{controlling 
-                                             access} to it giving the 
-                                             opportunity to make actions
-                                             both before and after 
+        \multirow{1}{*}{\textbf{What for}} & \highlightit{substitute
+                                             or placeholder for another
+                                             object}, \highlightit{controlling
+                                             access} and allowing actions
+                                             both before and after
                                              using the object\\
         \hline
-        \multirow{1}{*}{\textbf{How to}} & a proxy class with the same 
-                                           interace of the original object 
-                                           is responsible of accepting 
-                                           request and creating real 
-                                           service objects\\
+        \multirow{1}{*}{\textbf{How to}} & a proxy class with the same
+                                           interface as the original object
+                                           accepts requests and forwards
+                                           them to a real service object
+                                           (often managing its lifecycle)\\
         \hline
         \textbf{When needed} & $\bullet$ lazy initialization\\
                              & $\bullet$ access control\\
-                             & $\bullet$ local execution of a remote 
+                             & $\bullet$ local execution of a remote
                                service \\
-                             & $\bullet$ loggin the requests history 
+                             & $\bullet$ logging the request history
                                through a proxy\\
-                             & $\bullet$ caching requests result, 
-                               expecially useful when results are 
-                               large\\
-                             & $\bullet$ using references to keep 
-                               track of the clients using a service, 
-                               in order \\
-                             & \quad to dismiss it when not needed\\
+                             & $\bullet$ caching request results,
+                               especially when results are large\\
+                             & $\bullet$ reference counting so a service
+                               can be dismissed when no clients \\
+                             & \quad remain\\
         \hline
     \end{tabularx}
 \end{table}
 
+\newpage
 \toclessnparagraph{Structure}
 \vspace{-1.5cm}
 \begin{table}[h!t]
     \begin{center}
     \begingroup
     \begin{figure}[H]
-        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/proxy_design_pattern.tex}       
+        \input{./Chapters/DesignPatterns/TikzInclude/TikzStructuralPatterns/proxy_design_pattern.tex}
     \end{figure}
     \endgroup
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \highlightbf{ABCServiceInterface} & the interface of the service 
-                                            which requires a proxy, 
-                                            that must follow this 
-                                            interface to disguise 
-                                            itself as the service.\\
+        \highlightbf{ABCServiceInterface} & interface of the service that
+                                            needs a proxy; the proxy must
+                                            implement it to stand in for
+                                            the service\\
         \hline
-        \highlightbf{Service} & class providing some useful business logic.\\
+        \highlightbf{Service} & class providing useful business logic\\
         \hline
-        \highlightbf{Proxy} & class containing a reference to a service 
-                              object, to which it passes the request 
-                              after some preliminary processing and 
-                              of which it manages the lifecycle.\\
+        \highlightbf{Proxy} & holds a reference to a service object,
+                              may preprocess requests, then forwards them
+                              and may manage the service's lifecycle\\
         \hline
-        \highlightbf{Client} & works with both the service and the 
-                               proxy, if they follow the same 
-                               interface.\\
+        \highlightbf{Client} & works with service or proxy interchangeably
+                               when both follow the same interface\\
         \hline
-    \end{tabularx}    
+    \end{tabularx}
     \caption{Proxy Class Diagram.}
-    \label{tab:proxy-class-diagram} 
-    \end{center}    
+    \label{tab:proxy-class-diagram}
+    \end{center}
 \end{table}
 
-\newpage
 \toclessnparagraph{Pros and Cons}
 \begin{table}[h!t]
     \begin{tabularx}{\textwidth}{|l|X|}
         \hline
-        \textbf{Pros} & $\bullet$ control over service objects without 
-                        any knoledge about their internals \\
-                      & $\bullet$ lifecycle of the service object 
-                        does not require management by the client \\
-                      & $\bullet$ proxy can work while the service is 
-                        initializing making programs faster \\
-                      & $\bullet$ \highlightit{Open/Close Principle} 
-                        respected since new proxies can be added without \\
-                      & \quad changing the service or its clients\\
+        \textbf{Pros} & $\bullet$ control over service objects without
+                        knowledge of their internals \\
+                      & $\bullet$ the client need not manage the service
+                        object's lifecycle \\
+                      & $\bullet$ a proxy can answer while the service is
+                        still initializing \\
+                      & $\bullet$ \highlightit{Open/Closed Principle}:
+                        new proxies can be added without
+                        changing the service or its clients\\
         \hline
-        \textbf{Cons} & $\bullet$ new classes make code more complex \\
-                      & $\bullet$ responses from service can be delayed \\
-        \hline      
+        \textbf{Cons} & $\bullet$ extra classes increase complexity \\
+                      & $\bullet$ responses from the service can be delayed \\
+        \hline
     \end{tabularx}
 \end{table}
-    
-%~ \toclessnparagraph{Relation with other Design Patterns}
- %~ \begin{table}[h!t]
-    %~ \begin{tabularx}{\textwidth}{|l|X|}
-        %~ \hline
-        %~ \highlightbf{Adapter} & $\bullet$ similarly, it garantees access 
-                           %~ to an exising object; \\
-                         %~ & $\bullet$ differently, the interface is 
-                           %~ different than the adaptee one. \\
-        %~ \hline
-        %~ \highlightbf{Decorator} & $\bullet$ similarly to \textit{Proxy} it 
-                             %~ guarantees access to a different object;\\
-                           %~ & $\bullet$ differently, the object is accessed 
-                             %~ through an enhanced interface. \\
-        %~ \hline
-        %~ \highlightbf{Facade} & it is similar to \textit{Proxy} but the 
-                          %~ latter has the same interface of the object 
-                          %~ and it is interchangeable; \\
-        %~ \hline      
-        %~ \highlightbf{Decorator} & $\bullet$ it also relies on \highlightit{composition principle}, and 
-                             %~ one object delegates some work to another;  \\
-                           %~ & $\bullet$ differently, \textit{Proxy} usually 
-                             %~ manages the lifecycle of the object. \\
-        %~ \hline      
-    %~ \end{tabularx}
-%~ \end{table}   
-    
-    
+
+\par\noindent\textbf{Interview tip:} Proxy and Decorator look alike ---
+Proxy often owns lifecycle and access; Decorator is stacked by the client
+to add behavior.
+
+\newpage
+\section{Relations among Patterns (summary)}
+\label{sec:pattern-relations}
+Per-pattern ``relations'' tables are omitted on purpose. The compact summary below
+collects the usual interview contrasts.
+
+\begin{table}[H]
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\textwidth}{%
+        |>{\raggedright\arraybackslash}p{0.18\textwidth}%
+        |>{\raggedright\arraybackslash}p{0.19\textwidth}%
+        |X|}
+        \hline
+        \textbf{Pattern} & \textbf{Related to} & \textbf{How / difference} \\
+        \hline
+        Factory Method & Abstract Factory & AF is often a set of factory methods for a \emph{family} of products; FM creates one product hierarchy. \\
+        \hline
+        Factory Method & Template Method & A template step can be a factory method. \\
+        \hline
+        Factory Method & Iterator & Collection subclasses can return their own iterator types via FM. \\
+        \hline
+        Abstract Factory & Builder & AF returns products immediately as a family; Builder stages construction then releases. \\
+        \hline
+        Abstract Factory & Prototype,\newline Singleton &
+        Prototypes can supply AF variants; an AF is sometimes a Singleton. \\
+        \hline
+        Builder & Composite & Builder can assemble a composite step-by-step. \\
+        \hline
+        Prototype & Command,\newline Composite,\newline Decorator &
+        Clone history entries or complex trees instead of rebuilding. \\
+        \hline
+        Singleton & Facade,\newline Flyweight &
+        Facade is often one object (Singleton-like); Flyweight has \emph{many} shared immutable instances. \\
+        \hline
+    \end{tabularx}
+    \caption{Design Patterns --- relations and interview contrasts (1/2).}
+    \label{tab:pattern-relations-summary}
+\end{table}
+
+\newpage
+\begin{table}[H]
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\textwidth}{%
+        |>{\raggedright\arraybackslash}p{0.18\textwidth}%
+        |>{\raggedright\arraybackslash}p{0.19\textwidth}%
+        |X|}
+        \hline
+        \textbf{Pattern} & \textbf{Related to} & \textbf{How / difference} \\
+        \hline
+        Chain of Responsibility & Command,\newline Mediator,\newline Observer,\newline Decorator,\newline Composite &
+        CoR = dynamic receivers; Command = sender$\to$receiver; Mediator = hub; Observer = subscribe; Decorator shares recursive wrapping but extends behaviour; with Composite, responsibilities form a tree. \\
+        \hline
+        Command & Memento,\newline Strategy,\newline Visitor,\newline Prototype &
+        Memento helps undo; Strategy parameterizes behaviour without packaging a request/history; Visitor is a powerful multi-type Command; Prototype can clone commands into history. \\
+        \hline
+        Iterator & Composite,\newline Visitor,\newline Memento &
+        Traverse composites; Visitor walks and operates; Memento can snapshot cursor state. \\
+        \hline
+        Mediator & Facade,\newline Observer &
+        Facade organizes a subsystem API; Mediator centralizes peer chatter; Observer is one-to-many pub/sub (a Mediator may itself be implemented as a publisher). \\
+        \hline
+        Memento & Prototype & Prototype can be a simpler alternative when state has no external resource links. \\
+        \hline
+        State & Strategy,\newline Bridge &
+        All three compose and delegate; State often owns transitions; Strategy is usually chosen by the client; Bridge separates orthogonal abstraction/implementation axes. \\
+        \hline
+        Strategy & Template Method,\newline Decorator &
+        TM uses inheritance for steps; Strategy uses composition for the whole algorithm; Decorator changes the ``skin'', Strategy the ``guts''. \\
+        \hline
+        Adapter & Bridge,\newline Proxy,\newline Decorator &
+        Adapter makes interfaces match; Bridge plans split abstraction/impl; Proxy controls access; Decorator adds duties. \\
+        \hline
+        Composite & Decorator,\newline CoR &
+        Similar recursive structure; Decorator adds behaviour, CoR forwards a request along a chain. \\
+        \hline
+        Facade & Mediator & Facade simplifies access; Mediator routes communication without adding subsystem features. \\
+        \hline
+        Proxy & Decorator & Same interface wrapping; Proxy $=$ access/lifecycle; Decorator $=$ extra behaviour. \\
+        \hline
+    \end{tabularx}
+    \caption{Design Patterns --- relations and interview contrasts (2/2).}
+    \label{tab:pattern-relations-summary-cont}
+\end{table}

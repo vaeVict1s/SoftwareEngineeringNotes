@@ -5,42 +5,42 @@
         \begin{class}[text width=5cm]{Creator}{0,0}
             \attributett{...}
             \operationtt{+ someOperation()}
-            \operationtt{+ factoryMethod(): ABCProduct}
+            \operationtt{+ factoryMethod(): Product}
         \end{class}
         
         %~ \begin{class}[text width=5cm]{CreatorA}{-2.5,-5.5}
         \begin{class}[text width=5cm]{CreatorA}{0,-4}
             \inherit{Creator}
             \attributett{...}
-            \operationtt{+ factoryMethod(): ConcreteProduct}
+            \operationtt{+ factoryMethod(): ProductA}
         \end{class}
 
         %~ \begin{class}[text width=5cm]{CreatorB}{2.5,-5.5}
             %~ \inherit{Creator}
             %~ \attributett{...}
-            %~ \operationtt{+ createProduct(): ABCProduct}
+            %~ \operationtt{+ createProduct(): Product}
         %~ \end{class}
         
-        \begin{interface}[text width=3cm]{ABCProduct}{8,-0.2}
+        \begin{interface}[text width=3cm]{Product}{8,-0.2}
             \operationtt{+ doStuff()}
         \end{interface}
         
-        \begin{class}[text width=3.3cm]{ConcreteProduct}{8,-3.7}
-        \implement{ABCProduct}\end{class}
+        \begin{class}[text width=3.3cm]{ProductA}{8,-3.7}
+        \implement{Product}\end{class}
 
         %~ \begin{class}[text width=3.3cm]{ConcreteProductB}{10,-4}
-        %~ \implement{ABCProduct}\end{class}
+        %~ \implement{Product}\end{class}
         
         %~ \unidirectional
         
         \draw [ - >] ( Creator.east) ++ (0,-0.15) -- 
         %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
-        ( ABCProduct.west);
+        ( Product.west);
         \draw [ umlcd style dashed line , - >] ( CreatorA.east) ++ (0,-0.5) 
         -- ++(2,0) node [ above , sloped , black ]{$ < <$ create $ > >$} 
         -- ++(2,0) -|
         %~ node [ above , sloped , black ]{$ < <$ instantiate $ > >$} 
-        ( ConcreteProduct) ;
+        ( ProductA) ;
         %~ \aggregation{Abstraction}{}{}{Implementation}
     \end{tikzpicture}
 %~ \end{center}

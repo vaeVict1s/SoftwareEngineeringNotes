@@ -1,0 +1,40 @@
+\begin{center}
+    \tikzfig{state_design_pattern}
+\begin{tikzpicture}%[show background grid]
+        
+        \begin{class}[text width=4.5cm]{Context}{0,0}
+            \attributett{- state}
+            \operationtt{+ Context(initialState)}
+            \operationtt{+ changeState(state)}
+            \operationtt{+ doThis()}
+            \operationtt{+ doThat()}
+        \end{class}
+        
+        \begin{interface}[text width=3cm]{State}{8,0}
+            \operationtt{+ doThis()}
+            \operationtt{+ doThat()}
+        \end{interface}
+        \begin{class}[text width=4cm]{StateA}{5,-4}
+            \implement{State}
+            \attributett{- context}
+            \operationtt{+ setContext(context)}
+            \operationtt{+ doThis()}
+            \operationtt{+ doThat()}
+        \end{class}
+        \begin{class}[text width=4cm]{StateB}{11,-4}
+            \implement{State}
+            \attributett{- context}
+            \operationtt{+ setContext(context)}
+            \operationtt{+ doThis()}
+            \operationtt{+ doThat()}
+        \end{class}
+        
+        \begin{class}[text width=3cm]{Client}{0,-4.5}
+        \end{class}
+
+        \draw [ - >] ( Client) -- ( Context) ;                                   
+        \draw [ - >] ( Context) -- ( State) ;                                   
+
+        
+    \end{tikzpicture}
+\end{center}
